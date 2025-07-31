@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'Crear' if modo == 'crear' else 'Editar' }} Evento</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+    
+    <div class="container mt-5">
+        
+        <h2>{{ 'Crear nuevo evento' if modo == 'crear' else 'Editar evento' }}</h2>
+
+        <form action="{% if modo == 'crear' %}/admin/eventos/crear{% else %}/admin/eventos/{{ evento.id }}/editar{% endif %}" method="post">
+            <div class="mb-3">
+                <label class="form-label">Título</label>
+                <input type="text" name="titulo" class="form-control" required value="{{ evento.titulo if modo == 'editar' else '' }}">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Descripción</label>
+                <textarea name="descripcion" class="form-control" rows="3" required>{{ evento.descripcion if modo == 'editar' else '' }}</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Fecha</label>
+                <input type="date" name="fecha" class="form-control" required
+                       value="{{ evento.fecha if modo == 'editar' else '' }}">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Horario (opcional)</label>
+                <input type="text" name="horario" class="form-control"
+                       value="{{ evento.hora if modo == 'editar' else '' }}">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Ubicación (opcional)</label>
+                <input type="text" name="ubicacion" class="form-control"
+                       value="{{ evento.ubicacion if modo == 'editar' else '' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="direccion">Dirección (opcional)</label>
+                <input type="text" id="direccion" name="direccion"
+                       value="{{ evento.direccion if modo == 'editar' else '' }}">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Cupos</label>
+                <input type="number" name="cupos" class="form-control" min="1" required
+                       value="{{ evento.cupos_totales if modo == 'editar' else '' }}">
+            </div>
+
+            <div class="mb-3">
+                <label for="costo">Costo</label>
+                <input type="number" step="0.01" name="costo" id="costo" class="form-control"
+                value="{{ evento.costo if modo == 'editar' else '' }}">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Categoría</label>
+                <select name="categoria_id" class="form-select">
+                    <option value="">Sin categoría</option>
+                    {% for cat in categorias %}
+                    <option value="{{ cat.id }}" {% if modo == 'editar' and evento.categoria_id == cat.id %}selected{% endif %}>
+                        {{ cat.nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-success">
+                {% if modo == 'crear' %}Crear evento{% else %}Actualizar evento{% endif %}
+            </button>
+            <a href="/admin/eventos" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+    <script src="/static/script.js"></script>
+</body>
+</html>

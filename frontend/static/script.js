@@ -4,43 +4,60 @@ document.addEventListener('DOMContentLoaded', function() {
     const navMenu = document.getElementById('nav-menu');
     const body = document.body;
 
-    // Toggle del menú hamburguesa
-    hamburger.addEventListener('click', function() {
+    //Menu se despliega al ahcer click en hamburguesa
+    hamburger.addEventListener('click', function () {
         hamburger.classList.toggle('active');
         navMenu.classList.toggle('active');
         body.style.overflow = navMenu.classList.contains('active') ? 'hidden' : '';
     });
 
-    // Cerrar menú al hacer clic en un enlace
-    const navLinks = document.querySelectorAll('.nav-menu a');
-    navLinks.forEach(link => {
-        link.addEventListener('click', function() {
-            hamburger.classList.remove('active');
-            navMenu.classList.remove('active');
-            body.style.overflow = '';
+    
+
+    //Sub menu se despliega al hacer click en los menu
+    document.querySelectorAll('.has-submenu > a').forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault(); // Evita que salte al top
+      
+          const parentLi = this.parentElement;
+          parentLi.classList.toggle('open');      
+          
         });
     });
 
-    // Cerrar menú al hacer clic fuera de él (ahora desde la izquierda)
-    document.addEventListener('click', function(e) {
-        if (navMenu.classList.contains('active')) {
-            // Si el menú está abierto y se hace clic fuera de él
-            if (!hamburger.contains(e.target) && !navMenu.contains(e.target)) {
-                hamburger.classList.remove('active');
-                navMenu.classList.remove('active');
-                body.style.overflow = '';
-            }
+    // Cerrar menú si se hace clic fuera del nav-menu y hamburguesa
+    document.addEventListener('click', function (e) {
+        const isClickInsideMenu = navMenu.contains(e.target);
+        const isClickOnHamburger = hamburger.contains(e.target);
+
+        if (!isClickInsideMenu && !isClickOnHamburger && navMenu.classList.contains('active')) {
+            navMenu.classList.remove('active');
+            hamburger.classList.remove('active');
+            body.style.overflow = '';
+
+            // Cerrar todos los submenús abiertos
+            document.querySelectorAll('.has-submenu.open').forEach(item => {
+                item.classList.remove('open');
+            });
         }
+
+        
     });
 
-    // Cerrar menú con la tecla Escape
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && navMenu.classList.contains('active')) {
-            hamburger.classList.remove('active');
             navMenu.classList.remove('active');
+            hamburger.classList.remove('active');
             body.style.overflow = '';
         }
+
+        // Cerrar todos los submenús abiertos
+        document.querySelectorAll('.has-submenu.open').forEach(item => {
+            item.classList.remove('open');
+        });
     });
+    
+
+   
 
     // Scroll suave para enlaces internos
     const smoothScrollLinks = document.querySelectorAll('a[href^="#"]');
@@ -76,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
             header.style.boxShadow = 'none';
         }
         
-        lastScrollTop = scrollTop;
+        //lastScrollTop = scrollTop;
     });
 
     // Animaciones al hacer scroll
@@ -104,34 +121,39 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Validación del formulario de contacto
-    const contactForm = document.querySelector('.contact-form form');
+    const contactForm = document.querySelector('#contact-form');
     if (contactForm) {
         contactForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            // Validación básica
-            const name = this.querySelector('input[type="text"]').value;
-            const email = this.querySelector('input[type="email"]').value;
-            const service = this.querySelector('select').value;
-            
-            if (!name || !email || !service) {
-                alert('Por favor, completa todos los campos obligatorios.');
-                return;
-            }
-            
-            // Simular envío del formulario
+
+            const formData = new FormData(this);
             const submitBtn = this.querySelector('button[type="submit"]');
             const originalText = submitBtn.textContent;
-            
+
             submitBtn.textContent = 'Enviando...';
             submitBtn.disabled = true;
-            
-            setTimeout(() => {
-                alert('¡Gracias por tu mensaje! Te contactaremos pronto.');
-                this.reset();
+
+            fetch('/enviar-contacto', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('¡Gracias por tu mensaje! Te contactaremos pronto.');
+                    this.reset();
+                } else {
+                    alert('Hubo un problema al enviar tu mensaje.');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Error al enviar el mensaje.');
+            })
+            .finally(() => {
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
-            }, 2000);
+            });
         });
     }
 
@@ -155,25 +177,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 const currentDate = new Date();
                 const currentDay = currentDate.getDate();
                 const daysUntil = day - currentDay;
-                
-                if (daysUntil > 0) {
-                    // Agregar indicador de días restantes
-                    const countdownElement = card.querySelector('.countdown');
-                    if (!countdownElement) {
-                        const countdown = document.createElement('div');
-                        countdown.className = 'countdown';
-                        countdown.style.cssText = `
-                            position: absolute;
-                            top: 3px;
-                            right: 3px;
-                            background: #e74c3c;
-                            color: white;
-                            padding: 5px 10px;
-                            border-radius: 5px 15px 5px 20px;
-                            font-size: 0.8rem;
-                            font-weight: 600;
-                        `;
+    
+                // Crear solo si no existe
+                const existing = card.querySelector('.countdown');
+                if (!existing) {
+                    const countdown = document.createElement('div');
+                    countdown.className = 'countdown';
+                    countdown.style.cssText = `
+                        position: absolute;
+                        top: 3px;
+                        right: 3px;
+                        color: white;
+                        padding: 5px 10px;
+                        border-radius: 5px 15px 5px 20px;
+                        font-size: 0.8rem;
+                        font-weight: 600;
+                    `;
+    
+                    if (daysUntil === 0) {
+                        countdown.textContent = "Hoy";
+                        countdown.style.background = "#2bb38a"; // verde
+                    } else if (daysUntil === 1) {
+                        countdown.textContent = "1 día";
+                        countdown.style.background = "#e74c3c"; // rojo
+                    } else if (daysUntil > 1) {
                         countdown.textContent = `${daysUntil} días`;
+                        countdown.style.background = "#e74c3c"; // rojo
+                    }
+    
+                    if (daysUntil >= 0) {
                         card.style.position = 'relative';
                         card.appendChild(countdown);
                     }
@@ -285,3 +317,80 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 }); 
+
+// Chequeo de sesión iniciada
+async function checkUser() {
+    try {
+        const res = await fetch('/users/me', { credentials: 'include' });
+        if (res.ok) {
+            const user = await res.json();
+
+            // Desktop
+            document.getElementById('login-link').style.display = 'none';
+            document.getElementById('user-info').style.display = '';
+            document.getElementById('user-email').textContent = user.email;
+
+            // Mobile
+            document.getElementById('user-icon').style.display = 'none';
+            document.getElementById('login-link-mobile').style.display = 'none';
+            document.getElementById('user-email-mobile').textContent = user.email;
+
+            const adminLink = document.getElementById('admin-link');
+            const adminLinkMobile = document.getElementById('admin-link-mobile');
+            if (user.is_superuser) {
+                if (adminLink) adminLink.style.display = '';
+                if (adminLinkMobile) adminLinkMobile.style.display = 'block';
+            }
+
+            // Logout mobile
+            const logoutBtnMobile = document.getElementById('logout-btn-mobile');
+            if (logoutBtnMobile) {
+                logoutBtnMobile.addEventListener('click', async function () {
+                    await fetch('/auth/jwt/logout', { method: 'POST', credentials: 'include' });
+                    window.location.reload();
+                });
+            }
+
+        } else {
+            document.getElementById('login-link').style.display = '';
+            document.getElementById('user-info').style.display = 'none';
+            document.getElementById('user-icon').style.display = 'none';
+            document.getElementById('logout-btn-mobile').style.display = 'none';
+        }
+    } catch (e) {
+        document.getElementById('login-link').style.display = '';
+        document.getElementById('user-info').style.display = 'none';
+        document.getElementById('user-icon').style.display = 'none';
+    }
+}
+
+// Logout para desktop
+document.addEventListener('DOMContentLoaded', function () {
+    checkUser();
+
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async function () {
+            await fetch('/auth/jwt/logout', { method: 'POST', credentials: 'include' });
+            window.location.reload();
+        });
+    }
+
+    // Toggle menú móvil al tocar el ícono de perfil
+    const userIcon = document.getElementById("user-icon");
+    const userDropdown = document.getElementById("user-dropdown");
+
+    if (userIcon && userDropdown) {
+        userIcon.addEventListener("click", function (e) {
+            e.stopPropagation(); // evita cerrar inmediatamente
+            userDropdown.style.display = userDropdown.style.display === "block" ? "none" : "block";
+        });
+
+        // Cerrar si se hace clic fuera
+        document.addEventListener("click", function (e) {
+            if (!userIcon.contains(e.target)) {
+                userDropdown.style.display = "none";
+            }
+        });
+    }
+});

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <title>Panel de Administración</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+</head>
+<body>
+    {% include "partials/header.html" %}
+
+    <section>
+
+        <div class="container text-center mt-5">
+            <h1 class="mb-4">Panel de administración</h1>
+            <div class="d-grid gap-3 col-6 mx-auto">
+                <a href="/admin/eventos" class="btn btn-primary btn-lg">Eventos</a>
+                <button class="btn btn-secondary btn-lg" disabled>Tienda (próximamente)</button>
+                <a href="/" class="btn btn-primary btn-lg">Página principal</a>
+            </div>
+        </div>
+
+    </section>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

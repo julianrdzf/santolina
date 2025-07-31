@@ -1,0 +1,64 @@
+<!-- templates/registro.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Usuario</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+    <div class="login-container">
+        <div class="login-container-img">
+            <img class="login-img" src="/static/img/logo.png" alt="Santolina">
+        </div>
+        <br> 
+        <h2>Registro de usuario</h2>
+        <form class="login-form" action="/registro" method="post">
+            <div class="form-group">
+                <label for="nombre">Nombre completo:</label>
+                <input type="text" id="nombre" name="nombre" required>
+                
+            </div>
+            <div class="form-group">
+                <label for="email">Correo electrónico:</label>
+                <input type="email" id="email" name="email" required>
+                
+            </div>
+            <div class="form-group">
+                <label for="celular">Celular (opcional):</label>
+                <input type="text" id="celular" name="celular">
+                
+            </div>
+            <div class="form-group">
+                <label for="password">Contraseña:</label>
+                <input type="password" id="password" name="password" required>
+                
+                <label for="confirm_password">Repetir contraseña:</label>
+                <input type="password" id="confirm_password" name="confirm_password" required>
+            </div>            
+
+            <button class="submit-btn" type="submit">Registrarse</button>
+        </form>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.querySelector('.login-form');
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    const password = document.getElementById('password').value;
+                    const confirm = document.getElementById('confirm_password').value;
+                    if (password !== confirm) {
+                        e.preventDefault();
+                        alert("Las contraseñas no coinciden.");
+                    }
+                });
+            }
+        });
+        </script>
+    <script src="/static/script.js"></script>
+</body>
+</html>
