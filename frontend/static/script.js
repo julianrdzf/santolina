@@ -170,46 +170,53 @@ document.addEventListener('DOMContentLoaded', function() {
     // Contador de eventos (ejemplo)
     function updateEventCountdown() {
         const eventCards = document.querySelectorAll('.event-card');
+        const currentDate = new Date(); // Obtener la fecha actual una sola vez
+    
         eventCards.forEach(card => {
-            const dateElement = card.querySelector('.event-date .day');
-            if (dateElement) {
-                const day = parseInt(dateElement.textContent);
-                const currentDate = new Date();
-                const currentDay = currentDate.getDate();
-                const daysUntil = day - currentDay;
+            // Obtener la fecha completa del evento desde el atributo de datos
+            const eventDateString = card.dataset.fechaEvento;
+            if (!eventDateString) {
+                return; // Si no hay fecha, saltar al siguiente evento
+            }
     
-                // Crear solo si no existe
-                const existing = card.querySelector('.countdown');
-                if (!existing) {
-                    const countdown = document.createElement('div');
-                    countdown.className = 'countdown';
-                    countdown.style.cssText = `
-                        position: absolute;
-                        top: 3px;
-                        right: 3px;
-                        color: white;
-                        padding: 5px 10px;
-                        border-radius: 5px 15px 5px 20px;
-                        font-size: 0.8rem;
-                        font-weight: 600;
-                    `;
+            // Crear un objeto Date para la fecha del evento
+            const eventDate = new Date(eventDateString);
     
-                    if (daysUntil === 0) {
-                        countdown.textContent = "Hoy";
-                        countdown.style.background = "#2bb38a"; // verde
-                    } else if (daysUntil === 1) {
-                        countdown.textContent = "1 día";
-                        countdown.style.background = "#e74c3c"; // rojo
-                    } else if (daysUntil > 1) {
-                        countdown.textContent = `${daysUntil} días`;
-                        countdown.style.background = "#e74c3c"; // rojo
-                    }
+            // Calcular la diferencia en milisegundos y luego convertir a días
+            const timeDifference = eventDate.getTime() - currentDate.getTime();
+            const daysUntil = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
     
-                    if (daysUntil >= 0) {
-                        card.style.position = 'relative';
-                        card.appendChild(countdown);
-                    }
+            // ... el resto de tu lógica para mostrar el contador sigue igual ...
+    
+            // Crear solo si no existe
+            const existing = card.querySelector('.countdown');
+            if (!existing && daysUntil >= 0) { // Solo si falta 0 o más días
+                const countdown = document.createElement('div');
+                countdown.className = 'countdown';
+                countdown.style.cssText = `
+                    position: absolute;
+                    top: 3px;
+                    right: 3px;
+                    color: white;
+                    padding: 5px 10px;
+                    border-radius: 5px 15px 5px 20px;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                `;
+    
+                if (daysUntil === 0) {
+                    countdown.textContent = "Hoy";
+                    countdown.style.background = "#2bb38a"; // verde
+                } else if (daysUntil === 1) {
+                    countdown.textContent = "1 día";
+                    countdown.style.background = "#e74c3c"; // rojo
+                } else if (daysUntil > 1) {
+                    countdown.textContent = `${daysUntil} días`;
+                    countdown.style.background = "#e74c3c"; // rojo
                 }
+                
+                card.style.position = 'relative';
+                card.appendChild(countdown);
             }
         });
     }

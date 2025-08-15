@@ -16,6 +16,8 @@ from fastapi_users.router.common import ErrorCode
 from fastapi_users import exceptions
 from app.routers.auth import auth_backend, fastapi_users, cookie_transport
 
+from fastapi_users.exceptions import UserNotExists
+
 
 templates = Jinja2Templates(directory="frontend/templates")
 router = APIRouter()
@@ -63,3 +65,47 @@ async def registrar_usuario(
 @router.get("/login")
 async def login_form(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
+
+@router.get("/forgot-password")
+async def forgot_password_form(request: Request):
+    return templates.TemplateResponse("forgot_password.html", {"request": request})
+
+@router.post("/forgot-password")
+async def forgot_password_submit(
+    request: Request,
+    email: str = Form(...),
+    user_manager = Depends(get_user_manager),
+):
+    try:
+        user = await user_manager.get_by_email(email)  # <- obtiene el usuario
+    except UserNotExists:
+        # Opcional: no revelar si el email existe
+        # devuelve siempre la misma respuesta
+        return templates.TemplateResponse(
+            "forgot_password_enviado.html", {"request": request, "email": email}
+        )
+
+    # Genera el token y dispara on_after_forgot_password
+    await user_manager.forgot_password(user, request=request)
+
+    return templates.TemplateResponse(
+        "forgot_password_enviado.html", {"request": request, "email": email}
+    )
+
+@router.get("/reset-password")
+async def reset_password_form(request: Request, token: str):
+    return templates.TemplateResponse("reset_password.html", {"request": request, "token": token})
+
+@router.post("/reset-password")
+async def reset_password_submit(
+    request: Request,
+    token: str = Form(...),
+    password: str = Form(...),
+    confirm_password: str = Form(...),
+    user_manager = Depends(get_user_manager)
+):
+    if password != confirm_password:
+        return HTMLResponse("<h3>Las contraseñas no coinciden</h3>", status_code=400)
+    await user_manager.reset_password(token, password, request)
+    # Podés loguearlo automáticamente o redirigir al login
+    return RedirectResponse(url="/login", status_code=303)

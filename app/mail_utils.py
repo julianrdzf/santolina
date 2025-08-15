@@ -97,3 +97,20 @@ async def enviar_mail_contacto(nombre, email, telefono, servicio, mensaje):
 
     fm = FastMail(conf)  # conf debe ser tu configuración global (igual que para reservas)
     await fm.send_message(message)
+
+
+# Enviar mail para reset de password
+async def enviar_mail_password_reset(destinatario: str, reset_link: str):
+    message = MessageSchema(
+        subject="Restablecer contraseña",
+        recipients=[destinatario],
+        body=f"""
+        <h3>Restablecer tu contraseña</h3>
+        <p>Hacé clic en el siguiente enlace para crear una nueva contraseña:</p>
+        <p><a href="{reset_link}">{reset_link}</a></p>
+        <p>Si no solicitaste esto, podés ignorar este mensaje.</p>
+        """,
+        subtype="html",
+    )
+    fm = FastMail(conf)
+    await fm.send_message(message)

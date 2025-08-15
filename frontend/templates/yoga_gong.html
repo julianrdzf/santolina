@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <title>Santolina - Yoga Gong</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+
+    <!-- Sección de Presentación -->
+    <section id="presentacion-yoga" class="container-yoga-gong">
+        <div class="container-yoga-content">
+            <h2 class="yoga-title">Yoga y baño de Gong</h2>
+            <p class="yoga-subtitle">Encuentros especiales que combinan la práctica del yoga con el 
+                poder transformador del sonido. Comenzamos con una sesión de Hatha Yoga suave para 
+                preparar el cuerpo y la mente, seguida por un Baño de Gong: una inmersión sonora que te 
+                permite entrar en un estado profundo de relajación, sanación y expansión interior.</p>
+                      
+        </div>
+    </section>
+
+    <section id="clases-yoga" class="container-clases-yoga">
+        <div class="container">
+            <h2 class="section-title">Experiencias de Yoga y Baño de Gong</h2>
+            <p class="section-subtitle">Encuentros diseñados para salir de la rutina y entrar en un 
+                espacio de profunda conexión interior. Comenzamos con una práctica suave de Hatha Yoga 
+                para abrir el cuerpo, calmar la mente y activar el flujo de energía. Luego, nos entregamos 
+                al sonido del Gong, que actúa como una ola vibracional sobre cada célula del cuerpo, 
+                llevando al sistema nervioso a estados de relajación profunda, claridad mental y 
+                equilibrio energético.</p>
+            
+            <div class="agenda-grid">
+                <div class="agenda-card">                    
+                    <h3>Duración y periodicidad</h3>
+                    <p>Eventos mensuales o en fechas especiales (luna llena, solsticios, equinoccios, etc.) de 2 horas de duración.</p>
+                    <p>También pueden organizarse como experiencias privadas para grupos, cumpleaños conscientes, despedidas, etc.</p>
+
+                </div>
+                
+                <div class="agenda-card ">                    
+                    <h3>¿Qué es un baño de Gong?</h3>
+                    <p>El baño de gong es una inmersión sonora en la que te recostás 
+                        cómodamente y simplemente recibís las vibraciones del gong. 
+                        A diferencia de la música tradicional, el gong no sigue una melodía, 
+                        sino que emite frecuencias ricas y cambiantes que afectan directamente al 
+                        sistema nervioso, el cerebro y el cuerpo energético.</p>
+                </div>
+                
+                <div class="agenda-card">                    
+                    <h3>¿Cómo actúa en el cuerpo energético?</h3>
+                    <p>Ayuda a liberar tensiones profundas, limpiar emociones y 
+                        acceder a estados meditativos sin esfuerzo.</p>                    
+                </div>
+
+                <div class="agenda-card text-left">
+                    <h3>Beneficios emocionales y energéticos</h3>
+                    <p>•Induce a una relajación profunda y reduce el estrés</p>
+                    <p>•Equilibra los hemisferios cerebraless</p>
+                    <p>•Estimula la regeneración celular</p>
+                    <p>•Favorece el sueño reparador</p>
+                    <p>•Libera bloqueos energéticos y emocionales</p>
+                    <p>•Potencia la meditación y la creatividad</p>
+                </div>
+    
+                <div class="agenda-card text-left">
+                    <h3>¿Qué incluye?</h3>
+                    <p>•Clase de Hatha Yoga guiada</p>
+                    <p>•Sesión completa de baño de gong</p>                    
+                    <p>•Esterillas, mantas y elementos disponibles (opcional: cada participante trae lo suyo)</p>
+                    <p>•Té o infusión al cierre (si aplica)</p>  
+                </div>
+    
+                <div class="agenda-card text-left">
+                    <h3>¿Qué llevar?</h3>
+                    <p>•Ropa cómoda y abrigada</p>
+                    <p>•Manta personal (opcional)</p>                    
+                    <p>•Agua</p>
+                    <p>•Ganas de entregarte a la experiencia</p>  
+                </div>
+                
+            </div>
+            <div class="yoga-subcontainer">
+
+                <div class="agenda-cta">
+                    <a href="/eventos-disponibles?categoria=Yoga%20presencial" class="btn btn-primary btn-large">Ver próximos eventos</a>
+                </div>
+
+
+            </div>
+            
+           
+        </div>
+    </section>
+
+    
+
+    <!-- Sección de Contacto -->
+    <section id="contacto" class="contact">
+        <div class="container">
+            <h2 class="section-title">Contacto</h2>
+            <p class="section-subtitle">Contáctanos para solicitar más información</p>
+            
+            <div class="contact-content">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h3>Email</h3>
+                            <p>santolina.uy@gmail.com</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fab fa-whatsapp"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h3>Teléfono</h3>
+                            <p>+598 99 971 075</p>
+                        </div>
+                    </div>
+                    
+                    
+                    
+                    
+                </div>
+                
+                <form id="contact-form">
+                    <div class="form-group">
+                        <input type="text" name="nombre" placeholder="Nombre completo" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" name="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="tel" name="telefono" placeholder="Teléfono">
+                    </div>
+                    <div class="form-group">
+                        <select name="servicio" required>                            
+                            <option value="yoga">Yoga y Gong</option>                            
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <textarea name="mensaje" placeholder="Mensaje" rows="5"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Enviar Mensaje</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    
+
+    {% include "partials/footer.html" %}
+
+    <script src="/static/script.js"></script>
+</body>
+</html> 

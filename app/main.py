@@ -8,7 +8,10 @@ from fastapi import FastAPI
 from app.mail_utils import enviar_mail_prueba
 from app.routers.auth import router as auth_router
 from app.models.user import Usuario
+import locale
 
+# Configura la localización a español
+locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
 
 
 app = FastAPI()
@@ -37,12 +40,26 @@ async def read_index(request: Request):
 async def mostrar_formulario(request: Request):
     return templates.TemplateResponse("reservas.html", {"request": request})
 
+@app.get("/yoga", response_class=HTMLResponse)
+async def mostrar_yoga(request: Request):
+    return templates.TemplateResponse("yoga.html", {"request": request})
+
+@app.get("/yoga-gong", response_class=HTMLResponse)
+async def mostrar_yoga_gong(request: Request):
+    return templates.TemplateResponse("yoga_gong.html", {"request": request})
+
+@app.get("/alimentacion", response_class=HTMLResponse)
+async def mostrar_alimentacion(request: Request):
+    return templates.TemplateResponse("alimentacion.html", {"request": request})
+
+
+
 
 ###########################
 ##Test
 
 
-@app.get("/test-email")
-async def test_email():
-    await enviar_mail_prueba("julianro712@gmail.com")  # Cambiá por tu correo real
-    return {"mensaje": "Correo enviado correctamente"}
+#@app.get("/test-email")
+#async def test_email():
+#    await enviar_mail_prueba("aqui_mail_test@test.com")
+#    return {"mensaje": "Correo enviado correctamente"}

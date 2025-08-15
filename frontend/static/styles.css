@@ -394,6 +394,50 @@ transform: rotate(90deg);
     display: none;
 }
 
+.container-yoga{
+    
+    background-image: linear-gradient(90deg,rgba(255, 255, 255, 0.4) 40%, rgba(255, 255, 255, 0) 49%, rgba(255, 255, 255, 0) 100%), url('/static/img/img-yoga-presentacion.jpg');  
+    
+    background-size: cover;
+    background-position: center;
+    padding-top: 100px;
+    padding-bottom: 50px;
+}
+
+.container-yoga-gong{
+    
+    background-image: linear-gradient(60deg,rgba(195, 223, 229, 0.7) 40%,rgba(96, 167, 178, 0.3) 70%, rgba(255, 255, 255, 0) 100%), url('/static/img/img-yoga-gong.jpg');  
+    
+    background-size: cover;
+    background-position: center;
+    padding-top: 100px;
+    padding-bottom: 50px;
+}
+
+.container-alimentacion{
+    
+    background-image: linear-gradient(60deg,rgba(208, 235, 241, 0.7) 40%,rgba(246, 246, 246, 0.3) 70%, rgba(255, 255, 255, 0) 100%), url('/static/img/img-alimentacion.jpg');  
+    
+    background-size: cover;
+    background-position: center;
+    padding-top: 100px;
+    padding-bottom: 50px;
+}
+
+.container-yoga-content{
+    display: block;
+    text-align: left;
+    color: black;
+    max-width: 400px;
+    margin: 20px 100px;
+    
+
+}
+
+.container-clases-yoga{
+    padding: 10px;
+}
+
 /* Sección Hero */
 .hero {
     
@@ -511,6 +555,10 @@ transform: rotate(90deg);
     height: 4.2em;
 }
 
+.oculto {
+    display: none;
+  }
+
 .santolina-img{
     height: 200px;
     margin: 20px;
@@ -553,6 +601,42 @@ transform: rotate(90deg);
     background-color: #3a5233;
 }
 
+.text-left p{
+    text-align: left;
+}
+
+.yoga-card{
+    
+    margin: 30px;
+    padding: 20px;
+    padding: 40px 30px;
+    background: #f8f9fa;
+    border-radius: 15px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+
+
+.yoga-card:hover{
+    
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.yoga-title{
+    color:#000000;
+    font-size: 3rem;
+
+}
+.yoga-subtitle{
+    color: #292929;
+}
+
+.yoga-subcontainer{
+    display: flex;
+    justify-content:space-around;
+}
+
 /* Sección Agenda */
 .agenda {
     padding: 50px 0;
@@ -592,6 +676,7 @@ transform: rotate(90deg);
     font-size: 2rem;
 }
 
+
 .agenda-card h3 {
     font-size: 1.3rem;
     color: #4a7c59;
@@ -601,6 +686,12 @@ transform: rotate(90deg);
 .agenda-card p {
     color: #666;
     line-height: 1.6;
+}
+
+.agenda-card i.fa-circle-check{
+    color:#4a7c59;
+    margin-left: 0px;    
+    
 }
 
 .agenda-cta {
@@ -711,6 +802,11 @@ transform: rotate(90deg);
     display: flex;
     align-items: center;
     gap: 20px;
+    
+}
+
+.contact-item a{    
+    text-decoration: none;
 }
 
 .contact-icon {
@@ -971,6 +1067,25 @@ transform: rotate(90deg);
 /* Responsive */
 @media (max-width: 768px) {
 
+    .container-yoga{
+    
+        background-image: linear-gradient(90deg,rgba(255, 255, 255, 0.6) 29%, rgba(255, 255, 255, 0.6) 100%), url('/static/img/img-yoga-presentacion.jpg');  
+        background-size: cover;
+        background-position-x: -600px;        
+    }
+    .container-yoga-gong{
+    
+        background-image: linear-gradient(rgba(233, 247, 244, 0.6), rgba(228, 244, 237, 0.8)), url('/static/img/img-yoga-gong.jpg');
+
+        background-size: cover;
+        background-position-x: -600px;
+              
+    }
+    .container-yoga-content{ 
+        max-width: 400px;
+        margin: 10px 40px;
+    }
+
     .filtro-botones {
         display: none;
     }
@@ -1088,6 +1203,12 @@ transform: rotate(90deg);
 
     .user-icon {
         display: block !important;
+    }
+
+    .yoga-subcontainer {
+        display: block;
+        
+        
     }
 
     
