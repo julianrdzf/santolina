@@ -9,11 +9,47 @@ from app.mail_utils import enviar_mail_prueba
 from app.routers.auth import router as auth_router
 from app.models.user import Usuario
 import locale
+import os
 
 # Configura la localización a español
-locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+# Preferir variables de entorno si están definidas (útil en Railway)
+os.environ.setdefault("LC_ALL", os.environ.get("LC_ALL", "C.UTF-8"))
+os.environ.setdefault("LANG", os.environ.get("LANG", "C.UTF-8"))
+
+def try_set_locales(preferred_locales):
+    """
+    Intentar setear la primera locale disponible de la lista preferred_locales.
+    No lanza excepción si ninguna está disponible.
+    """
+    for loc in preferred_locales:
+        try:
+            locale.setlocale(locale.LC_TIME, loc)
+            # si necesitás otras categorías, ponerlas aquí también:
+            # locale.setlocale(locale.LC_MONETARY, loc)
+            # locale.setlocale(locale.LC_NUMERIC, loc)
+            print(f"Locale establecida: {loc}")
+            return loc
+        except locale.Error:
+            # seguir intentando con la siguiente
+            continue
+    # Si no encontramos ninguna, intentamos la locale por defecto del sistema ("")
+    try:
+        locale.setlocale(locale.LC_TIME, "")
+        print("Locale establecida por defecto del sistema")
+        return ""
+    except locale.Error:
+        # ninguna disponible: se continúa sin setear (usar defaults)
+        print("No se pudo establecer locale; usando valores por defecto (C).")
+        return None
+
+# Lista de preferencia: primero la que querés, luego alternativas
+PREFERRED_LOCALES = ["es_ES.UTF-8", "es_ES", "C.UTF-8"]
+
+try_set_locales(PREFERRED_LOCALES)
 
 
+
+# Aplicación
 app = FastAPI()
 app.include_router(eventos.router)
 app.include_router(categorias.router)
