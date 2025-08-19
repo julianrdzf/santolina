@@ -186,8 +186,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const timeDifference = eventDate.getTime() - currentDate.getTime();
             const daysUntil = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
     
-            // ... el resto de tu lógica para mostrar el contador sigue igual ...
-    
             // Crear solo si no existe
             const existing = card.querySelector('.countdown');
             if (!existing && daysUntil >= 0) { // Solo si falta 0 o más días
@@ -195,11 +193,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 countdown.className = 'countdown';
                 countdown.style.cssText = `
                     position: absolute;
-                    top: 3px;
-                    right: 3px;
+                    top: 0px;
+                    right: 0px;
                     color: white;
                     padding: 5px 10px;
-                    border-radius: 5px 15px 5px 20px;
+                    border-radius: 5px 14px 5px 20px;
                     font-size: 0.8rem;
                     font-weight: 600;
                 `;

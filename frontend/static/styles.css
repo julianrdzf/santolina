@@ -15,8 +15,11 @@ body {
 
 .container {
     max-width: 1200px;
-    margin: 0 auto;
+    /*margin: 0 auto;*/
     padding: 0 20px;
+    margin-bottom: 20px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .container-filter{
@@ -424,6 +427,46 @@ transform: rotate(90deg);
     padding-bottom: 50px;
 }
 
+.container-constelaciones{
+    
+    background-image: linear-gradient(60deg,rgba(255, 255, 255, 0.7) 40%,rgba(255, 255, 255, 0.3) 70%, rgba(255, 255, 255, 0) 100%), url('/static/img/img-constelaciones.jpg');  
+    
+    background-size: cover;
+    background-position: center;
+    padding-top: 100px;
+    padding-bottom: 50px;
+}
+
+.container-pendulo{
+    
+    background-image: linear-gradient(60deg,rgba(255, 255, 255, 0.7) 40%,rgba(255, 255, 255, 0.3) 70%, rgba(255, 255, 255, 0) 100%), url('/static/img/img-pendulo.jpg');  
+    
+    background-size: cover;
+    background-position: center;
+    padding-top: 100px;
+    padding-bottom: 50px;
+}
+
+.container-reiki{
+    
+    background-image: linear-gradient(60deg,rgba(208, 235, 241, 0.7) 40%,rgba(246, 246, 246, 0.3) 70%, rgba(255, 255, 255, 0) 100%), url('/static/img/img-reiki.jpg');  
+    
+    background-size: cover;
+    background-position: center;
+    padding-top: 100px;
+    padding-bottom: 50px;
+}
+
+.container-terapia-floral{
+    
+    background-image: linear-gradient(60deg,rgba(255, 255, 255, 0.7) 40%,rgba(255, 255, 255, 0.3) 70%, rgba(255, 255, 255, 0) 100%), url('/static/img/img-floral.jpg');  
+    
+    background-size: cover;
+    background-position: center;
+    padding-top: 100px;
+    padding-bottom: 50px;
+}
+
 .container-yoga-content{
     display: block;
     text-align: left;
@@ -436,6 +479,7 @@ transform: rotate(90deg);
 
 .container-clases-yoga{
     padding: 10px;
+    padding-top: 40px;
 }
 
 /* Sección Hero */
@@ -1067,6 +1111,24 @@ transform: rotate(90deg);
 /* Responsive */
 @media (max-width: 768px) {
 
+    .container-alimentacion{
+    
+        background-image: linear-gradient(rgba(233, 247, 244, 0.6), rgba(228, 244, 237, 0.8)), url('/static/img/img-alimentacion.jpg');
+
+        background-size: cover;
+        background-position-x: -300px;
+              
+    }
+
+    .container-constelaciones{
+    
+        background-image: linear-gradient(rgba(233, 247, 244, 0.6), rgba(228, 244, 237, 0.8)), url('/static/img/img-constelaciones.jpg');
+
+        background-size: cover;
+        background-position-x: -300px;
+              
+    }
+
     .container-yoga{
     
         background-image: linear-gradient(90deg,rgba(255, 255, 255, 0.6) 29%, rgba(255, 255, 255, 0.6) 100%), url('/static/img/img-yoga-presentacion.jpg');  
@@ -1079,6 +1141,33 @@ transform: rotate(90deg);
 
         background-size: cover;
         background-position-x: -600px;
+              
+    }
+
+    .container-reiki{
+    
+        background-image: linear-gradient(rgba(233, 247, 244, 0.6), rgba(228, 244, 237, 0.8)), url('/static/img/img-reiki.jpg');
+
+        background-size: cover;
+        background-position-x: -300px;
+              
+    }
+
+    .container-pendulo{
+    
+        background-image: linear-gradient(rgba(233, 247, 244, 0.6), rgba(228, 244, 237, 0.8)), url('/static/img/img-pendulo.jpg');
+
+        background-size: cover;
+        background-position-x: -100px;
+              
+    }
+
+    .container-floral{
+    
+        background-image: linear-gradient(rgba(233, 247, 244, 0.6), rgba(228, 244, 237, 0.8)), url('/static/img/img-floral.jpg');
+
+        background-size: cover;
+        background-position-x: -300px;
               
     }
     .container-yoga-content{ 

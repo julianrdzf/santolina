@@ -52,6 +52,22 @@ async def mostrar_yoga_gong(request: Request):
 async def mostrar_alimentacion(request: Request):
     return templates.TemplateResponse("alimentacion.html", {"request": request})
 
+@app.get("/reiki", response_class=HTMLResponse)
+async def mostrar_reiki(request: Request):
+    return templates.TemplateResponse("reiki.html", {"request": request})
+
+@app.get("/pendulo-hebreo", response_class=HTMLResponse)
+async def mostrar_pendulo(request: Request):
+    return templates.TemplateResponse("pendulo_hebreo.html", {"request": request})
+
+@app.get("/terapia-floral", response_class=HTMLResponse)
+async def mostrar_floral(request: Request):
+    return templates.TemplateResponse("terapia_floral.html", {"request": request})
+
+@app.get("/constelaciones", response_class=HTMLResponse)
+async def mostrar_contelaciones(request: Request):
+    return templates.TemplateResponse("constelaciones.html", {"request": request})
+
 
 
 
