@@ -32,6 +32,10 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "frontend" / "static")
 
 templates = Jinja2Templates(directory=str(BASE_DIR / "frontend" / "templates"))
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 @app.get("/", response_class=HTMLResponse)
 async def read_index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
