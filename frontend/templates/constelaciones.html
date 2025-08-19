@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <title>Santolina - Constelaciones</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+
+    <!-- Sección de Presentación -->
+    <section id="presentacion-alimentacion" class="container-constelaciones">
+        <div class="container-yoga-content">
+            <h2 class="yoga-title">Constelaciones y Sanación Ancestral</h2>
+            <p class="yoga-subtitle">Sanando emociones del presente a través de vidas pasadas y ancestros.</p>
+                      
+        </div>
+    </section>
+
+    <section id="clases-yoga" class="container-clases-yoga">
+        <div class="container">
+            <h2 class="section-title">Constelaciones y Sanación Ancestral</h2>
+            <p class="section-subtitle">Los talleres de Constelaciones y Sanación Ancestral son procesos de 
+                transformación dentro de ti mism@ y en las diferentes esferas de tu vida, mediante la reparación 
+                a nivel emocional y psicoespiritual de las circunstancias que han ocasionado el conflicto presente, 
+                partiendo de la base que el origen de todo lo que se gesta en nuestra vida proviene de emociones 
+                manifiestas que han sido ancladas en el subconsciente, y han ido forjándose y reforzándose durante 
+                el transitar del alma a lo largo de las vidas consecutivas.</p>
+            
+            <div class="agenda-grid">
+                <div class="agenda-card text-left">
+                    
+                    
+                    <p>Estos procesos son conducidos mediante técnicas de canalización, 
+                        a través de los mismos serás guiado para llegar a la experiencia vivencial 
+                        en la que se generó la emoción causante de la dolencia o conflicto que consultas, 
+                        el cual pudo ser gestado en la vida actual, provenir de un mandato familiar o de 
+                        una vida pasada.</p>
+                    
+                </div>
+                
+                <div class="agenda-card text-left">                    
+                    
+                    <p>El trabajo se procesa a nivel energético y emocional. Esta nueva realidad energética 
+                        genera una realineación que te permitirá transitar desde un lugar sano y manifestar 
+                        de manera tangible cambios en tu vida, muchas veces de forma inmediata o inesperados.</p>
+                    
+                </div>
+                
+                <div class="agenda-card text-left">                    
+                    
+                    <p><strong>Desde el amor y el respeto te invitamos a transformar tu vida…</strong></p>
+                    
+                    <br>
+                    <p><strong>Intercambio: </strong>$ 1.600</p>
+                    
+                </div>                
+                
+            </div>
+            
+            
+           
+        </div>
+    </section>
+    
+    
+
+    <!-- Sección de Contacto -->
+    <section id="contacto" class="contact">
+        <div class="container">
+            <h2 class="section-title">Contacto</h2>
+            <p class="section-subtitle">Contáctanos para solicitar más información y coordinar una sesión</p>
+            
+            <div class="contact-content">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h3>Email</h3>
+                            <p>santolina.uy@gmail.com</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <a href="https://wa.me/59899971075" target="_blank">
+                            <div class="contact-icon">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                        </a>
+                        <div class="contact-details">
+                            <h3>Teléfono</h3>
+                            <p>+598 99 971 075</p>
+                        </div>
+                    </div>
+                    
+                    
+                    
+                    
+                </div>
+                
+                <form id="contact-form">
+                    <div class="form-group">
+                        <input type="text" name="nombre" placeholder="Nombre completo" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" name="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="tel" name="telefono" placeholder="Teléfono">
+                    </div>
+                    <div class="form-group">
+                        <select name="servicio" required>                            
+                            <option value="constelaciones">Constelaciones</option>                            
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <textarea name="mensaje" placeholder="Mensaje" rows="5"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Enviar Mensaje</button>
+                </form>
+            </div>
+        </div>
+    </section>    
+
+    {% include "partials/footer.html" %}
+
+    <script src="/static/script.js"></script>
+</body>
+</html> 

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservas para {{ evento.titulo }}</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+    
+    <div class="container mt-5">
+        <h2>Reservas para: "{{ evento.titulo }}"</h2>
+        <p><strong>Fecha:</strong> {{ evento.fecha.strftime("%d/%m/%Y") }}</p>
+        <p><strong>Hora:</strong> {{ evento.hora or "Hora a confirmar"}}</p>
+        <p><strong>Cupos totales:</strong> {{ evento.cupos_totales }}</p>
+        <p><strong>Reservas confirmadas:</strong> {{ evento.reservas | selectattr('estado_pago', 'equalto', 'aprobado') | sum(attribute='cupos') }}</p>
+        <p><strong>Reservas totales:</strong> {{ evento.reservas | sum(attribute='cupos') }}</p>
+        
+
+        
+
+        {% if reservas %}
+
+        <div class = "hscroll">
+            <table class="table table-bordered mt-3">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Celular</th>
+                        <th>Cupos reservados</th>
+                        <th>Estado pago</th>
+                        <th>Fecha de reserva</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in reservas %}
+                    <tr>
+                        <td>{{ r.id }}</td>
+                        <td>{{ r.nombre }}</td>
+                        <td>{{ r.email }}</td>
+                        <td>{{ r.celular }}</td>
+                        <td>{{ r.cupos }}</td>
+                        <td>{{ r.estado_pago }}</td>
+                        <td>{{ r.fecha_creacion.strftime("%d/%m/%Y %H:%M") }}</td>
+                        <td>
+                            <form action="/admin/reservas/{{ r.id }}/eliminar" method="post" style="display:inline;">
+                                <button type="submit" class="btn-eliminar"
+                                        onclick="return confirm('¿Estás seguro de eliminar esta reserva?');"
+                                        title="Eliminar">
+                                        <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <p>No hay reservas registradas para este evento.</p>
+        {% endif %}
+
+        <a href="/admin/eventos" class="btn btn-secondary mt-3">Volver</a>
+    </div>
+    <script src="/static/script.js"></script>
+</body>
+</html>

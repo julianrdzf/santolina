@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">    
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    
+    <title>Reserva</title>
+    
+    <script src="https://kit.fontawesome.com/YOUR_KIT_CODE.js" crossorigin="anonymous"></script> <!-- solo si usás íconos de Font Awesome -->
+</head>
+<body>
+
+    {% include "partials/header.html" %}
+
+    <section id="proximos-eventos" class="events">
+        <div class="container reserva">
+        
+
+        
+            <div class="reserva-form">
+                
+                <form action="/reservas" method="post">
+                    <p><strong>Reservar para:</strong> {{ evento.titulo }}</p>
+                    <p><strong>Fecha:</strong> {{ evento.fecha.strftime('%d/%m/%Y') }}</p>
+                    <p><strong>Hora:</strong> {{ evento.hora or "Horario a confirmar" }}</p>
+                    <p><strong>Ubicación:</strong> {{ evento.ubicacion or "A confirmar" }}</p>
+                    <p><strong>Costo:</strong> ${{ evento.costo or "A confirmar" }}</p>
+                    
+                    <br>
+                    <input type="hidden" name="evento_id" value="{{ evento.id }}">
+
+                    <div class="form-group">
+                        <input type="text" placeholder="Nombre completo" name="nombre" value="{{ usuario.nombre if usuario else '' }}" {% if usuario %}readonly{% endif %} required>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="email" placeholder="Email" name="email" value="{{ usuario.email if usuario else '' }}" {% if usuario %}readonly{% endif %} required>
+                    </div>
+
+                    <div class="form-group">                        
+                        <input type="tel" class="form-control" id="celular" name="celular" placeholder="Número de celular" value="{{ usuario.celular if usuario and usuario.celular else '' }}" {% if usuario.celular %}readonly{% endif %} required>
+                    </div>
+
+
+                    <div class="form-group">
+                        <input type="number" id="cantidad-cupos" placeholder="Cantidad de cupos" name="cantidad" min="1" required>
+                    </div>
+                    
+                    <p><strong>Total:</strong> $<span id="total-costo">{{ evento.costo or "A confirmar" }}</span></p>
+                    
+                    Ir a pagar:
+                    <br>
+                    <br>
+                    <button type="submit" class="btn btn-mercadopago btn-full">
+                        
+                        <img class="logo-img-mercadopago" src="/static/img/mercadopago-logo.svg" alt="Mercado Pago">
+                        
+                    </button>
+                </form>
+            </div>
+
+
+        </div>
+    </section>
+
+    {% include "partials/footer.html" %}
+    
+    <script src="/static/script.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const cantidadInput = document.getElementById("cantidad-cupos");
+            const totalSpan = document.getElementById("total-costo");
+            const costoUnitario = {{ evento.costo if evento.costo is not none else 0 }};
+           
+        
+            function actualizarTotal() {
+                const cantidad = parseInt(cantidadInput.value) || 0;
+                const total = cantidad * costoUnitario;
+                totalSpan.textContent = total.toLocaleString("es-UY");
+            }
+        
+            cantidadInput.addEventListener("input", actualizarTotal);
+        });
+    </script>
+</body>
+</html>

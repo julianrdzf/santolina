@@ -1,0 +1,11 @@
+from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTableUUID
+from sqlalchemy import Column, String
+from sqlalchemy.orm import relationship
+from app.db import Base
+
+class Usuario(SQLAlchemyBaseUserTableUUID, Base):
+    __tablename__ = "usuarios"
+    nombre = Column(String, nullable=False)
+    celular = Column(String, nullable=True)
+
+    reservas = relationship("Reserva", back_populates="usuario", cascade="all, delete-orphan")

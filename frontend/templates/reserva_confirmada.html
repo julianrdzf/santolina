@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">    
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    
+    <title>Reserva confirmada</title>
+    
+    <script src="https://kit.fontawesome.com/YOUR_KIT_CODE.js" crossorigin="anonymous"></script> <!-- solo si usás íconos de Font Awesome -->
+</head>
+
+
+<body>
+    <div class="container-img">
+        <img class="img-reserva-confirmada" src="/static/img/logo.png" alt="Santolina">
+    </div>
+    <div class="container reserva-confirmada">        
+        
+        <h2>¡Reserva confirmada!</h2>
+        <p>Gracias {{ reserva.nombre }}. <br> Tu reserva fue registrada con éxito.</p>
+        <br>
+
+        <p><strong>Evento:</strong> {{ evento.titulo }}</p>
+        <p><strong>Fecha:</strong> {{ evento.fecha.strftime('%d/%m/%Y') }}</p>
+        <p><strong>Hora:</strong> {{evento.hora or "A confirmar"}}</p>
+        <p><strong>Ubicación:</strong> {{ evento.ubicacion or "A confirmar" }}</p>
+        <p><strong>Dirección:</strong> {{ evento.direccion or "A confirmar" }}</p>
+
+        <p><strong>ID de reserva:</strong> {{ reserva.id }}</p>
+        <p><strong>Email:</strong> {{ reserva.email }}</p>
+        <p><strong>Celular:</strong> {{ reserva.celular }}</p>
+        <p><strong>Cupos reservados:</strong> {{ reserva.cupos }}</p>
+
+        <br>
+
+        <a href="/eventos-disponibles" class="btn btn-primary">Volver a eventos</a>
+    </div>
+</body>
+</html>

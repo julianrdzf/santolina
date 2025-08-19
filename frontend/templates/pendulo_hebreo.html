@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <title>Santolina - Péndulo hebreo</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+
+    <!-- Sección de Presentación -->
+    <section id="presentacion-alimentacion" class="container-pendulo">
+        <div class="container-yoga-content">
+            <h2 class="yoga-title">Péndulo hebreo</h2>
+            <p class="yoga-subtitle">Conecta con tu bienestar espiritual y físico</p>
+                      
+        </div>
+    </section>
+
+    <section id="clases-yoga" class="container-clases-yoga">
+        <div class="container">
+            <h2 class="section-title">Péndulo Hebreo</h2>
+            <p class="section-subtitle">El Péndulo Hebreo es una herramienta ancestral que utiliza la 
+                energía vibracional para equilibrar y armonizar el cuerpo, la mente y el espíritu. 
+                A través de su uso, se trabaja sobre los bloqueos energéticos, ayudando a restaurar 
+                la paz interior y promover una sanación profunda.</p>
+            
+            <div class="agenda-grid">
+                <div class="agenda-card text-left">
+                    
+                    <h3>¿En qué consiste?</h3>
+                    <p>El Péndulo Hebreo se utiliza para detectar y liberar energías estancadas o 
+                        desequilibradas en el cuerpo y el aura. Es muy eficaz para:</p>
+                    <br>
+                    <p>• <strong>Liberación de emociones reprimidas</strong></p>
+                    <p>• <strong>Sanación de traumas</strong></p>
+                    <p>• <strong>Equilibrio de los chakras</strong></p>
+                    <p>• <strong>Mejorar el bienestar físico y emocional</strong></p>
+                    <p>• <strong>Conexión con la energía universal</strong></p>
+
+                </div>
+                
+                <div class="agenda-card text-left">                    
+                    <h3>¿Cómo funciona?</h3>
+                    <p>A través de una serie de movimientos del péndulo, 
+                        se activan frecuencias vibracionales que alinean y limpian los canales energéticos. 
+                        Cada sesión es personalizada, según las necesidades de cada persona, proporcionando 
+                        resultados profundos y transformadores.</p>
+                    
+                </div>
+                
+                <div class="agenda-card text-left">
+                    
+                    <h3>Beneficios de la Terapia con Péndulo Hebreo:</h3>
+                    <p>• Aumento de la vitalidad y energía</p>
+                    <p>• Mejora de la calidad del sueño</p>
+                    <p>• Reducción del estrés y la ansiedad</p>
+                    <p>• Desbloqueo de emociones y pensamientos negativos</p>
+                    <p>• Mejora de la circulación y del sistema inmune</p>
+                    <p>• Conexión profunda con tu yo interior</p>
+                    
+                </div>                
+                
+            </div>
+            
+            
+           
+        </div>
+    </section>
+    
+    <section id="enfoque" class="container">
+        <div class="hero-container">
+            <div class="hero-content">
+                
+                <div class="hero-content-text">
+                    
+                    <p class="hero-subtitle">
+                        <strong>¡Tu bienestar es lo más importante!</strong><br>
+                        Si sientes que necesitas un cambio en tu vida, sanar a nivel energético o 
+                        simplemente encontrar equilibrio, ¡te invito a probar una sesión de Péndulo Hebreo!<br>
+                        <br>
+                        <strong>Agenda tu sesión hoy mismo</strong> y empieza a transformar tu energía. 
+                        Te espero para acompañarte en este hermoso proceso de sanación.<br>
+                        
+                        
+                    </p>
+                    
+                    
+                </div>
+            </div>
+            
+        </div>
+    </section>
+
+    <!-- Sección de Contacto -->
+    <section id="contacto" class="contact">
+        <div class="container">
+            <h2 class="section-title">Contacto</h2>
+            <p class="section-subtitle">Contáctanos para solicitar más información y coordinar una sesión</p>
+            
+            <div class="contact-content">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h3>Email</h3>
+                            <p>santolina.uy@gmail.com</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <a href="https://wa.me/59899971075" target="_blank">
+                            <div class="contact-icon">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                        </a>
+                        <div class="contact-details">
+                            <h3>Teléfono</h3>
+                            <p>+598 99 971 075</p>
+                        </div>
+                    </div>
+                    
+                    
+                    
+                    
+                </div>
+                
+                <form id="contact-form">
+                    <div class="form-group">
+                        <input type="text" name="nombre" placeholder="Nombre completo" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" name="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="tel" name="telefono" placeholder="Teléfono">
+                    </div>
+                    <div class="form-group">
+                        <select name="servicio" required>                            
+                            <option value="pendulo-hebreo">Péndulo hebreo</option>                            
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <textarea name="mensaje" placeholder="Mensaje" rows="5"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Enviar Mensaje</button>
+                </form>
+            </div>
+        </div>
+    </section>    
+
+    {% include "partials/footer.html" %}
+
+    <script src="/static/script.js"></script>
+</body>
+</html> 

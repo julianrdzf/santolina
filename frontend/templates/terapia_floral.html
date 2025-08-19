@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <title>Santolina - Terapia floral</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+
+    <!-- Sección de Presentación -->
+    <section id="presentacion-alimentacion" class="container-terapia-floral">
+        <div class="container-yoga-content">
+            <h2 class="yoga-title">Terapia floral</h2>
+            <p class="yoga-subtitle"></p>
+                      
+        </div>
+    </section>
+
+    <section id="clases-yoga" class="container-clases-yoga">
+        <div class="container">
+            <h2 class="section-title">Terapia floral</h2>
+            <p class="section-subtitle">Las Esencias Áureas son remedios vibracionales, trabajan sobre 
+                nuestros campos electromagnéticos. Si bien pueden relacionarse con las esencias florales 
+                convencionales, se diferencian por su rango y direccionalidad energética. Dicha diferencia 
+                tiene su origen, fundamentalmente en los procesos de elaboración, ya que en ellos se 
+                sintetizan tanto protocolos florales convencionales, como protocolos alquímicos. 
+                Estos últimos les confieren una resonancia o vibración especial que denominaremos “áurea”.
+                Como fruto de esta síntesis de elaboración y de esta nueva resonancia, se obtiene una 
+                acción más profunda, amplia y eficaz, que posibilita excelentes resultados con un número 
+                reducido de elementos. Son extraordinariamente eficaces en liberar y aliviar, 
+                simultáneamente, los bloqueos emocionales y las consecuencias asociadas a dichos bloqueos.
+                </p>
+            
+            <div class="agenda-grid">
+                <div class="agenda-card">
+                    
+                    <h3>¿Qué incluye?</h3>                    
+                    <p>• Entrevista </p>
+                    <p>• Homeopatía 30 o 55ml (terapia floral)</p>
+                    <br>
+                    <p><strong>Costo:</strong> $1000</p>                    
+
+                </div>      
+                
+            </div>
+            
+            
+           
+        </div>
+    </section>
+    
+    
+
+    <!-- Sección de Contacto -->
+    <section id="contacto" class="contact">
+        <div class="container">
+            <h2 class="section-title">Contacto</h2>
+            <p class="section-subtitle">Contáctanos para solicitar más información y coordinar una sesión</p>
+            
+            <div class="contact-content">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h3>Email</h3>
+                            <p>santolina.uy@gmail.com</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <a href="https://wa.me/59899971075" target="_blank">
+                            <div class="contact-icon">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                        </a>
+                        <div class="contact-details">
+                            <h3>Teléfono</h3>
+                            <p>+598 99 971 075</p>
+                        </div>
+                    </div>
+                    
+                    
+                    
+                    
+                </div>
+                
+                <form id="contact-form">
+                    <div class="form-group">
+                        <input type="text" name="nombre" placeholder="Nombre completo" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" name="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="tel" name="telefono" placeholder="Teléfono">
+                    </div>
+                    <div class="form-group">
+                        <select name="servicio" required>                            
+                            <option value="terapia-floral">Terapia floral</option>                            
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <textarea name="mensaje" placeholder="Mensaje" rows="5"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Enviar Mensaje</button>
+                </form>
+            </div>
+        </div>
+    </section>    
+
+    {% include "partials/footer.html" %}
+
+    <script src="/static/script.js"></script>
+</body>
+</html> 

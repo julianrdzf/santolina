@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">    
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <title>Pago en proceso</title>
+    
+</head>
+<body>
+
+    <div class="container-img">
+        <img class="img-reserva-confirmada" src="/static/img/logo.png" alt="Santolina">
+    </div>
+
+    <main class="container reserva-pendiente">
+        <div class="content">
+            <h1>Tu pago está en proceso</h1>
+            <p>Estamos revisando tu pago. Esto puede tomar unos minutos.</p>
+            <p>Recibirás una notificación por correo electrónico una vez que se confirme.</p>
+
+            {% if evento %}
+                <div class="evento-info">
+                    <p><strong>Evento:</strong> {{ evento.titulo }}</p>
+                    <p><strong>Referencia:</strong> {{ referencia }}</p>
+                </div>
+            {% endif %}
+
+            <br>
+
+            <a href="/" class="btn btn-primary">Volver al inicio</a>
+        </div>
+    </main>
+</body>
+</html>

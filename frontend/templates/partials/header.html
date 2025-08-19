@@ -1,0 +1,81 @@
+<header class="header">
+    <div class="header-container">
+        <nav class="nav">
+            <div class="logo-hamburger">
+                <div class="hamburger" id="hamburger">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="close-x"><i class="fa fa-times"></i></span>
+                </div>
+                <div class="logo">
+                    <a href="/">
+                        <img class="logo-img" src="/static/img/logo.png" alt="Santolina">
+                    </a>
+                </div>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <ul class="main-menu">
+                    <li class="has-submenu">
+                        <a href="#">
+                            Alimentación <span class="submenu-arrow"> > </span>
+                        </a>
+                        <ul class="submenu">
+                            <li class="oculto"><a href="#ebook">E-book</a></li>
+                            <li><a href="/alimentacion">Asesoramiento individualizado</a></li>
+                            <li class="oculto"><a href="#recetas">Recetas</a></li>
+                        </ul>
+                    </li>
+                    <li class="has-submenu">
+                        <a href="#">Yoga <span class="submenu-arrow"> > </span></a>
+                        <ul class="submenu">
+                            <li><a href="/yoga">Clases Hatha Yoga</a></li>
+                            <li><a href="/yoga-gong">Yoga y Gong</a></li>
+                        </ul>
+                    </li>
+                    <li class="has-submenu">
+                        <a href="#">Terapias <span class="submenu-arrow"> > </span></a>
+                        <ul class="submenu">
+                            <li><a href="/reiki">Reiki</a></li>
+                            <li><a href="/pendulo-hebreo">Péndulo hebreo</a></li>
+                            <li><a href="/terapia-floral">Terapia floral</a></li>
+                            <li><a href="/constelaciones">Constelaciones</a></li>
+                            <li class="has-submenu oculto">
+                                <a href="#">Talleres <span class="submenu-arrow"> > </span></a>
+                                <ul class="submenu">
+                                    <li><a href="#ritual-utero">Ritual del útero</a></li>
+                                    <li><a href="#limpieza-energetica">Limpieza energética</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="oculto">
+                        <a href="#tienda-online">Tienda online</a>
+                    </li>
+                    <li>
+                        <a href="/eventos-disponibles">Próximos eventos</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <div class="login-indicador-container" id="user-indicator">
+            <a class="login-link" href="/login" id="login-link">Iniciar sesión</a>
+            <span id="user-info" style="display:none;"> 
+                <span class="login-indicador" id="user-email"></span>
+                <a class="login-link" href="/admin" id="admin-link" style="display:none;">Admin</a>
+                <button class="login-link" id="logout-btn">Cerrar sesión</button>
+            </span>
+
+            <!-- Ícono de perfil para mobile -->
+            <div class="user-icon" id="user-icon" style="display: none;">
+                <i class="fa fa-user-circle"></i>
+                <div class="user-dropdown" id="user-dropdown">
+                    <a class="login-link" href="/login" id="login-link-mobile">Iniciar sesión</a>
+                    <span class="login-indicador" id="user-email-mobile"></span>
+                    <a class="login-link" href="/admin" id="admin-link-mobile" style="display:none;">Admin</a>
+                    <button class="login-link" id="logout-btn-mobile">Cerrar sesión</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>

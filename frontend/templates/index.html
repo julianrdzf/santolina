@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <title>Santolina - Bienestar Integral</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+
+    <!-- Sección de Presentación -->
+    <section id="presentacion" class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <img class="santolina-img" src="/static/img/foto_santolina.png" alt="Santolina">
+                <div class="hero-content-text">
+                    <h1 class="hero-title">Bienvenida!</h1>
+                    <p class="hero-subtitle">
+                        Mi nombre es Danae. En este espacio busco acercar a vos todas las herramientas que he transitado y adquirido en muchos años. Herramientas que me han acercado a mí, que me han sanado en mente, cuerpo y alma.
+                        <span id="dots">...</span>
+                        <span id="more" style="display:none;">  
+                            <br>  
+                            <br>                    
+                            Es mucho el camino recorrido y muchas veces no ha sido fácil. Lo importante es no dejar de intentarlo, disfrutar del proceso y ser amorosos con nosotros mismos. En este sitio vas a encontrar una diversidad de cursos y terapias de diferentes temas que, en un comienzo, te puede parecer que no tiene nada que ver, pero en la medida que te vayas acercando, te comparto como llegue hasta acá, como puedo unir todas estas temáticas y por momentos es sencillo responderlo: la sanación es contemplándonos como parte del todo tomando cada vez más contacto con nuestro interior y exterior, y dejar de mirar todo por separado.
+                            Espero que encuentres el camino que estás buscando y poder acompañarte en él.
+                            Gracias por estar acá.
+                            Con mucho cariño.
+                            Danae
+                        </span>
+                    </p>
+                    <div class="hero-firma">
+                        <img src="/static/img/logo.png" alt="Firma Santolina" class="firma-logo">
+                    </div>
+                    <a href="#" id="readMoreBtn" class="btn btn-secondary" style="font-size:0.9rem;">Leer más...</a>
+                </div>
+            </div>
+            <!--<div class="hero-image">
+                <div class="hero-placeholder">
+                    <i class="fas fa-leaf"></i>
+                </div>
+            </div>-->
+        </div>
+    </section>
+
+    <!-- Sección de Agenda -->
+    <section id="agenda" class="agenda">
+        <div class="container">
+            <h2 class="section-title">Agenda tu Turno</h2>
+            <p class="section-subtitle">Reserva tu espacio para comenzar tu camino hacia el bienestar</p>
+            
+            <div class="agenda-grid">
+                <div class="agenda-card">
+                    <div class="agenda-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h3>Selecciona la propuesta</h3>
+                    <p>Elige entre nuestras propuestas especializados de nutrición, terapias alternativas y bienestar</p>
+                </div>
+                
+                <div class="agenda-card">
+                    <div class="agenda-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3>Elige tu horario</h3>
+                    <p>Selecciona el día y horario que mejor se adapte a tu rutina diaria</p>
+                </div>
+                
+                <div class="agenda-card">
+                    <div class="agenda-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3>Confirma tu cita</h3>
+                    <p>Recibe confirmación inmediata y prepara tu consulta</p>
+                </div>
+            </div>
+            
+            <div class="agenda-cta">
+                <a href="/eventos-disponibles" class="btn btn-primary btn-large">Ver próximos eventos</a>
+            </div>
+        </div>
+    </section> 
+
+    <!-- Sección de Contacto -->
+    <section id="contacto" class="contact">
+        <div class="container">
+            <h2 class="section-title">Contacto</h2>
+            <p class="section-subtitle">Estamos aquí para acompañarte en tu camino hacia el bienestar</p>
+            
+            <div class="contact-content">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h3>Email</h3>
+                            <p>santolina.uy@gmail.com</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <a href="https://wa.me/59899971075" target="_blank">
+                            <div class="contact-icon">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                        </a>
+                        <div class="contact-details">
+                            <h3>Teléfono</h3>
+                            <p>+598 99 971 075</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h3>Ubicación</h3>
+                            <p>Montevideo, Uruguay</p>
+                        </div>
+                    </div>
+                    
+                    
+                </div>
+                
+                <form id="contact-form">
+                    <div class="form-group">
+                        <input type="text" name="nombre" placeholder="Nombre completo" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" name="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="tel" name="telefono" placeholder="Teléfono">
+                    </div>
+                    <div class="form-group">
+                        <select name="servicio" required>
+                            <option value="">Selecciona un servicio</option>
+                            <option value="plan-alimentacion">Plan de alimentación</option>
+                            <option value="antropometria">Antropometría</option>
+                            <option value="yoga">Clases de Yoga online</option>
+                            <option value="reiki">Reiki</option>
+                            <option value="terapia-floral">Terapia Floral</option>
+                            <option value="constelaciones">Constelaciones</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <textarea name="mensaje" placeholder="Mensaje" rows="5"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Enviar Mensaje</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    {% include "partials/footer.html" %}
+
+    <script src="/static/script.js"></script>
+</body>
+</html> 
