@@ -149,12 +149,10 @@ def main():
 
     try:
         categorias_iniciales = [
-            (1, "Yoga presencial"),
-            (2, "Yoga online"),
-            (3, "Péndulo hebreo"),
-            (4, "Reiki"),
-            (5, "Terapia floral"),
-            (6, "Constelaciones"),
+            (1, "Yoga"),
+            (2, "Alimentación"),
+            (3, "Terapias"),
+            (4, "Otros"),            
         ]
 
         for cat_id, nombre in categorias_iniciales:
