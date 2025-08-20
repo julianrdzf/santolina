@@ -10,6 +10,7 @@ from fastapi import Form
 from fastapi.responses import RedirectResponse
 
 from app.routers.auth import current_superuser
+from typing import Optional
 
 
 router = APIRouter()
@@ -49,19 +50,23 @@ def crear_evento(
     descripcion: str = Form(...),
     fecha: str = Form(...),
     cupos: int = Form(...),
-    categoria_id: int = Form(None),
+    categoria_id: Optional[str] = Form(None),
     horario: str = Form(None),
     ubicacion: str = Form(None),
     direccion: str = Form(None),
     costo: float = Form(...),
     db: Session = Depends(get_db)
 ):
+    
+    # Si vino vacío, lo convierto a None
+    categoria_id_int = int(categoria_id) if categoria_id else None
+
     nuevo_evento = Evento(
         titulo=titulo,
         descripcion=descripcion,
         fecha=fecha,
         cupos_totales=cupos,
-        categoria_id=categoria_id,
+        categoria_id=categoria_id_int,
         hora=horario,
         ubicacion=ubicacion,
         direccion=direccion,
