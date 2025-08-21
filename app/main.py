@@ -92,9 +92,9 @@ async def mostrar_yoga_gong(request: Request):
 async def mostrar_alimentacion(request: Request):
     return templates.TemplateResponse("alimentacion.html", {"request": request})
 
-@app.get("/reiki", response_class=HTMLResponse)
-async def mostrar_reiki(request: Request):
-    return templates.TemplateResponse("reiki.html", {"request": request})
+@app.get("/reiki-sesion", response_class=HTMLResponse)
+async def mostrar_reiki_sesion(request: Request):
+    return templates.TemplateResponse("reiki_sesion.html", {"request": request})
 
 @app.get("/pendulo-hebreo", response_class=HTMLResponse)
 async def mostrar_pendulo(request: Request):
