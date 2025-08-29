@@ -9,8 +9,8 @@ async def enviar_contacto(
     nombre: str = Form(...),
     email: str = Form(...),
     telefono: str = Form(None),
-    servicio: str = Form(...),
+    asunto: str = Form(...),
     mensaje: str = Form(...)
 ):
-    background_tasks.add_task(enviar_mail_contacto, nombre, email, telefono, servicio, mensaje)
+    background_tasks.add_task(enviar_mail_contacto, nombre, email, telefono, asunto, mensaje)
     return {"success": True}

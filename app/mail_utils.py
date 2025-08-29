@@ -74,7 +74,7 @@ async def notificar_admin_reserva(reserva, evento):
     fm = FastMail(conf)
     await fm.send_message(message)
 
-async def enviar_mail_contacto(nombre, email, telefono, servicio, mensaje):
+async def enviar_mail_contacto(nombre, email, telefono, asunto, mensaje):
     admin_email = os.getenv("ADMIN_EMAIL")
     if not admin_email:
         return
@@ -84,7 +84,7 @@ async def enviar_mail_contacto(nombre, email, telefono, servicio, mensaje):
     <p><strong>Nombre:</strong> {nombre}</p>
     <p><strong>Email:</strong> {email}</p>
     <p><strong>Teléfono:</strong> {telefono or 'No proporcionado'}</p>
-    <p><strong>Servicio:</strong> {servicio}</p>
+    <p><strong>Asunto:</strong> {asunto}</p>
     <p><strong>Mensaje:</strong><br>{mensaje}</p>
     """
 
