@@ -119,6 +119,20 @@ def actualizar_evento(
     db.commit()
     return RedirectResponse(url="/admin/eventos", status_code=303)
 
+@router.get("/admin/eventos/{evento_id}/clonar", dependencies=[Depends(current_superuser)])
+def mostrar_formulario_clonar_evento(evento_id: int, request: Request, db: Session = Depends(get_db)):
+    evento = db.query(Evento).get(evento_id)
+    categorias = db.query(Categoria).all()
+    if not evento:
+        return templates.TemplateResponse("404.html", {"request": request})
+    
+    return templates.TemplateResponse("admin_evento_form.html", {
+        "request": request,
+        "evento": evento,
+        "categorias": categorias,
+        "modo": "clonar"
+    })
+
 @router.post("/admin/eventos/{evento_id}/eliminar", dependencies=[Depends(current_superuser)])
 def eliminar_evento(evento_id: int, db: Session = Depends(get_db)):
     evento = db.query(Evento).get(evento_id)

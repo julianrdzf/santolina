@@ -363,6 +363,21 @@ transform: rotate(90deg);
     background-color: #16117c;
 }
 
+.btn-clonar {
+    color: white;
+    background-color: #e68908; /* Verde */
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-clonar:hover {
+    background-color: #8e610e;
+}
+
 .btn-editar {
     color: white;
     background-color: #28a745; /* Verde */
