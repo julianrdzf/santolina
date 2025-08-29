@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <title>Santolina - Reiki</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+
+    <!-- Sección de Presentación -->
+    <section id="presentacion-alimentacion" class="container-reiki">
+        <div class="container-yoga-content">
+            <h2 class="yoga-title">Reiki</h2>
+            <p class="yoga-subtitle">Reiki es una técnica Japonesa ancestral de sanación. 
+                La energía se transmite por la imposición de las manos del reikista sobre sí 
+                mismo u otra persona, animal o planta.</p>
+                      
+        </div>
+    </section>
+
+    <section id="clases-yoga" class="container-clases-yoga">
+        <div class="container">
+            
+            
+            <div class="agenda-grid">
+                <div class="agenda-card text-left">
+                    
+                    <h3>Sesión de Reiki</h3>                    
+                    <p>La sesión de reiki tiene una duración entre 45-60 minutos 
+                        donde el reikista a través de la imposición de manos canaliza la energía universal, 
+                        armonizando la energía del paciente.</p>
+                    <br>                       
+                    
+                    
+                </div> 
+
+                <div class="agenda-card text-left">
+                    
+                    <h3>Iniciación en Reiki - Nivel 1</h3>
+                    <p>En este primer nivel se recibe la activación de la energía en un acto denominado 
+                        Iniciación.</p>
+                    <br>
+
+                    <p><strong>Programa:</strong></p>
+                    <p>• Historia del Reiki</p>                    
+                    <p>• Conceptos básicos</p>
+                    <p>• Principios del Reiki</p>
+                    <p>• Sistema de Chakras, sus funciones y características</p>
+                    <p>• Tratamiento (como realizarlo)</p>
+                    <p>• Meditación</p>
+                    <p>• Iniciación</p>
+                    <p>• Práctica</p>
+                    <br>
+
+                    <p><strong>Ubicación:</strong></p>
+                    <p>Montevideo-Maldonado</p>
+                    
+
+                    <br>
+                    <p><strong>Incluye:</strong></p>
+                    <p>• Manual teórico</p>
+                    <p>• Certificado de asistencia</p>
+                
+                    
+                </div>     
+            </div>
+        </div>
+    </section>
+    
+    
+
+    <!-- Sección de Contacto -->
+    <section id="contacto" class="contact">
+        <div class="container">
+            <h2 class="section-title">Contacto</h2>
+            <p class="section-subtitle">Contáctanos para solicitar más información</p>
+            
+            <div class="contact-content">
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h3>Email</h3>
+                            <p>santolina.uy@gmail.com</p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <a href="https://wa.me/59899971075" target="_blank">
+                            <div class="contact-icon">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                        </a>
+                        <div class="contact-details">
+                            <h3>Teléfono</h3>
+                            <p>+598 99 971 075</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <form id="contact-form">
+                    <div class="form-group">
+                        <input type="text" name="nombre" placeholder="Nombre completo" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" name="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="tel" name="telefono" placeholder="Teléfono">
+                    </div>
+                    <div class="form-group">
+                        <select name="asunto" required>                            
+                            <option value="reiki">Reiki</option>                            
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <textarea name="mensaje" placeholder="Mensaje" rows="5"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Enviar Mensaje</button>
+                </form>
+            </div>
+        </div>
+    </section>    
+
+    {% include "partials/footer.html" %}
+
+    <script src="/static/script.js"></script>
+</body>
+</html> 
