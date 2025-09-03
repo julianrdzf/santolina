@@ -120,9 +120,17 @@ document.addEventListener('DOMContentLoaded', function() {
         observer.observe(el);
     });
 
-    // Validación del formulario de contacto
+   // Validación del formulario de contacto
     const contactForm = document.querySelector('#contact-form');
+
     if (contactForm) {
+        // 🔹 Bloquear Enter solo en los <input>, no en <textarea>
+        contactForm.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+            }
+        });
+
         contactForm.addEventListener('submit', function(e) {
             e.preventDefault();
 
