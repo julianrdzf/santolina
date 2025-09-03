@@ -4,6 +4,7 @@ import pickle
 from fastapi_mail import MessageSchema  # solo para mantener la compatibilidad con tu código
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
 from email.mime.text import MIMEText
 
 # 🔹 Cargar token de Gmail desde variable de entorno
@@ -17,10 +18,15 @@ creds = pickle.loads(token_bytes)
 service = build('gmail', 'v1', credentials=creds)
 
 def send_email(to_email: str, subject: str, body_html: str):
+
+    # Renovar token si es necesario
+    if creds.expired and creds.refresh_token:
+        creds.refresh(Request())
+        
     """Envía un mail usando Gmail API"""
     message = MIMEText(body_html, "html")
     message['to'] = to_email
-    message['from'] = 'notificaciones@santolina@gmail.com'
+    message['from'] = 'notificaciones.santolina@gmail.com'
     message['subject'] = subject
     raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
     service.users().messages().send(userId="me", body={'raw': raw}).execute()
