@@ -34,6 +34,34 @@ from app.models.evento import Evento
 from app.models.reserva import Reserva
 from app.models.categorias import Categoria
 
+# Categorías y productos
+from app.models.categorias_productos import CategoriaProducto
+from app.models.productos import Producto
+from app.models.imagenes_productos import ImagenProducto
+
+# Promociones
+from app.models.promociones import Promocion
+from app.models.promocion_productos import PromocionProducto
+
+# Carrito y detalle
+from app.models.carritos import Carrito
+from app.models.carrito_detalle import CarritoDetalle
+
+# Órdenes y detalle
+from app.models.ordenes import Orden
+from app.models.orden_detalle import OrdenDetalle
+
+# Pagos
+from app.models.pagos import Pago
+
+# Direcciones
+from app.models.direcciones import Direccion
+
+# Cupones y uso de cupones
+from app.models.cupones import Cupon
+from app.models.cupones_uso import CuponUso
+
+
 from sqlalchemy import insert
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
