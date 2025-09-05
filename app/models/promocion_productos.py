@@ -12,3 +12,5 @@ class PromocionProducto(Base):
     promocion = relationship("Promocion", back_populates="productos")
     # Se asume que en Producto se agregará:
     # promociones = relationship("PromocionProducto", back_populates="producto")
+
+    producto = relationship("Producto", back_populates="promociones")

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda - Santolina</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+{% include "partials/header.html" %}
+
+<!-- Sección de Presentación -->
+<section id="presentacion-alimentacion" class="container-alimentacion">
+    <div class="container-yoga-content">
+        <h2 class="yoga-title">Tienda</h2>
+        <p class="yoga-subtitle"></p>
+                  
+    </div>
+</section>
+
+<!-- BARRA DE BUSQUEDA -->
+<div class="search-bar">
+    <form method="get" action="/tienda">
+        <input type="text" name="q" placeholder="Buscar productos..." value="{{ request.query_params.q or '' }}">
+        <button type="submit"><i class="fas fa-search"></i></button>
+    </form>
+</div>
+
+<div class="container-tienda">
+
+    <!-- SIDEBAR DE FILTROS -->
+    <aside class="sidebar">
+        <div class="filters">
+            <h3>Categorías</h3>
+            <form id="filters-form">
+                <input type="text" name="q" id="search-input" placeholder="Buscar productos..." value="{{ q }}">
+                {% for cat in categorias %}
+                    <label>
+                        <input type="checkbox" name="categoria" value="{{ cat.id }}" {% if cat.id in selected_cats %}checked{% endif %}>
+                        {{ cat.nombre }}
+                    </label>
+                {% endfor %}
+            </form>
+        </div>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="main-content">
+
+        <!-- GRID DE PRODUCTOS -->
+        <div class="products-container" id="products-container">
+            {% for producto in productos %}
+            <div class="product-card">
+                <img src="{{ producto.imagenes[0].url_imagen if producto.imagenes else '/static/img/default-product.png' }}" alt="{{ producto.nombre }}">
+                <h4>{{ producto.nombre }}</h4>
+                <p>{{ producto.descripcion }}</p>
+                <p class="price">$ {{ "%.2f"|format(producto.precio) }}</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="pagination">
+            {% if page > 1 %}
+                <a href="?q={{ q }}{% for c in selected_cats %}&categoria={{ c }}{% endfor %}&page={{ page-1 }}">Anterior</a>
+            {% endif %}
+        
+            <span>Página {{ page }} de {{ total_pages }}</span>
+        
+            {% if page < total_pages %}
+                <a href="?q={{ q }}{% for c in selected_cats %}&categoria={{ c }}{% endfor %}&page={{ page+1 }}">Siguiente</a>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+    const form = document.getElementById('filters-form');
+    const searchInput = document.getElementById('search-input');
+    const productsContainer = document.getElementById('products-container');
+
+    function getSelectedCategories() {
+        const checkboxes = form.querySelectorAll('input[type="checkbox"]:checked');
+        return Array.from(checkboxes).map(cb => cb.value);
+    }
+
+    async function updateProducts() {
+        const q = searchInput.value;
+        const categorias = getSelectedCategories();
+
+        const params = new URLSearchParams();
+        if(q) params.append('q', q);
+        categorias.forEach(c => params.append('categoria', c));
+
+        const res = await fetch('/tienda?' + params.toString(), {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        const html = await res.text();
+
+        // Parseamos la respuesta y reemplazamos solo el grid de productos
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newProducts = doc.getElementById('products-container');
+        productsContainer.innerHTML = newProducts.innerHTML;
+    }
+
+    // Eventos
+    searchInput.addEventListener('input', () => {
+        setTimeout(updateProducts, 300); // debounce rápido
+    });
+
+    form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', updateProducts);
+    });
+    
+</script>
+
+</body>
+</html>

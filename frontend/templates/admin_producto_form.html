@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        {% if modo == 'crear' %}Crear Producto{% else %}Editar Producto{% endif %}
+    </title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    
+</head>
+<body>
+    {% include "partials/header.html" %}
+    
+    <div class="container mt-5">
+        <h2>{% if modo == 'crear' %}Crear producto{% else %}Editar producto{% endif %}</h2>
+
+        <form action="{% if modo == 'crear' %}/admin/productos/crear{% else %}/admin/productos/{{ producto.id }}/editar{% endif %}" 
+              method="post" enctype="multipart/form-data">
+
+            <div class="mb-3">
+                <label>Nombre</label>
+                <input type="text" name="nombre" class="form-control" required value="{{ '' if modo == 'crear' else producto.nombre }}">
+            </div>
+
+            <div class="mb-3">
+                <label>Descripción</label>
+                <textarea name="descripcion" class="form-control">{{ '' if modo == 'crear' else producto.descripcion }}</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label>Precio</label>
+                <input type="number" step="0.01" name="precio" class="form-control" required value="{{ '' if modo == 'crear' else producto.precio }}">
+            </div>
+
+            <div class="mb-3">
+                <label>Stock</label>
+                <input type="number" name="stock" class="form-control" required value="{{ '' if modo == 'crear' else producto.stock }}">
+            </div>
+
+            <div class="mb-3">
+                <label>Categoría</label>
+                <select name="id_categoria" class="form-select">
+                    <option value="">Sin categoría</option>
+                    {% for cat in categorias %}
+                        <option value="{{ cat.id }}" {% if modo != 'crear' and producto.id_categoria == cat.id %}selected{% endif %}>
+                            {{ cat.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label>Imágenes (máx 3)</label>
+                <div class="img-uploader-container">
+                    {% set imagenes = producto.imagenes if producto else [] %}
+                    {% for i in range(3) %}
+                        <div class="img-uploader-subcontainer">
+                            {% if i < imagenes|length %}
+                                <img src="{{ imagenes[i].url_imagen }}" alt="Imagen">
+                                <i class="fa-solid fa-trash delete-icon" onclick="deleteImage({{ imagenes[i].id }}, this)"></i>
+                            {% else %}
+                                <i class="fa-solid fa-image img-uploader-icon"></i>
+                            {% endif %}
+                            <input type="file" name="imagen{{ i+1 }}" onchange="previewImage(event, {{ i }})">
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-success">{% if modo == 'crear' %}Crear{% else %}Actualizar{% endif %}</button>
+            <a href="/admin/productos" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+
+    <script>
+        function previewImage(event, index) {
+            const containers = document.querySelectorAll('.img-uploader-subcontainer');
+            const container = containers[index];
+            if (!container) return;
+
+            const img = container.querySelector('img');
+            const icon = container.querySelector('.img-uploader-icon');
+
+            const reader = new FileReader();
+            reader.onload = function() {
+                if (img) {
+                    img.src = reader.result;
+                } else if (icon) {
+                    icon.outerHTML = '<img src="'+reader.result+'" alt="Imagen">';
+                }
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        function deleteImage(imagenId, iconElement) {
+            if (!confirm("¿Desea eliminar esta imagen?")) return;
+
+            fetch(`/admin/productos/eliminar_imagen/${imagenId}`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => {
+                if (res.ok) {
+                    // Eliminar la imagen del DOM
+                    const container = iconElement.closest('.img-uploader-subcontainer');
+                    container.querySelector('img')?.remove();
+                    iconElement.remove();
+                    const icon = document.createElement('i');
+                    icon.className = 'fa-solid fa-image img-uploader-icon';
+                    container.appendChild(icon);
+                } else {
+                    alert('Error al eliminar la imagen');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Error al eliminar la imagen');
+            });
+        }
+    </script>
+</body>
+</html>

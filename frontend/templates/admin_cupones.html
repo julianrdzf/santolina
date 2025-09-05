@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <title>Panel de administración - Cupones</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+
+    <section>
+        <div class="container mt-5">
+            <h2 class="mb-4">Cupones</h2>
+
+            <a href="/admin/cupones/crear" class="btn btn-success mb-3">+ Crear nuevo cupón</a>
+
+            <div class="hscroll">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Código</th>
+                            <th>Descripción</th>
+                            <th>Tipo</th>
+                            <th>Valor</th>
+                            <th>Inicio</th>
+                            <th>Fin</th>
+                            <th>Activo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cupon in cupones %}
+                        <tr>
+                            <td>{{ cupon.id }}</td>
+                            <td>{{ cupon.codigo }}</td>
+                            <td>{{ cupon.descripcion or '' }}</td>
+                            <td>{{ cupon.tipo_descuento }}</td>
+                            <td>
+                                {% if cupon.tipo_descuento == 'fijo' %}
+                                    $ {{ "%.2f"|format(cupon.valor) }}
+                                {% else %}
+                                    {{ "%.2f"|format(cupon.valor) }} %
+                                {% endif %}
+                            </td>
+                            <td>{{ cupon.fecha_inicio.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ cupon.fecha_fin.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ 'Sí' if cupon.activo else 'No' }}</td>
+                            <td class="acciones-evento">
+                                <a href="/admin/cupones/{{ cupon.id }}/editar" class="btn-editar" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form action="/admin/cupones/{{ cupon.id }}/eliminar" method="post" style="display:inline;">
+                                    <button type="submit" class="btn-eliminar" onclick="return confirm('¿Eliminar este cupón?');" title="Eliminar">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
