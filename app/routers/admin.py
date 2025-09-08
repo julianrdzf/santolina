@@ -19,6 +19,7 @@ from app.models.user import Usuario
 from app.models.direcciones import Direccion
 from app.models.promociones import Promocion
 from app.models.promocion_productos import PromocionProducto
+from app.models.costos_envio import CostoEnvio
 
 from fastapi import Form
 from fastapi.responses import RedirectResponse, JSONResponse
@@ -988,6 +989,110 @@ async def desvincular_producto_promocion(request: Request, db: Session = Depends
         
         return JSONResponse(
             content={"success": True, "message": "Producto desvinculado exitosamente"}
+        )
+        
+    except Exception as e:
+        db.rollback()
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "message": f"Error interno: {str(e)}"}
+        )
+
+
+# ===== RUTAS PARA GESTIÓN DE COSTOS DE ENVÍO =====
+
+@router.get("/admin/envios", dependencies=[Depends(current_superuser)])
+def admin_envios(request: Request, db: Session = Depends(get_db)):
+    """Página de gestión de costos de envío"""
+    costos_envio = db.query(CostoEnvio).all()
+    return templates.TemplateResponse("admin_envios.html", {
+        "request": request,
+        "costos_envio": costos_envio
+    })
+
+@router.post("/admin/envios/agregar", dependencies=[Depends(current_superuser)])
+def agregar_costo_envio(
+    request: Request,
+    departamento: str = Form(...),
+    costo: float = Form(...),
+    activo: Optional[str] = Form(None),
+    db: Session = Depends(get_db)
+):
+    """Agregar nuevo costo de envío"""
+    try:
+        # Verificar si ya existe el departamento
+        existe = db.query(CostoEnvio).filter(CostoEnvio.departamento == departamento).first()
+        if existe:
+            return RedirectResponse(url="/admin/envios?error=departamento_existe", status_code=303)
+        
+        # Crear nuevo costo de envío
+        nuevo_costo = CostoEnvio(
+            departamento=departamento,
+            costo=costo,
+            activo=bool(activo)
+        )
+        
+        db.add(nuevo_costo)
+        db.commit()
+        
+        return RedirectResponse(url="/admin/envios?success=agregado", status_code=303)
+        
+    except Exception as e:
+        db.rollback()
+        return RedirectResponse(url="/admin/envios?error=error_interno", status_code=303)
+
+@router.post("/admin/envios/editar/{costo_id}", dependencies=[Depends(current_superuser)])
+def editar_costo_envio(
+    costo_id: int,
+    request: Request,
+    departamento: str = Form(...),
+    costo: float = Form(...),
+    activo: Optional[str] = Form(None),
+    db: Session = Depends(get_db)
+):
+    """Editar costo de envío existente"""
+    try:
+        costo_envio = db.query(CostoEnvio).filter(CostoEnvio.id == costo_id).first()
+        if not costo_envio:
+            return RedirectResponse(url="/admin/envios?error=no_encontrado", status_code=303)
+        
+        # Verificar si el departamento ya existe (excepto el actual)
+        existe = db.query(CostoEnvio).filter(
+            CostoEnvio.departamento == departamento,
+            CostoEnvio.id != costo_id
+        ).first()
+        if existe:
+            return RedirectResponse(url="/admin/envios?error=departamento_existe", status_code=303)
+        
+        # Actualizar datos
+        costo_envio.departamento = departamento
+        costo_envio.costo = costo
+        costo_envio.activo = bool(activo)
+        
+        db.commit()
+        
+        return RedirectResponse(url="/admin/envios?success=actualizado", status_code=303)
+        
+    except Exception as e:
+        db.rollback()
+        return RedirectResponse(url="/admin/envios?error=error_interno", status_code=303)
+
+@router.delete("/admin/envios/eliminar/{costo_id}", dependencies=[Depends(current_superuser)])
+def eliminar_costo_envio(costo_id: int, db: Session = Depends(get_db)):
+    """Eliminar costo de envío"""
+    try:
+        costo_envio = db.query(CostoEnvio).filter(CostoEnvio.id == costo_id).first()
+        if not costo_envio:
+            return JSONResponse(
+                status_code=404,
+                content={"success": False, "message": "Costo de envío no encontrado"}
+            )
+        
+        db.delete(costo_envio)
+        db.commit()
+        
+        return JSONResponse(
+            content={"success": True, "message": "Costo de envío eliminado exitosamente"}
         )
         
     except Exception as e:

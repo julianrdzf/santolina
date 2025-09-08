@@ -18,6 +18,7 @@ from app.models.carrito_detalle import CarritoDetalle
 from app.models.direcciones import Direccion
 from app.models.ordenes import Orden
 from app.models.orden_detalle import OrdenDetalle
+from app.models.costos_envio import CostoEnvio
 
 import mercadopago
 from pathlib import Path
@@ -610,9 +611,17 @@ def procesar_pago(
     if not direccion_envio:
         return RedirectResponse(url="/tienda/pago?error=direccion_requerida", status_code=303)
     
-    # Calcular costo de envío
-    if direccion_envio.departamento == "Montevideo":
-        costo_envio = 200
+    # Calcular costo de envío desde la base de datos
+    from app.models.costos_envio import CostoEnvio
+    costo_envio_db = db.query(CostoEnvio).filter(
+        CostoEnvio.departamento == direccion_envio.departamento,
+        CostoEnvio.activo == True
+    ).first()
+    
+    if costo_envio_db:
+        costo_envio = costo_envio_db.costo
+    else:
+        costo_envio = 0
     
     total_con_envio = total_final + costo_envio
     
@@ -624,6 +633,7 @@ def procesar_pago(
         estado="pendiente",
         metodo_pago='mercadopago',
         descuento_total=descuento_cupon,
+        costo_envio=costo_envio,
         total_final=total_con_envio
     )
     
@@ -658,24 +668,13 @@ def procesar_pago(
     
     db.commit()
     
-    # Crear items para MercadoPago
-    items = []
-    for detalle in detalles:
-        items.append({
-            "title": detalle.producto.nombre,
-            "quantity": detalle.cantidad,
-            "unit_price": float(detalle.producto.precio),
-            "currency_id": "UYU"
-        })
-    
-    # Agregar costo de envío si aplica
-    if costo_envio > 0:
-        items.append({
-            "title": "Envío a Montevideo",
-            "quantity": 1,
-            "unit_price": float(costo_envio),
-            "currency_id": "UYU"
-        })
+    # Crear item único para MercadoPago con el total de la compra
+    items = [{
+        "title": f"Compra en Santolina - Orden #{nueva_orden.id}",
+        "quantity": 1,
+        "unit_price": float(total_con_envio),
+        "currency_id": "UYU"
+    }]
     
     # Crear preferencia de pago
     sdk = mercadopago.SDK(os.getenv("MERCADO_PAGO_ACCESS_TOKEN"))
@@ -829,3 +828,20 @@ def pago_pendiente_tienda(
         "orden": orden,
         "mensaje": "Tu pago está siendo procesado. Te notificaremos cuando se complete."
     })
+
+
+@router.get("/tienda/costo-envio/{departamento}")
+def obtener_costo_envio(
+    departamento: str,
+    db: Session = Depends(get_db)
+):
+    """Obtiene el costo de envío para un departamento específico"""
+    costo_envio = db.query(CostoEnvio).filter(
+        CostoEnvio.departamento == departamento,
+        CostoEnvio.activo == True
+    ).first()
+    
+    if costo_envio:
+        return {"costo": costo_envio.costo}
+    else:
+        return {"costo": 0}

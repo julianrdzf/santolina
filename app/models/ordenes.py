@@ -15,6 +15,7 @@ class Orden(Base):
     direccion_envio_id = Column(Integer, ForeignKey("direcciones.id"), nullable=False)
     metodo_pago = Column(String, nullable=True)
     descuento_total = Column(Float, default=0)
+    costo_envio = Column(Float, default=0)
     total_final = Column(Float, nullable=False)
 
     usuario = relationship("Usuario", back_populates="ordenes")

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <title>Gestión de Costos de Envío - Santolina</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+
+    <section>
+        <div class="container mt-5">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-truck"></i> Gestión de Costos de Envío</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/admin/tienda-panel">Panel Tienda</a></li>
+                            <li class="breadcrumb-item active">Costos de Envío</li>
+                        </ol>
+                    </nav>
+                </div>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarEnvio">
+                    <i class="fas fa-plus"></i> Agregar Departamento
+                </button>
+            </div>
+
+            <!-- Tabla de costos de envío -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-list"></i> Costos por Departamento</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if costos_envio %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Departamento</th>
+                                            <th>Costo</th>
+                                            <th>Estado</th>
+                                            <th class="text-center">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for costo in costos_envio %}
+                                        <tr>
+                                            <td>{{ costo.id }}</td>
+                                            <td>
+                                                <strong>{{ costo.departamento }}</strong>
+                                            </td>
+                                            <td>
+                                                <span class="h6 text-success">${{ "%.2f"|format(costo.costo) }}</span>
+                                            </td>
+                                            <td>
+                                                {% if costo.activo %}
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check"></i> Activo
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">
+                                                        <i class="fas fa-pause"></i> Inactivo
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="btn-group" role="group">
+                                                    <button class="btn btn-sm btn-outline-primary" 
+                                                            onclick="editarCosto({{ costo.id }}, '{{ costo.departamento }}', {{ costo.costo }}, {{ costo.activo|lower }})"
+                                                            data-bs-toggle="modal" data-bs-target="#modalEditarEnvio">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger" 
+                                                            onclick="eliminarCosto({{ costo.id }}, '{{ costo.departamento }}')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-truck fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">No hay costos de envío configurados</h5>
+                                <p class="text-muted">Agrega el primer departamento para comenzar a gestionar los costos de envío.</p>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarEnvio">
+                                    <i class="fas fa-plus"></i> Agregar Primer Departamento
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal Agregar -->
+    <div class="modal fade" id="modalAgregarEnvio" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-plus"></i> Agregar Costo de Envío
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" action="/admin/envios/agregar">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="departamento" class="form-label">Departamento</label>
+                            <select class="form-select" id="departamento" name="departamento" required>
+                                <option value="">Seleccionar departamento</option>
+                                <option value="Artigas">Artigas</option>
+                                <option value="Canelones">Canelones</option>
+                                <option value="Cerro Largo">Cerro Largo</option>
+                                <option value="Colonia">Colonia</option>
+                                <option value="Durazno">Durazno</option>
+                                <option value="Flores">Flores</option>
+                                <option value="Florida">Florida</option>
+                                <option value="Lavalleja">Lavalleja</option>
+                                <option value="Maldonado">Maldonado</option>
+                                <option value="Montevideo">Montevideo</option>
+                                <option value="Paysandú">Paysandú</option>
+                                <option value="Río Negro">Río Negro</option>
+                                <option value="Rivera">Rivera</option>
+                                <option value="Rocha">Rocha</option>
+                                <option value="Salto">Salto</option>
+                                <option value="San José">San José</option>
+                                <option value="Soriano">Soriano</option>
+                                <option value="Tacuarembó">Tacuarembó</option>
+                                <option value="Treinta y Tres">Treinta y Tres</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="costo" class="form-label">Costo de Envío ($)</label>
+                            <input type="number" class="form-control" id="costo" name="costo" 
+                                   step="0.01" min="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="activo" name="activo" checked>
+                                <label class="form-check-label" for="activo">
+                                    Activo
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Guardar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar -->
+    <div class="modal fade" id="modalEditarEnvio" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-edit"></i> Editar Costo de Envío
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" id="formEditar">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="editDepartamento" class="form-label">Departamento</label>
+                            <select class="form-select" id="editDepartamento" name="departamento" required>
+                                <option value="Artigas">Artigas</option>
+                                <option value="Canelones">Canelones</option>
+                                <option value="Cerro Largo">Cerro Largo</option>
+                                <option value="Colonia">Colonia</option>
+                                <option value="Durazno">Durazno</option>
+                                <option value="Flores">Flores</option>
+                                <option value="Florida">Florida</option>
+                                <option value="Lavalleja">Lavalleja</option>
+                                <option value="Maldonado">Maldonado</option>
+                                <option value="Montevideo">Montevideo</option>
+                                <option value="Paysandú">Paysandú</option>
+                                <option value="Río Negro">Río Negro</option>
+                                <option value="Rivera">Rivera</option>
+                                <option value="Rocha">Rocha</option>
+                                <option value="Salto">Salto</option>
+                                <option value="San José">San José</option>
+                                <option value="Soriano">Soriano</option>
+                                <option value="Tacuarembó">Tacuarembó</option>
+                                <option value="Treinta y Tres">Treinta y Tres</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editCosto" class="form-label">Costo de Envío ($)</label>
+                            <input type="number" class="form-control" id="editCosto" name="costo" 
+                                   step="0.01" min="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editActivo" name="activo">
+                                <label class="form-check-label" for="editActivo">
+                                    Activo
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Actualizar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% include "partials/footer.html" %}
+
+    <script src="/static/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function editarCosto(id, departamento, costo, activo) {
+            document.getElementById('formEditar').action = `/admin/envios/editar/${id}`;
+            document.getElementById('editDepartamento').value = departamento;
+            document.getElementById('editCosto').value = costo;
+            document.getElementById('editActivo').checked = activo;
+        }
+
+        function eliminarCosto(id, departamento) {
+            if (confirm(`¿Estás seguro de eliminar el costo de envío para ${departamento}?`)) {
+                fetch(`/admin/envios/eliminar/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error al eliminar: ' + (data.message || 'Error desconocido'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al eliminar el costo de envío');
+                });
+            }
+        }
+    </script>
+</body>
+</html>

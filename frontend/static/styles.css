@@ -4469,6 +4469,31 @@ transform: rotate(90deg);
     border-top: 1px solid #eee;
 }
 
+.total-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.total-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+}
+
+.total-line.discount {
+    color: var(--discount-color);
+    font-weight: 500;
+}
+
+.total-line.final-total {
+    border-top: 1px solid #ddd;
+    padding-top: 8px;
+    margin-top: 5px;
+    font-size: 1.1rem;
+}
+
 .reservation-details {
     color: #666;
 }
