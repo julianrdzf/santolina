@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <title>Panel de administración - Promociones y Productos</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+
+    <section>
+        <div class="container mt-5">
+            <!-- Header con navegación -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-tags"></i> Gestión de Promociones y Productos</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/admin/tienda-panel">Panel Tienda</a></li>
+                            <li class="breadcrumb-item active">Promociones y Productos</li>
+                        </ol>
+                    </nav>
+                </div>
+                <a href="/admin/tienda-panel" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver al Panel
+                </a>
+            </div>
+
+            <!-- Selector de promoción -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-bullhorn"></i> Seleccionar Promoción</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <select class="form-select" id="promocionSelect" onchange="cargarPromocion()">
+                                        <option value="">Selecciona una promoción...</option>
+                                        {% for promocion in promociones %}
+                                        <option value="{{ promocion.id }}" 
+                                                {% if promocion_seleccionada and promocion.id == promocion_seleccionada.id %}selected{% endif %}>
+                                            {{ promocion.titulo }} - 
+                                            {% if promocion.tipo_descuento == 'porcentaje' %}{{ promocion.valor }}%{% else %}-${{ promocion.valor }}{% endif %}
+                                            ({{ promocion.fecha_inicio.strftime('%d/%m/%Y') }} - {{ promocion.fecha_fin.strftime('%d/%m/%Y') }})
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <a href="/admin/promociones" class="btn btn-outline-primary">
+                                        <i class="fas fa-plus"></i> Gestionar Promociones
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if promocion_seleccionada %}
+            <!-- Información de la promoción seleccionada -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle"></i> 
+                                {{ promocion_seleccionada.titulo }}
+                                <span class="badge bg-light text-dark ms-2">
+                                    {% if promocion_seleccionada.activo %}Activa{% else %}Inactiva{% endif %}
+                                </span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Descripción:</strong> {{ promocion_seleccionada.descripcion or 'Sin descripción' }}</p>
+                                    <p><strong>Tipo de descuento:</strong> 
+                                        {% if promocion_seleccionada.tipo_descuento == 'porcentaje' %}
+                                            <span class="badge bg-success">{{ promocion_seleccionada.valor }}% de descuento</span>
+                                        {% else %}
+                                            <span class="badge bg-info">${{ promocion_seleccionada.valor }} de descuento</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Período:</strong> 
+                                        {{ promocion_seleccionada.fecha_inicio.strftime('%d/%m/%Y') }} - 
+                                        {{ promocion_seleccionada.fecha_fin.strftime('%d/%m/%Y') }}
+                                    </p>
+                                    <p><strong>Productos vinculados:</strong> 
+                                        <span class="badge bg-secondary">{{ productos_vinculados|length }}</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gestión de productos -->
+            <div class="row">
+                <!-- Productos disponibles -->
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-light">
+                            <h5><i class="fas fa-box"></i> Productos Disponibles</h5>
+                            <div class="input-group mt-2">
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="buscarDisponibles" placeholder="Buscar productos..."
+                                       onkeyup="filtrarProductos('disponibles')">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush" style="max-height: 500px; overflow-y: auto;">
+                                {% for producto in productos_disponibles %}
+                                <div class="list-group-item producto-disponible" data-nombre="{{ producto.nombre.lower() }}">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">{{ producto.nombre }}</h6>
+                                            <p class="mb-1 text-muted small">{{ producto.descripcion[:100] if producto.descripcion else 'Sin descripción' }}{% if producto.descripcion and producto.descripcion|length > 100 %}...{% endif %}</p>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <small class="text-success">${{ "%.2f"|format(producto.precio) }}</small>
+                                                {% if producto.otras_promociones %}
+                                                    {% for promocion in producto.otras_promociones %}
+                                                    <span class="badge bg-warning text-dark" style="font-size: 0.7em;">
+                                                        {% if promocion.tipo_descuento == 'porcentaje' %}
+                                                            -{{ promocion.valor|int }}%
+                                                        {% else %}
+                                                            -${{ promocion.valor|int }}
+                                                        {% endif %}
+                                                        ({{ promocion.titulo }})
+                                                    </span>
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                                onclick="vincularProducto({{ producto.id }})">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Productos vinculados -->
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-success text-white">
+                            <h5><i class="fas fa-link"></i> Productos Vinculados a la Promoción</h5>
+                            <div class="input-group mt-2">
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="buscarVinculados" placeholder="Buscar productos vinculados..."
+                                       onkeyup="filtrarProductos('vinculados')">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush" style="max-height: 500px; overflow-y: auto;">
+                                {% for producto in productos_vinculados %}
+                                <div class="list-group-item producto-vinculado" data-nombre="{{ producto.nombre.lower() }}">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">{{ producto.nombre }}</h6>
+                                            <p class="mb-1 text-muted small">{{ producto.descripcion[:100] if producto.descripcion else 'Sin descripción' }}{% if producto.descripcion and producto.descripcion|length > 100 %}...{% endif %}</p>
+                                            <div class="d-flex justify-content-between">
+                                                <small class="text-muted">Precio original: ${{ "%.2f"|format(producto.precio) }}</small>
+                                                <small class="text-success">
+                                                    <strong>
+                                                        {% if promocion_seleccionada.tipo_descuento == 'porcentaje' %}
+                                            Con descuento: ${{ "%.2f"|format(producto.precio * (1 - promocion_seleccionada.valor / 100)) }}
+                                        {% else %}
+                                            Con descuento: ${{ "%.2f"|format(producto.precio - promocion_seleccionada.valor) }}
+                                        {% endif %}
+                                                    </strong>
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-danger" 
+                                                onclick="desvincularProducto({{ producto.id }})">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if not productos_disponibles and not productos_vinculados %}
+            <div class="text-center py-5">
+                <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No hay productos disponibles</h4>
+                <p class="text-muted">Primero debes crear productos para poder vincularlos a promociones.</p>
+                <a href="/admin/productos" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Crear Productos
+                </a>
+            </div>
+            {% endif %}
+
+            {% else %}
+            <!-- Mensaje cuando no hay promoción seleccionada -->
+            <div class="text-center py-5">
+                <i class="fas fa-bullhorn fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">Selecciona una promoción</h4>
+                <p class="text-muted">Elige una promoción del menú desplegable para gestionar sus productos vinculados.</p>
+                {% if not promociones %}
+                <a href="/admin/promociones" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Crear Promociones
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    {% include "partials/footer.html" %}
+
+    <script src="/static/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function cargarPromocion() {
+            const promocionId = document.getElementById('promocionSelect').value;
+            if (promocionId) {
+                window.location.href = `/admin/promociones-productos?promocion_id=${promocionId}`;
+            } else {
+                window.location.href = '/admin/promociones-productos';
+            }
+        }
+
+        function vincularProducto(productoId) {
+            const promocionId = document.getElementById('promocionSelect').value;
+            if (!promocionId) {
+                alert('Primero selecciona una promoción');
+                return;
+            }
+
+            fetch(`/admin/promociones-productos/vincular`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    promocion_id: parseInt(promocionId),
+                    producto_id: productoId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error al vincular producto: ' + (data.message || 'Error desconocido'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al vincular producto');
+            });
+        }
+
+        function desvincularProducto(productoId) {
+            const promocionId = document.getElementById('promocionSelect').value;
+            if (!promocionId) {
+                alert('Error: No hay promoción seleccionada');
+                return;
+            }
+
+            if (confirm('¿Estás seguro de desvincular este producto de la promoción?')) {
+                fetch(`/admin/promociones-productos/desvincular`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        promocion_id: parseInt(promocionId),
+                        producto_id: productoId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error al desvincular producto: ' + (data.message || 'Error desconocido'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al desvincular producto');
+                });
+            }
+        }
+
+        function filtrarProductos(tipo) {
+            const busqueda = document.getElementById(`buscar${tipo === 'disponibles' ? 'Disponibles' : 'Vinculados'}`).value.toLowerCase();
+            const productos = document.querySelectorAll(`.producto-${tipo === 'disponibles' ? 'disponible' : 'vinculado'}`);
+            
+            productos.forEach(producto => {
+                const nombre = producto.getAttribute('data-nombre');
+                if (nombre.includes(busqueda)) {
+                    producto.style.display = '';
+                } else {
+                    producto.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

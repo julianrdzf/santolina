@@ -12,13 +12,23 @@ from app.models.promocion_productos import PromocionProducto
 from app.models.promociones import Promocion
 from app.models.cupones import Cupon
 from app.models.cupones_uso import CuponUso
+from app.models.ordenes import Orden
+from app.models.orden_detalle import OrdenDetalle
+from app.models.productos import Producto
+from app.models.user import Usuario
+from app.models.direcciones import Direccion
+from app.models.promociones import Promocion
+from app.models.promocion_productos import PromocionProducto
 
 from fastapi import Form
 from fastapi.responses import RedirectResponse, JSONResponse
 
 from app.routers.auth import current_superuser
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, date
+from sqlalchemy.orm import joinedload
+from sqlalchemy import func
+from sqlalchemy import and_
 
 import cloudinary.uploader
 
@@ -744,3 +754,245 @@ def eliminar_cupon(cupon_id: int, db: Session = Depends(get_db)):
         db.delete(cupon)
         db.commit()
     return RedirectResponse("/admin/cupones", status_code=303)
+
+# ==================== GESTIÓN DE ÓRDENES ====================
+
+@router.get("/admin/ordenes", dependencies=[Depends(current_superuser)])
+def admin_ordenes(request: Request, db: Session = Depends(get_db)):
+    """Página principal de gestión de órdenes"""
+    
+    # Obtener todas las órdenes con sus relaciones
+    ordenes = db.query(Orden).options(
+        joinedload(Orden.usuario),
+        joinedload(Orden.direccion_envio),
+        joinedload(Orden.detalle).joinedload(OrdenDetalle.producto)
+    ).order_by(Orden.fecha.desc()).all()
+    
+    # Calcular estadísticas
+    hoy = date.today()
+    ordenes_stats = {
+        'pendientes': db.query(Orden).filter(Orden.estado == 'pendiente').count(),
+        'pagadas': db.query(Orden).filter(Orden.estado == 'pagado').count(),
+        'enviadas': db.query(Orden).filter(Orden.estado == 'enviado').count(),
+        'total_hoy': db.query(func.sum(Orden.total_final)).filter(
+            func.date(Orden.fecha) == hoy,
+            Orden.estado.in_(['pagado', 'enviado'])
+        ).scalar() or 0
+    }
+    
+    return templates.TemplateResponse("admin_ordenes.html", {
+        "request": request,
+        "ordenes": ordenes,
+        "ordenes_stats": ordenes_stats
+    })
+
+@router.post("/admin/ordenes/{orden_id}/estado", dependencies=[Depends(current_superuser)])
+async def cambiar_estado_orden(orden_id: int, request: Request, db: Session = Depends(get_db)):
+    """Cambiar el estado de una orden"""
+    
+    import json
+    body = await request.body()
+    data = json.loads(body)
+    nuevo_estado = data.get('estado')
+    
+    if nuevo_estado not in ['pendiente', 'pagado', 'enviado', 'cancelado']:
+        return JSONResponse({"success": False, "message": "Estado inválido"})
+    
+    orden = db.query(Orden).get(orden_id)
+    if not orden:
+        return JSONResponse({"success": False, "message": "Orden no encontrada"})
+    
+    orden.estado = nuevo_estado
+    db.commit()
+    
+    return JSONResponse({"success": True, "message": f"Estado cambiado a {nuevo_estado}"})
+
+@router.get("/admin/ordenes/{orden_id}/detalle", dependencies=[Depends(current_superuser)])
+def detalle_orden(orden_id: int, request: Request, db: Session = Depends(get_db)):
+    """Página de detalle completo de una orden"""
+    
+    orden = db.query(Orden).options(
+        joinedload(Orden.usuario),
+        joinedload(Orden.direccion_envio),
+        joinedload(Orden.detalle).joinedload(OrdenDetalle.producto)
+    ).get(orden_id)
+    
+    if not orden:
+        raise HTTPException(status_code=404, detail="Orden no encontrada")
+    
+    return templates.TemplateResponse("admin_orden_detalle.html", {
+        "request": request,
+        "orden": orden
+    })
+
+# Promociones y Productos
+@router.get("/admin/promociones-productos", dependencies=[Depends(current_superuser)])
+def gestionar_promociones_productos(request: Request, promocion_id: Optional[int] = None, db: Session = Depends(get_db)):
+    """Página para gestionar la vinculación entre promociones y productos"""
+    
+    # Obtener todas las promociones
+    promociones = db.query(Promocion).all()
+    
+    promocion_seleccionada = None
+    productos_vinculados = []
+    productos_disponibles = []
+    
+    if promocion_id:
+        # Obtener la promoción seleccionada
+        promocion_seleccionada = db.query(Promocion).get(promocion_id)
+        
+        if promocion_seleccionada:
+            # Obtener productos ya vinculados a esta promoción
+            productos_vinculados_ids = db.query(PromocionProducto.id_producto).filter(
+                PromocionProducto.id_promocion == promocion_id
+            ).all()
+            productos_vinculados_ids = [p[0] for p in productos_vinculados_ids]
+            
+            if productos_vinculados_ids:
+                productos_vinculados = db.query(Producto).filter(
+                    Producto.id.in_(productos_vinculados_ids)
+                ).all()
+            
+            # Obtener productos disponibles (no vinculados a esta promoción)
+            productos_disponibles = db.query(Producto).filter(
+                ~Producto.id.in_(productos_vinculados_ids) if productos_vinculados_ids else True
+            ).all()
+            
+            # Para cada producto disponible, verificar si tiene otras promociones activas
+            for producto in productos_disponibles:
+                # Buscar otras promociones activas para este producto
+                otras_promociones = db.query(Promocion).join(PromocionProducto).filter(
+                    and_(
+                        PromocionProducto.id_producto == producto.id,
+                        Promocion.id != promocion_id,  # Excluir la promoción actual
+                        Promocion.activo == True
+                    )
+                ).all()
+                producto.otras_promociones = otras_promociones
+        else:
+            # Si no se encuentra la promoción, obtener todos los productos
+            productos_disponibles = db.query(Producto).all()
+    else:
+        # Si no hay promoción seleccionada, mostrar todos los productos como disponibles
+        productos_disponibles = db.query(Producto).all()
+        
+        # Para cada producto, verificar si tiene promociones activas
+        for producto in productos_disponibles:
+            promociones_activas = db.query(Promocion).join(PromocionProducto).filter(
+                and_(
+                    PromocionProducto.id_producto == producto.id,
+                    Promocion.activo == True
+                )
+            ).all()
+            producto.otras_promociones = promociones_activas
+    
+    return templates.TemplateResponse("admin_promociones_productos.html", {
+        "request": request,
+        "promociones": promociones,
+        "promocion_seleccionada": promocion_seleccionada,
+        "productos_vinculados": productos_vinculados,
+        "productos_disponibles": productos_disponibles
+    })
+
+@router.post("/admin/promociones-productos/vincular", dependencies=[Depends(current_superuser)])
+async def vincular_producto_promocion(request: Request, db: Session = Depends(get_db)):
+    """Vincular un producto a una promoción"""
+    try:
+        body = await request.json()
+        promocion_id = body.get("promocion_id")
+        producto_id = body.get("producto_id")
+        
+        if not promocion_id or not producto_id:
+            return JSONResponse(
+                status_code=400,
+                content={"success": False, "message": "Faltan parámetros requeridos"}
+            )
+        
+        # Verificar que la promoción y el producto existen
+        promocion = db.query(Promocion).get(promocion_id)
+        producto = db.query(Producto).get(producto_id)
+        
+        if not promocion:
+            return JSONResponse(
+                status_code=404,
+                content={"success": False, "message": "Promoción no encontrada"}
+            )
+        
+        if not producto:
+            return JSONResponse(
+                status_code=404,
+                content={"success": False, "message": "Producto no encontrado"}
+            )
+        
+        # Verificar si ya existe la vinculación
+        vinculacion_existente = db.query(PromocionProducto).filter(
+            PromocionProducto.id_promocion == promocion_id,
+            PromocionProducto.id_producto == producto_id
+        ).first()
+        
+        if vinculacion_existente:
+            return JSONResponse(
+                status_code=400,
+                content={"success": False, "message": "El producto ya está vinculado a esta promoción"}
+            )
+        
+        # Crear la vinculación
+        nueva_vinculacion = PromocionProducto(
+            id_promocion=promocion_id,
+            id_producto=producto_id
+        )
+        
+        db.add(nueva_vinculacion)
+        db.commit()
+        
+        return JSONResponse(
+            content={"success": True, "message": "Producto vinculado exitosamente"}
+        )
+        
+    except Exception as e:
+        db.rollback()
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "message": f"Error interno: {str(e)}"}
+        )
+
+@router.post("/admin/promociones-productos/desvincular", dependencies=[Depends(current_superuser)])
+async def desvincular_producto_promocion(request: Request, db: Session = Depends(get_db)):
+    """Desvincular un producto de una promoción"""
+    try:
+        body = await request.json()
+        promocion_id = body.get("promocion_id")
+        producto_id = body.get("producto_id")
+        
+        if not promocion_id or not producto_id:
+            return JSONResponse(
+                status_code=400,
+                content={"success": False, "message": "Faltan parámetros requeridos"}
+            )
+        
+        # Buscar la vinculación
+        vinculacion = db.query(PromocionProducto).filter(
+            PromocionProducto.id_promocion == promocion_id,
+            PromocionProducto.id_producto == producto_id
+        ).first()
+        
+        if not vinculacion:
+            return JSONResponse(
+                status_code=404,
+                content={"success": False, "message": "Vinculación no encontrada"}
+            )
+        
+        # Eliminar la vinculación
+        db.delete(vinculacion)
+        db.commit()
+        
+        return JSONResponse(
+            content={"success": True, "message": "Producto desvinculado exitosamente"}
+        )
+        
+    except Exception as e:
+        db.rollback()
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "message": f"Error interno: {str(e)}"}
+        )

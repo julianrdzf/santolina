@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
     <title>Tienda - Santolina</title>
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -12,7 +13,7 @@
 {% include "partials/header.html" %}
 
 <!-- Sección de Presentación -->
-<section id="presentacion-alimentacion" class="container-alimentacion">
+<section id="presentacion-alimentacion" class="container-tienda-banner">
     <div class="container-yoga-content">
         <h2 class="yoga-title">Tienda</h2>
         <p class="yoga-subtitle"></p>
@@ -20,56 +21,155 @@
     </div>
 </section>
 
-<!-- BARRA DE BUSQUEDA -->
-<div class="search-bar">
-    <form method="get" action="/tienda">
-        <input type="text" name="q" placeholder="Buscar productos..." value="{{ request.query_params.q or '' }}">
-        <button type="submit"><i class="fas fa-search"></i></button>
-    </form>
-</div>
+
 
 <div class="container-tienda">
 
-    <!-- SIDEBAR DE FILTROS -->
-    <aside class="sidebar">
-        <div class="filters">
+    <!-- TOGGLE FILTROS (visible en móvil) -->
+    <div class="filters-toggle">
+        <button id="filters-toggle" type="button"><i class="fas fa-filter"></i> Filtro</button>
+    </div>
+
+    <!-- SIDEBAR DE CATEGORÍAS -->
+    <aside class="sidebar" id="sidebar">
+        <div class="categories-nav">
             <h3>Categorías</h3>
-            <form id="filters-form">
-                <input type="text" name="q" id="search-input" placeholder="Buscar productos..." value="{{ q }}">
-                {% for cat in categorias %}
-                    <label>
-                        <input type="checkbox" name="categoria" value="{{ cat.id }}" {% if cat.id in selected_cats %}checked{% endif %}>
-                        {{ cat.nombre }}
-                    </label>
+            
+            <!-- Macro recursivo para mostrar categorías anidadas -->
+            {% macro render_category(categoria, level=0) %}
+                <div class="category-item" data-level="{{ level }}">
+                    <a href="/tienda?categoria={{ categoria.id }}" class="category-link" data-level="{{ level }}">
+                        {% if level == 0 %}
+                            <i class="fas fa-folder"></i>
+                        {% else %}
+                            <i class="fas fa-chevron-right"></i>
+                        {% endif %}
+                        {{ categoria.nombre }}
+                    </a>
+                    
+                    <!-- Subcategorías recursivas -->
+                    {% if categoria.subcategorias %}
+                        <div class="subcategory-list" data-level="{{ level + 1 }}">
+                            {% for subcategoria in categoria.subcategorias %}
+                                {{ render_category(subcategoria, level + 1) }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endmacro %}
+
+            <!-- Categorías principales -->
+            <div class="category-list">
+                {% for categoria in categorias_principales %}
+                    {{ render_category(categoria, 0) }}
                 {% endfor %}
-            </form>
+            </div>
+            
+            <!-- Mostrar todas las categorías si hay filtro activo -->
+            {% if categoria_actual %}
+                <div class="all-categories">
+                    <a href="/tienda" class="btn-clear-all">
+                        <i class="fas fa-times"></i>
+                        Ver todas las categorías
+                    </a>
+                </div>
+            {% endif %}
         </div>
     </aside>
+
+    <!-- FONDO CLICKABLE PARA CERRAR SIDEBAR EN MÓVIL -->
+    <div id="sidebar-backdrop"></div>
 
     <!-- CONTENIDO PRINCIPAL -->
     <div class="main-content">
 
+        <!-- BARRA DE BUSQUEDA (sobre el grid) -->
+        <div class="search-bar">
+            <form id="search-form">
+                <div class="search-input-wrapper">
+                    <input type="text" name="q" id="search-input" placeholder="Buscar productos..." value="{{ q }}">
+                    <button type="submit" aria-label="Buscar"><i class="fas fa-search"></i></button>
+                </div>
+            </form>
+        </div>
+
+        <!-- FILTROS ACTIVOS -->
+        {% if categoria_actual or q %}
+        <div class="active-filters">
+            <span class="filter-label">Filtrado por:</span>
+            <div class="filter-tags">
+                {% if q %}
+                <div class="filter-tag">
+                    <span class="filter-text">Búsqueda: "{{ q }}"</span>
+                    <a href="/tienda{% if categoria_actual %}?categoria={{ categoria_actual.id }}{% endif %}" class="filter-remove" title="Quitar filtro de búsqueda">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </div>
+                {% endif %}
+                
+                {% if categoria_actual %}
+                <div class="filter-tag">
+                    <span class="filter-text">{{ categoria_actual.nombre }}</span>
+                    <a href="/tienda{% if q %}?q={{ q }}{% endif %}" class="filter-remove" title="Quitar filtro de categoría">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </div>
+                {% endif %}
+                
+                {% if categoria_actual or q %}
+                <a href="/tienda" class="clear-all-filters">
+                    <i class="fas fa-times-circle"></i>
+                    Limpiar todos
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
         <!-- GRID DE PRODUCTOS -->
-        <div class="products-container" id="products-container">
+        <div class="products-grid" id="products-container">
             {% for producto in productos %}
             <div class="product-card">
-                <img src="{{ producto.imagenes[0].url_imagen if producto.imagenes else '/static/img/default-product.png' }}" alt="{{ producto.nombre }}">
-                <h4>{{ producto.nombre }}</h4>
-                <p>{{ producto.descripcion }}</p>
-                <p class="price">$ {{ "%.2f"|format(producto.precio) }}</p>
+                <div class="product-media">
+                    {% if producto.promocion_activa %}
+                    <div class="discount-badge">
+                        {% if producto.promocion_activa.tipo_descuento == 'porcentaje' %}
+                            -{{ producto.promocion_activa.valor|int }}%
+                        {% else %}
+                            -${{ producto.promocion_activa.valor|int }}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    <img src="{{ producto.imagenes[0].url_imagen if producto.imagenes else '/static/img/default-product.png' }}" alt="{{ producto.nombre }}">
+                </div>
+                <div class="product-info">
+                    <h4 class="product-title">{{ producto.nombre }}</h4>
+                    <p class="product-desc">{{ producto.descripcion }}</p>
+                    <div class="product-bottom">
+                        {% if producto.promocion_activa %}
+                        <div class="price-container">
+                            <span class="price-original">$ {{ "%.2f"|format(producto.precio) }}</span>
+                            <span class="price-discount">$ {{ "%.2f"|format(producto.precio_con_descuento) }}</span>
+                        </div>
+                        {% else %}
+                        <span class="price">$ {{ "%.2f"|format(producto.precio) }}</span>
+                        {% endif %}
+                        <a href="/tienda/producto/{{ producto.id }}" class="btn-view" aria-label="Ver {{ producto.nombre }}">Ver producto</a>
+                    </div>
+                </div>
             </div>
             {% endfor %}
         </div>
 
         <div class="pagination">
             {% if page > 1 %}
-                <a href="?q={{ q }}{% for c in selected_cats %}&categoria={{ c }}{% endfor %}&page={{ page-1 }}">Anterior</a>
+                <a href="?{% if q %}q={{ q }}&{% endif %}{% if categoria_actual %}categoria={{ categoria_actual.id }}&{% endif %}page={{ page-1 }}">Anterior</a>
             {% endif %}
         
             <span>Página {{ page }} de {{ total_pages }}</span>
         
             {% if page < total_pages %}
-                <a href="?q={{ q }}{% for c in selected_cats %}&categoria={{ c }}{% endfor %}&page={{ page+1 }}">Siguiente</a>
+                <a href="?{% if q %}q={{ q }}&{% endif %}{% if categoria_actual %}categoria={{ categoria_actual.id }}&{% endif %}page={{ page+1 }}">Siguiente</a>
             {% endif %}
         </div>
 
@@ -77,48 +177,73 @@
 </div>
 
 <script>
-
-    const form = document.getElementById('filters-form');
     const searchInput = document.getElementById('search-input');
+    const searchForm = document.getElementById('search-form');
     const productsContainer = document.getElementById('products-container');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+    const filtersToggleBtn = document.getElementById('filters-toggle');
 
-    function getSelectedCategories() {
-        const checkboxes = form.querySelectorAll('input[type="checkbox"]:checked');
-        return Array.from(checkboxes).map(cb => cb.value);
-    }
-
-    async function updateProducts() {
-        const q = searchInput.value;
-        const categorias = getSelectedCategories();
-
-        const params = new URLSearchParams();
-        if(q) params.append('q', q);
-        categorias.forEach(c => params.append('categoria', c));
-
-        const res = await fetch('/tienda?' + params.toString(), {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
-        const html = await res.text();
-
-        // Parseamos la respuesta y reemplazamos solo el grid de productos
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const newProducts = doc.getElementById('products-container');
-        productsContainer.innerHTML = newProducts.innerHTML;
-    }
-
-    // Eventos
+    // Búsqueda con debounce
+    let searchTimeout;
     searchInput.addEventListener('input', () => {
-        setTimeout(updateProducts, 300); // debounce rápido
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            performSearch();
+        }, 300);
     });
 
-    form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-        cb.addEventListener('change', updateProducts);
+    function performSearch() {
+        const q = searchInput.value.trim();
+        const currentUrl = new URL(window.location);
+        
+        if (q) {
+            currentUrl.searchParams.set('q', q);
+        } else {
+            currentUrl.searchParams.delete('q');
+        }
+        
+        // Mantener la categoría actual si existe
+        window.location.href = currentUrl.toString();
+    }
+
+    if (searchForm) {
+        searchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            performSearch();
+        });
+    }
+    
+    // Toggle del sidebar de categorías (móvil)
+    if (filtersToggleBtn) {
+        filtersToggleBtn.addEventListener('click', () => {
+            sidebar.classList.add('open');
+            sidebarBackdrop.classList.add('open');
+        });
+    }
+
+    if (sidebarBackdrop) {
+        sidebarBackdrop.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            sidebarBackdrop.classList.remove('open');
+        });
+    }
+
+    // Captura el click en product-card y lleva al link del botón de ver producto
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.product-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                // No navegar si se hace click en un enlace o botón
+                if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') return;
+                
+                const link = card.querySelector('.btn-view');
+                if(link) window.location.href = link.href;
+            });
+        });
     });
     
 </script>
+<script src="/static/script.js"></script>
 
 </body>
 </html>

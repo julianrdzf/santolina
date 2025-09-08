@@ -49,8 +49,8 @@
                             </li>
                         </ul>
                     </li>
-                    <li class="oculto">
-                        <a href="#tienda-online">Tienda online</a>
+                    <li>
+                        <a href="/tienda">Tienda online</a>
                     </li>
                     <li>
                         <a href="/eventos-disponibles">Próximos eventos</a>
@@ -58,10 +58,17 @@
                 </ul>
             </div>
         </nav>
+        <!-- Cart Button -->
+        
         <div class="login-indicador-container" id="user-indicator">
+            <div class="cart-button-container">
+                <a href="/tienda/carrito" class="cart-button" id="cart-button">
+                    <i class="fas fa-shopping-cart"></i>
+                </a>
+            </div>
             <a class="login-link" href="/login" id="login-link">Iniciar sesión</a>
             <span id="user-info" style="display:none;"> 
-                <span class="login-indicador" id="user-email"></span>
+                <a class="login-indicador"  href="/perfil" id="user-email"></a>
                 <a class="login-link" href="/admin" id="admin-link" style="display:none;">Admin</a>
                 <button class="login-link" id="logout-btn">Cerrar sesión</button>
             </span>
@@ -71,7 +78,7 @@
                 <i class="fa fa-user-circle"></i>
                 <div class="user-dropdown" id="user-dropdown">
                     <a class="login-link" href="/login" id="login-link-mobile">Iniciar sesión</a>
-                    <span class="login-indicador" id="user-email-mobile"></span>
+                    <a class="login-indicador" href="/perfil" id="user-email-mobile"></a>
                     <a class="login-link" href="/admin" id="admin-link-mobile" style="display:none;">Admin</a>
                     <button class="login-link" id="logout-btn-mobile">Cerrar sesión</button>
                 </div>

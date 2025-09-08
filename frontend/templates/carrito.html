@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Carrito - Santolina</title>
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+{% include "partials/header.html" %}
+
+<div class="cart-container">
+    <div class="cart-header">
+        <h1 class="cart-title">
+            <i class="fas fa-shopping-cart"></i>
+            Mi Carrito de Compras
+        </h1>
+        <p class="cart-subtitle">Revisa tus productos antes de proceder al pago</p>
+    </div>
+
+    {% if carrito.detalle %}
+    <div class="cart-content">
+        <div class="cart-items">
+            {% for item in carrito.detalle %}
+            <div class="cart-item">
+                <div class="item-image">
+                    <img src="{{ item.producto.imagenes[0].url_imagen if item.producto.imagenes else '/static/img/default-product.png' }}" 
+                         alt="{{ item.producto.nombre }}" 
+                         class="product-image">
+                </div>
+                
+                <div class="item-details">
+                    <h3 class="product-name">{{ item.producto.nombre }}</h3>
+                    {% if item.producto.promocion_activa %}
+                    <div class="cart-promotion-info">
+                        <div class="promotion-badge-small">
+                            <i class="fas fa-tag"></i>
+                            {% if item.producto.promocion_activa.tipo_descuento == 'porcentaje' %}
+                                -{{ item.producto.promocion_activa.valor|int }}%
+                            {% else %}
+                                -${{ item.producto.promocion_activa.valor|int }}
+                            {% endif %}
+                        </div>
+                        <div class="price-info">
+                            <span class="original-price-small">$ {{ "%.2f"|format(item.producto.precio) }}</span>
+                            <span class="discounted-price-small">$ {{ "%.2f"|format(item.producto.precio_con_descuento) }}</span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="product-price">$ {{ "%.2f"|format(item.producto.precio) }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="item-quantity">
+                    <label class="quantity-label">Cantidad:</label>
+                    <form class="quantity-form" action="/tienda/carrito/actualizar/{{ item.id }}" method="post">
+                        <div class="quantity-controls">
+                            <button type="button" class="qty-btn qty-decrease" onclick="decreaseQty(this)">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number" name="cantidad" value="{{ item.cantidad }}" min="1" class="qty-input" onchange="this.form.submit()">
+                            <button type="button" class="qty-btn qty-increase" onclick="increaseQty(this)">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="item-subtotal">
+                    <span class="subtotal-label">Subtotal:</span>
+                    <span class="subtotal-amount">$ {{ "%.2f"|format(item.subtotal_con_descuento) }}</span>
+                </div>
+                
+                <div class="item-actions">
+                    <form action="/tienda/carrito/eliminar/{{ item.id }}" method="post" class="remove-form">
+                        <button type="submit" class="remove-btn" onclick="return confirm('¿Estás seguro de eliminar este producto?')">
+                            <i class="fas fa-trash-alt"></i>
+                            <span>Eliminar</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="cart-sidebar">
+            <div class="order-summary">
+                <h3 class="summary-title">Resumen del Pedido</h3>
+                
+                {% if total_descuentos > 0 %}
+                <div class="summary-row">
+                    <span>Subtotal ({{ cantidad_total_productos }} productos)</span>
+                    <span>$ {{ "%.2f"|format(total_original) }}</span>
+                </div>
+                
+                <div class="summary-row discount-row">
+                    <span class="discount-text">
+                        <i class="fas fa-tag"></i>
+                        Descuentos aplicados
+                    </span>
+                    <span class="discount-amount">-$ {{ "%.2f"|format(total_descuentos) }}</span>
+                </div>
+                {% else %}
+                <div class="summary-row">
+                    <span>Productos ({{ cantidad_total_productos }})</span>
+                    <span>$ {{ "%.2f"|format(total_carrito) }}</span>
+                </div>
+                {% endif %}
+                
+                <hr class="summary-divider">
+                
+                <div class="summary-total">
+                    <span>Total</span>
+                    <span class="total-price">$ {{ "%.2f"|format(total_carrito) }}</span>
+                </div>
+                
+                {% if total_descuentos > 0 %}
+                <div class="total-savings">
+                    <i class="fas fa-piggy-bank"></i>
+                    <span>¡Ahorras $ {{ "%.2f"|format(total_descuentos) }} en total!</span>
+                </div>
+                {% endif %}
+                
+                <div class="checkout-actions">
+                    <a href="/tienda/pago" class="btn-checkout">
+                        <i class="fas fa-credit-card"></i>
+                        Proceder a Envío y Pago
+                    </a>
+                    <a href="/tienda" class="btn-continue-shopping">
+                        <i class="fas fa-arrow-left"></i>
+                        Seguir Comprando
+                    </a>
+                </div>
+            </div>
+            
+            <div class="security-badges">
+                <div class="badge">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Compra Segura</span>
+                </div>
+                <div class="badge">
+                    <i class="fas fa-truck"></i>
+                    <span>Envío a todo el país</span>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="empty-cart">
+        <div class="empty-cart-icon">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        <h2 class="empty-cart-title">Tu carrito está vacío</h2>
+        <p class="empty-cart-message">¡Descubre nuestros productos y encuentra algo que te guste!</p>
+        <a href="/tienda" class="btn-shop-now">
+            <i class="fas fa-shopping-bag"></i>
+            Ir a la Tienda
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script src="/static/script.js"></script>
+<script>
+function increaseQty(btn) {
+    const input = btn.parentElement.querySelector('.qty-input');
+    input.value = parseInt(input.value) + 1;
+    input.form.submit();
+}
+
+function decreaseQty(btn) {
+    const input = btn.parentElement.querySelector('.qty-input');
+    if (parseInt(input.value) > 1) {
+        input.value = parseInt(input.value) - 1;
+        input.form.submit();
+    }
+}
+</script>
+</body>
+</html>

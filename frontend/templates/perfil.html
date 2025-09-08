@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <title>Mi Perfil - Santolina</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+
+    <div class="container">
+        <div class="profile-container">
+            <div class="profile-header">
+                <h1><i class="fas fa-user"></i> Mi Perfil</h1>
+                <p>Gestiona tu información personal, direcciones, órdenes y reservas</p>
+            </div>
+
+            <div class="profile-tabs">
+                <button class="tab-button active" onclick="showTab('datos')">
+                    <i class="fas fa-user-edit"></i> Mis Datos
+                </button>
+                <button class="tab-button" onclick="showTab('direcciones')">
+                    <i class="fas fa-map-marker-alt"></i> Direcciones
+                </button>
+                <button class="tab-button" onclick="showTab('ordenes')">
+                    <i class="fas fa-shopping-bag"></i> Mis Órdenes
+                </button>
+                <button class="tab-button" onclick="showTab('reservas')">
+                    <i class="fas fa-calendar-check"></i> Mis Reservas
+                </button>
+            </div>
+
+            <!-- Tab: Mis Datos -->
+            <div id="datos" class="tab-content active">
+                <div class="profile-section">
+                    <h2>Información Personal</h2>
+                    <form method="post" action="/perfil/actualizar-datos" class="profile-form">
+                        <div class="form-group">
+                            <label for="nombre">Nombre completo</label>
+                            <input type="text" id="nombre" name="nombre" value="{{ usuario.nombre }}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" value="{{ usuario.email }}" disabled>
+                            <small class="form-help">El email no se puede modificar</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="celular">Celular</label>
+                            <input type="tel" id="celular" name="celular" value="{{ usuario.celular or '' }}">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tab: Direcciones -->
+            <div id="direcciones" class="tab-content">
+                <div class="profile-section">
+                    <div class="section-header">
+                        <h2>Mis Direcciones</h2>
+                        <button class="btn btn-primary" onclick="toggleAddressForm()">
+                            <i class="fas fa-plus"></i> Agregar Dirección
+                        </button>
+                    </div>
+
+                    <!-- Formulario para agregar dirección -->
+                    <div id="address-form" class="address-form" style="display: none;">
+                        <h3>Nueva Dirección</h3>
+                        <form method="post" action="/perfil/agregar-direccion">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="direccion">Dirección</label>
+                                    <input type="text" id="direccion" name="direccion" placeholder="Calle y número" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="detalle">Detalle</label>
+                                    <input type="text" id="detalle" name="detalle" placeholder="Apto, esquina, etc.">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="ciudad">Ciudad</label>
+                                    <input type="text" id="ciudad" name="ciudad" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="departamento">Departamento</label>
+                                    <select id="departamento" name="departamento" required>
+                                        <option value="">Seleccionar departamento</option>
+                                        <option value="Artigas">Artigas</option>
+                                        <option value="Canelones">Canelones</option>
+                                        <option value="Cerro Largo">Cerro Largo</option>
+                                        <option value="Colonia">Colonia</option>
+                                        <option value="Durazno">Durazno</option>
+                                        <option value="Flores">Flores</option>
+                                        <option value="Florida">Florida</option>
+                                        <option value="Lavalleja">Lavalleja</option>
+                                        <option value="Maldonado">Maldonado</option>
+                                        <option value="Montevideo">Montevideo</option>
+                                        <option value="Paysandú">Paysandú</option>
+                                        <option value="Río Negro">Río Negro</option>
+                                        <option value="Rivera">Rivera</option>
+                                        <option value="Rocha">Rocha</option>
+                                        <option value="Salto">Salto</option>
+                                        <option value="San José">San José</option>
+                                        <option value="Soriano">Soriano</option>
+                                        <option value="Tacuarembó">Tacuarembó</option>
+                                        <option value="Treinta y Tres">Treinta y Tres</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="codigo_postal">Código Postal</label>
+                                    <input type="text" id="codigo_postal" name="codigo_postal">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="tipo">Tipo</label>
+                                    <select id="tipo" name="tipo">
+                                        <option value="">Seleccionar tipo</option>
+                                        <option value="casa">Casa</option>
+                                        <option value="trabajo">Trabajo</option>
+                                        <option value="otro">Otro</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Guardar Dirección
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="toggleAddressForm()">
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Lista de direcciones -->
+                    <div class="addresses-list">
+                        {% if direcciones %}
+                            {% for direccion in direcciones %}
+                            <div class="address-card">
+                                <div class="address-info">
+                                    <h4>
+                                        {{ direccion.direccion }}
+                                        {% if direccion.tipo %}
+                                            <span class="address-type">{{ direccion.tipo.title() }}</span>
+                                        {% endif %}
+                                    </h4>
+                                    <p>
+                                        {% if direccion.detalle %}{{ direccion.detalle }}<br>{% endif %}
+                                        {{ direccion.ciudad }}, {{ direccion.departamento }}
+                                        {% if direccion.codigo_postal %} - {{ direccion.codigo_postal }}{% endif %}
+                                    </p>
+                                </div>
+                                <div class="address-actions">
+                                    <form method="post" action="/perfil/eliminar-direccion/{{ direccion.id }}" 
+                                          onsubmit="return confirm('¿Estás seguro de eliminar esta dirección?')">
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <p>No tienes direcciones guardadas</p>
+                                <button class="btn btn-primary" onclick="toggleAddressForm()">
+                                    Agregar primera dirección
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Mis Órdenes -->
+            <div id="ordenes" class="tab-content">
+                <div class="profile-section">
+                    <h2>Mis Órdenes</h2>
+                    {% if ordenes %}
+                        <div class="orders-list">
+                            {% for orden in ordenes %}
+                            <div class="order-card">
+                                <div class="order-header">
+                                    <div class="order-info">
+                                        <h3>Orden #{{ orden.id }}</h3>
+                                        <p class="order-date">{{ orden.fecha.strftime('%d/%m/%Y %H:%M') }}</p>
+                                    </div>
+                                    <div class="order-status">
+                                        <span class="status-badge status-{{ orden.estado }}">
+                                            {% if orden.estado == 'pendiente' %}
+                                                <i class="fas fa-clock"></i> Pendiente
+                                            {% elif orden.estado == 'pagado' %}
+                                                <i class="fas fa-check-circle"></i> Pagado
+                                            {% elif orden.estado == 'enviado' %}
+                                                <i class="fas fa-truck"></i> Enviado
+                                            {% elif orden.estado == 'en_proceso' %}
+                                                <i class="fas fa-spinner"></i> En Proceso
+                                            {% elif orden.estado == 'cancelado' %}
+                                                <i class="fas fa-times-circle"></i> Cancelado
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="order-details">
+                                    <div class="order-items">
+                                        <h4>Productos:</h4>
+                                        {% for detalle in orden.detalle %}
+                                        <div class="order-item">
+                                            <span class="item-name">{{ detalle.producto.nombre }}</span>
+                                            <span class="item-quantity">x{{ detalle.cantidad }}</span>
+                                            <span class="item-price">$ {{ "%.2f"|format(detalle.precio_unitario * detalle.cantidad) }}</span>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <div class="order-shipping">
+                                        <h4>Dirección de envío:</h4>
+                                        <p>
+                                            {{ orden.direccion_envio.direccion }}<br>
+                                            {{ orden.direccion_envio.ciudad }}, {{ orden.direccion_envio.departamento }}
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="order-total">
+                                        <strong>Total: $ {{ "%.2f"|format(orden.total_final) }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-shopping-bag"></i>
+                            <p>No tienes órdenes realizadas</p>
+                            <a href="/tienda" class="btn btn-primary">Ir a la tienda</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Tab: Mis Reservas -->
+            <div id="reservas" class="tab-content">
+                <div class="profile-section">
+                    <h2>Mis Reservas</h2>
+                    {% if reservas %}
+                        <div class="reservations-list">
+                            {% for reserva in reservas %}
+                            <div class="reservation-card">
+                                <div class="reservation-header">
+                                    <div class="reservation-info">
+                                        <h3>{{ reserva.evento.titulo }}</h3>
+                                        <p class="reservation-date">{{ reserva.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</p>
+                                    </div>
+                                    <div class="reservation-status">
+                                        <span class="status-badge status-{{ reserva.estado_pago }}">
+                                            {% if reserva.estado_pago == 'pendiente' %}
+                                                <i class="fas fa-clock"></i> Pendiente
+                                            {% elif reserva.estado_pago == 'aprobado' %}
+                                                <i class="fas fa-check-circle"></i> Confirmada
+                                            {% elif reserva.estado_pago == 'en_proceso' %}
+                                                <i class="fas fa-spinner"></i> En Proceso
+                                            {% elif reserva.estado_pago == 'rechazado' %}
+                                                <i class="fas fa-times-circle"></i> Rechazada
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="reservation-details">
+                                    <div class="event-info">
+                                        <p><strong>Fecha del evento:</strong> {{ reserva.evento.fecha.strftime('%d/%m/%Y') }}</p>
+                                        <p><strong>Cantidad de personas:</strong> {{ reserva.cupos }}</p>
+                                        <p><strong>Costo por persona:</strong> $ {{ "%.2f"|format(reserva.evento.costo) }}</p>
+                                        <p><strong>Total:</strong> $ {{ "%.2f"|format(reserva.evento.costo * reserva.cupos) }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-calendar-check"></i>
+                            <p>No tienes reservas realizadas</p>
+                            <a href="/eventos-disponibles" class="btn btn-primary">Ver eventos</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Ocultar todas las tabs
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(tab => tab.classList.remove('active'));
+            
+            // Remover clase active de todos los botones
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => button.classList.remove('active'));
+            
+            // Mostrar tab seleccionada
+            document.getElementById(tabName).classList.add('active');
+            
+            // Activar botón correspondiente
+            event.target.classList.add('active');
+        }
+        
+        function toggleAddressForm() {
+            const form = document.getElementById('address-form');
+            const isVisible = form.style.display !== 'none';
+            form.style.display = isVisible ? 'none' : 'block';
+        }
+    </script>
+
+    {% include "partials/footer.html" %}
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
