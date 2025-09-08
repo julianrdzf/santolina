@@ -11,6 +11,7 @@ class Direccion(Base):
     direccion = Column(String, nullable=False)  # calle, número, apto
     detalle = Column(String, nullable=True)     # información adicional, ej: esquina
     ciudad = Column(String, nullable=False)
+    departamento = Column(String, nullable=True)
     codigo_postal = Column(String, nullable=True)
     pais = Column(String, nullable=False)
     tipo = Column(String, nullable=True)  # ej: casa, trabajo, etc.

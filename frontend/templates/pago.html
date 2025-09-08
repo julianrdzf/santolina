@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <title>Envío y Pago - Santolina</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+{% include "partials/header.html" %}
+
+<div class="checkout-container">
+    <div class="checkout-header">
+        <h1 class="checkout-title">Envío y Pago</h1>
+        <div class="checkout-steps">
+            <div class="step active">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Carrito</span>
+            </div>
+            <div class="step active">
+                <i class="fas fa-truck"></i>
+                <span>Envío</span>
+            </div>
+            <div class="step">
+                <i class="fas fa-credit-card"></i>
+                <span>Pago</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="checkout-content">
+        <div class="checkout-main">
+            <!-- Sección de Dirección de Envío -->
+            <div class="checkout-section">
+                <h2 class="section-title">
+                    <i class="fas fa-map-marker-alt"></i>
+                    Dirección de Envío
+                </h2>
+
+                {% if direcciones %}
+                <!-- Direcciones existentes -->
+                <div class="address-selection">
+                    <h3>Selecciona una dirección:</h3>
+                    <form id="address-form" method="post">
+                        {% for direccion in direcciones %}
+                        <div class="address-option">
+                            <input type="radio" name="direccion_id" value="{{ direccion.id }}" id="addr_{{ direccion.id }}" 
+                                   {% if loop.first %}checked{% endif %} onchange="updateShippingCost()">
+                            <label for="addr_{{ direccion.id }}" class="address-card">
+                                <div class="address-header">
+                                    <strong>{{ direccion.tipo or 'Dirección' }}</strong>
+                                    <span class="address-badge">{{ direccion.departamento }}</span>
+                                </div>
+                                <div class="address-details">
+                                    <p>{{ direccion.direccion }}</p>
+                                    {% if direccion.detalle %}
+                                    <p class="address-detail">{{ direccion.detalle }}</p>
+                                    {% endif %}
+                                    <p>{{ direccion.ciudad }}, {{ direccion.departamento }}</p>
+                                    {% if direccion.codigo_postal %}
+                                    <p>CP: {{ direccion.codigo_postal }}</p>
+                                    {% endif %}
+                                </div>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </form>
+                    
+                    <button type="button" class="btn-add-address" onclick="toggleNewAddressForm()">
+                        <i class="fas fa-plus"></i>
+                        Agregar nueva dirección
+                    </button>
+                </div>
+                {% endif %}
+
+                <!-- Formulario para nueva dirección -->
+                <div class="new-address-form" id="new-address-form" {% if direcciones %}style="display: none;"{% endif %}>
+                    <h3>{% if direcciones %}Nueva dirección:{% else %}Completa tu dirección de envío:{% endif %}</h3>
+                    <form method="post" action="/tienda/pago/direccion">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="tipo">Tipo de dirección</label>
+                                <select name="tipo" id="tipo" class="form-control">
+                                    <option value="Casa">Casa</option>
+                                    <option value="Trabajo">Trabajo</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="direccion">Dirección *</label>
+                                <input type="text" name="direccion" id="direccion" class="form-control" 
+                                       placeholder="Calle y número" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="detalle">Detalle (opcional)</label>
+                                <input type="text" name="detalle" id="detalle" class="form-control" 
+                                       placeholder="Apartamento, esquina, referencias">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="departamento">Departamento *</label>
+                                <select name="departamento" id="departamento" class="form-control" required onchange="updateShippingCost()">
+                                    <option value="">Selecciona un departamento</option>
+                                    <option value="Montevideo">Montevideo</option>
+                                    <option value="Artigas">Artigas</option>
+                                    <option value="Canelones">Canelones</option>
+                                    <option value="Cerro Largo">Cerro Largo</option>
+                                    <option value="Colonia">Colonia</option>
+                                    <option value="Durazno">Durazno</option>
+                                    <option value="Flores">Flores</option>
+                                    <option value="Florida">Florida</option>
+                                    <option value="Lavalleja">Lavalleja</option>
+                                    <option value="Maldonado">Maldonado</option>
+                                    <option value="Paysandú">Paysandú</option>
+                                    <option value="Río Negro">Río Negro</option>
+                                    <option value="Rivera">Rivera</option>
+                                    <option value="Rocha">Rocha</option>
+                                    <option value="Salto">Salto</option>
+                                    <option value="San José">San José</option>
+                                    <option value="Soriano">Soriano</option>
+                                    <option value="Tacuarembó">Tacuarembó</option>
+                                    <option value="Treinta y Tres">Treinta y Tres</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="ciudad">Ciudad *</label>
+                                <input type="text" name="ciudad" id="ciudad" class="form-control" 
+                                       placeholder="Ciudad o localidad" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="codigo_postal">Código Postal</label>
+                                <input type="text" name="codigo_postal" id="codigo_postal" class="form-control" 
+                                       placeholder="Ej: 11000">
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-save-address">
+                                <i class="fas fa-save"></i>
+                                Guardar dirección
+                            </button>
+                            {% if direcciones %}
+                            <button type="button" class="btn-cancel" onclick="toggleNewAddressForm()">
+                                Cancelar
+                            </button>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Sección de Método de Pago -->
+            <div class="checkout-section">
+                <h2 class="section-title">
+                    <i class="fas fa-credit-card"></i>
+                    Método de Pago
+                </h2>
+                
+                <div class="payment-methods">
+                    <div class="payment-option">
+                        <input type="radio" name="metodo_pago" value="mercadopago" id="mercadopago" checked>
+                        <label for="mercadopago" class="payment-card">
+                            <div class="payment-header">
+                                <img src="/static/img/mercadopago-logo.svg" alt="Mercado Pago" style="height: 24px;">
+                                <strong>Mercado Pago</strong>
+                            </div>
+                            <p class="payment-description">
+                                Paga de forma segura con tarjeta de crédito, débito o transferencia bancaria.
+                            </p>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumen del Pedido -->
+        <div class="checkout-sidebar">
+            <div class="order-summary">
+                <h3 class="summary-title">Resumen del Pedido</h3>
+                
+                <!-- Productos -->
+                <div class="summary-products">
+                    {% for item in carrito.detalle %}
+                    <div class="summary-product">
+                        <div class="product-image">
+                            <img src="{{ item.producto.imagenes[0].url_imagen if item.producto.imagenes else '/static/img/default-product.png' }}" 
+                                 alt="{{ item.producto.nombre }}">
+                        </div>
+                        <div class="product-details">
+                            <h4>{{ item.producto.nombre }}</h4>
+                            <p>Cantidad: {{ item.cantidad }}</p>
+                            {% if item.producto.promocion_activa %}
+                            <div class="product-promotion-info">
+                                <span class="promotion-badge-small">
+                                    <i class="fas fa-tag"></i>
+                                    {% if item.producto.promocion_activa.tipo_descuento == 'porcentaje' %}
+                                        -{{ item.producto.promocion_activa.valor|int }}%
+                                    {% else %}
+                                        -${{ item.producto.promocion_activa.valor|int }}
+                                    {% endif %}
+                                </span>
+                                <div class="price-comparison">
+                                    <span class="original-price-small">$ {{ "%.2f"|format(item.subtotal_original) }}</span>
+                                    <span class="discounted-price-small">$ {{ "%.2f"|format(item.subtotal_con_descuento) }}</span>
+                                </div>
+                            </div>
+                            {% else %}
+                            <p class="product-price">$ {{ "%.2f"|format(item.subtotal_con_descuento) }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <hr class="summary-divider">
+
+                <!-- Totales -->
+                <div class="summary-totals">
+                    {% if total_descuentos > 0 %}
+                    <div class="summary-row">
+                        <span>Subtotal original ({{ cantidad_total_productos }} productos)</span>
+                        <span>$ {{ "%.2f"|format(total_original) }}</span>
+                    </div>
+                    
+                    <div class="summary-row discount-row">
+                        <span class="discount-text">
+                            <i class="fas fa-tag"></i>
+                            Descuentos aplicados
+                        </span>
+                        <span class="discount-amount">-$ {{ "%.2f"|format(total_descuentos) }}</span>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span>Subtotal con descuentos</span>
+                        <span>$ {{ "%.2f"|format(total_carrito) }}</span>
+                    </div>
+                    {% else %}
+                    <div class="summary-row">
+                        <span>Subtotal ({{ cantidad_total_productos }} productos)</span>
+                        <span>$ {{ "%.2f"|format(total_carrito) }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="summary-row">
+                        <span id="shipping-label">Envío</span>
+                        <span id="shipping-cost">Gratis</span>
+                    </div>
+                    
+                    <!-- Sección de cupón -->
+                    <div class="coupon-section">
+                        <div class="coupon-input-group">
+                            <input type="text" id="codigo_cupon" name="codigo_cupon" placeholder="Código de cupón" class="coupon-input">
+                            <button type="button" class="btn-validate-coupon" onclick="validarCupon()">
+                                <i class="fas fa-tag"></i>
+                                Aplicar
+                            </button>
+                        </div>
+                        <div id="coupon-status" class="coupon-status"></div>
+                        <div id="coupon-discount" class="coupon-discount" style="display: none;">
+                            <div class="summary-row discount-row">
+                                <span class="discount-text">
+                                    <i class="fas fa-ticket-alt"></i>
+                                    Cupón aplicado
+                                </span>
+                                <span class="discount-amount" id="coupon-amount">-$ 0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-total">
+                        <span>Total</span>
+                        <span class="total-price" id="total-price">$ {{ "%.2f"|format(total_carrito) }}</span>
+                    </div>
+                    
+                    {% if total_descuentos > 0 %}
+                    <div class="total-savings">
+                        <i class="fas fa-piggy-bank"></i>
+                        ¡Ahorras $ {{ "%.2f"|format(total_descuentos) }} en total!
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="checkout-actions">
+                    <form method="post" action="/tienda/pago/procesar" id="checkout-form">
+                        <!-- Hidden fields for selected address -->
+                        <input type="hidden" name="direccion_id" id="selected_direccion_id">
+                        
+                        <!-- Hidden fields for new address -->
+                        <input type="hidden" name="direccion" id="new_direccion">
+                        <input type="hidden" name="detalle" id="new_detalle">
+                        <input type="hidden" name="ciudad" id="new_ciudad">
+                        <input type="hidden" name="departamento" id="new_departamento">
+                        <input type="hidden" name="codigo_postal" id="new_codigo_postal">
+                        <input type="hidden" name="tipo" id="new_tipo">
+                        
+                        <!-- Hidden field for coupon -->
+                        <input type="hidden" name="codigo_cupon" id="hidden_codigo_cupon">
+                        
+                        <button type="submit" class="btn-place-order btn-mercadopago btn-full">
+                            <img class="logo-img-mercadopago" src="/static/img/mercadopago-logo.svg" alt="Mercado Pago">
+                        </button>
+                    </form>
+                    <a href="/tienda/carrito" class="btn-back-to-cart">
+                        <i class="fas fa-arrow-left"></i>
+                        Volver al carrito
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const subtotal = {{ total_carrito }};
+    
+    function updateShippingCost() {
+        let selectedDepartment = '';
+        
+        // Verificar si hay una dirección seleccionada
+        const selectedAddress = document.querySelector('input[name="direccion_id"]:checked');
+        if (selectedAddress) {
+            const addressCard = selectedAddress.nextElementSibling;
+            const badge = addressCard.querySelector('.address-badge');
+            selectedDepartment = badge ? badge.textContent.trim() : '';
+        } else {
+            /* Verificar el formulario de nueva dirección */
+            const departmentSelect = document.getElementById('departamento');
+            selectedDepartment = departmentSelect ? departmentSelect.value : '';
+        }
+        
+        // Calcular costo de envío y actualizar etiqueta
+        const shippingLabel = document.getElementById('shipping-label');
+        const shippingCost = selectedDepartment === 'Montevideo' ? 200 : 0;
+        const total = subtotal + shippingCost;
+        
+        // Actualizar texto del envío según el departamento
+        if (selectedDepartment && selectedDepartment !== 'Montevideo') {
+            shippingLabel.textContent = 'Envío (a cargo del cliente)';
+        } else {
+            shippingLabel.textContent = 'Envío';
+        }
+        
+        // Actualizar la interfaz
+        document.getElementById('shipping-cost').textContent = `$ ${shippingCost.toFixed(2)}`;
+        document.getElementById('total-price').textContent = `$ ${total.toFixed(2)}`;
+    }
+    
+    function toggleNewAddressForm() {
+        const form = document.getElementById('new-address-form');
+        const isVisible = form.style.display !== 'none';
+        form.style.display = isVisible ? 'none' : 'block';
+        
+        if (!isVisible) {
+            // Deseleccionar direcciones existentes
+            const addressRadios = document.querySelectorAll('input[name="direccion_id"]');
+            addressRadios.forEach(radio => radio.checked = false);
+            updateShippingCost();
+        }
+    }
+    
+    // Validación del formulario antes del envío
+    document.getElementById('checkout-form').addEventListener('submit', function(e) {
+        // Validar que hay una dirección seleccionada o completada
+        const selectedAddress = document.querySelector('input[name="direccion_id"]:checked');
+        const newAddressForm = document.getElementById('new-address-form');
+        const isNewAddressVisible = newAddressForm.style.display !== 'none';
+        
+        if (!selectedAddress && !isNewAddressVisible) {
+            e.preventDefault();
+            alert('Por favor selecciona una dirección de envío');
+            return;
+        }
+        
+        // Preparar datos para envío
+        if (selectedAddress) {
+            // Usar dirección existente
+            document.getElementById('selected_direccion_id').value = selectedAddress.value;
+        } else if (isNewAddressVisible) {
+            // Validar y usar nueva dirección
+            const requiredFields = ['direccion', 'departamento', 'ciudad'];
+            for (let field of requiredFields) {
+                const input = document.getElementById(field);
+                if (!input.value.trim()) {
+                    e.preventDefault();
+                    alert(`Por favor completa el campo ${field}`);
+                    input.focus();
+                    return;
+                }
+            }
+            
+            // Copiar valores de nueva dirección a campos ocultos
+            document.getElementById('new_direccion').value = document.getElementById('direccion').value;
+            document.getElementById('new_detalle').value = document.getElementById('detalle').value || '';
+            document.getElementById('new_ciudad').value = document.getElementById('ciudad').value;
+            document.getElementById('new_departamento').value = document.getElementById('departamento').value;
+            document.getElementById('new_codigo_postal').value = document.getElementById('codigo_postal').value || '';
+            document.getElementById('new_tipo').value = document.getElementById('tipo').value || '';
+        }
+        
+        // Si llegamos aquí, el formulario es válido y se enviará
+    });
+    
+    // Variables globales para cupón
+    let cuponAplicado = null;
+    let descuentoCupon = 0;
+    
+    // Función para validar cupón
+    async function validarCupon() {
+        const codigoCupon = document.getElementById('codigo_cupon').value.trim();
+        const statusDiv = document.getElementById('coupon-status');
+        const discountDiv = document.getElementById('coupon-discount');
+        const button = document.querySelector('.btn-validate-coupon');
+        
+        if (!codigoCupon) {
+            statusDiv.innerHTML = '<span class="coupon-error"><i class="fas fa-exclamation-circle"></i> Ingresa un código de cupón</span>';
+            return;
+        }
+        
+        // Mostrar loading
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validando...';
+        button.disabled = true;
+        
+        try {
+            const response = await fetch('/tienda/validar-cupon', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    codigo: codigoCupon,
+                    total: subtotal
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.valido) {
+                // Cupón válido
+                cuponAplicado = data.cupon;
+                descuentoCupon = data.descuento;
+                
+                statusDiv.innerHTML = `<span class="coupon-success"><i class="fas fa-check-circle"></i> ${data.mensaje}</span>`;
+                document.getElementById('coupon-amount').textContent = `-$ ${descuentoCupon.toFixed(2)}`;
+                discountDiv.style.display = 'block';
+                
+                // Actualizar total
+                updateTotal();
+                
+                // Guardar cupón en campo oculto para envío
+                document.getElementById('hidden_codigo_cupon').value = codigoCupon;
+                
+                // Cambiar botón a "Quitar"
+                button.innerHTML = '<i class="fas fa-times"></i> Quitar';
+                button.onclick = quitarCupon;
+                
+            } else {
+                // Cupón inválido
+                statusDiv.innerHTML = `<span class="coupon-error"><i class="fas fa-exclamation-circle"></i> ${data.mensaje}</span>`;
+                discountDiv.style.display = 'none';
+            }
+            
+        } catch (error) {
+            statusDiv.innerHTML = '<span class="coupon-error"><i class="fas fa-exclamation-circle"></i> Error al validar el cupón</span>';
+        } finally {
+            if (!cuponAplicado) {
+                button.innerHTML = '<i class="fas fa-tag"></i> Aplicar';
+            }
+            button.disabled = false;
+        }
+    }
+    
+    // Función para quitar cupón
+    function quitarCupon() {
+        cuponAplicado = null;
+        descuentoCupon = 0;
+        
+        document.getElementById('codigo_cupon').value = '';
+        document.getElementById('coupon-status').innerHTML = '';
+        document.getElementById('coupon-discount').style.display = 'none';
+        document.getElementById('hidden_codigo_cupon').value = '';
+        
+        const button = document.querySelector('.btn-validate-coupon');
+        button.innerHTML = '<i class="fas fa-tag"></i> Aplicar';
+        button.onclick = validarCupon;
+        
+        updateTotal();
+    }
+    
+    // Función para actualizar el total con cupón
+    function updateTotal() {
+        const shippingCost = parseFloat(document.getElementById('shipping-cost').textContent.replace('$', '').replace('Gratis', '0')) || 0;
+        const totalConCupon = subtotal - descuentoCupon + shippingCost;
+        document.getElementById('total-price').textContent = `$ ${totalConCupon.toFixed(2)}`;
+    }
+    
+    // Inicializar costo de envío
+    document.addEventListener('DOMContentLoaded', function() {
+        updateShippingCost();
+    });
+</script>
+
+<script src="/static/script.js"></script>
+
+</body>
+</html>

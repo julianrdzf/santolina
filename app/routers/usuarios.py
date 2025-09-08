@@ -1,21 +1,21 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
 
 from fastapi import Form, status
 from fastapi.responses import RedirectResponse
 from app.dependencies.users import get_user_manager
-from fastapi import Depends
+from app.db import get_db
 from app.models.user import Usuario
-from app.schemas.user import UserCreate
-
-
-
+from app.models.reserva import Reserva
+from app.models.ordenes import Orden
+from app.models.direcciones import Direccion
+from app.dependencies.users import get_user_manager
+from app.routers.auth import auth_backend, fastapi_users, cookie_transport, current_active_user
 from fastapi_users.authentication import JWTStrategy
 from fastapi_users.router.common import ErrorCode
 from fastapi_users import exceptions
-from app.routers.auth import auth_backend, fastapi_users, cookie_transport
-
 from fastapi_users.exceptions import UserNotExists
 
 
@@ -109,3 +109,89 @@ async def reset_password_submit(
     await user_manager.reset_password(token, password, request)
     # Podés loguearlo automáticamente o redirigir al login
     return RedirectResponse(url="/login", status_code=303)
+
+
+@router.get("/perfil")
+def perfil_usuario(
+    request: Request,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(current_active_user)
+):
+    # Obtener órdenes del usuario
+    ordenes = db.query(Orden).filter(Orden.usuario_id == usuario.id).order_by(Orden.fecha.desc()).all()
+    
+    # Obtener reservas del usuario
+    reservas = db.query(Reserva).filter(Reserva.usuario_id == usuario.id).order_by(Reserva.fecha_creacion.desc()).all()
+    
+    # Obtener direcciones del usuario
+    direcciones = db.query(Direccion).filter(Direccion.usuario_id == usuario.id).all()
+    
+    return templates.TemplateResponse("perfil.html", {
+        "request": request,
+        "usuario": usuario,
+        "ordenes": ordenes,
+        "reservas": reservas,
+        "direcciones": direcciones
+    })
+
+
+@router.post("/perfil/actualizar-datos")
+def actualizar_datos_usuario(
+    request: Request,
+    nombre: str = Form(...),
+    celular: str = Form(None),
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(current_active_user)
+):
+    usuario.nombre = nombre
+    usuario.celular = celular
+    db.commit()
+    
+    return RedirectResponse(url="/perfil", status_code=303)
+
+
+@router.post("/perfil/agregar-direccion")
+def agregar_direccion_perfil(
+    request: Request,
+    direccion: str = Form(...),
+    detalle: str = Form(None),
+    ciudad: str = Form(...),
+    departamento: str = Form(...),
+    codigo_postal: str = Form(None),
+    tipo: str = Form(None),
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(current_active_user)
+):
+    nueva_direccion = Direccion(
+        usuario_id=usuario.id,
+        direccion=direccion,
+        detalle=detalle,
+        ciudad=ciudad,
+        departamento=departamento,
+        codigo_postal=codigo_postal if codigo_postal else None,
+        pais="Uruguay",
+        tipo=tipo
+    )
+    
+    db.add(nueva_direccion)
+    db.commit()
+    
+    return RedirectResponse(url="/perfil", status_code=303)
+
+
+@router.post("/perfil/eliminar-direccion/{direccion_id}")
+def eliminar_direccion(
+    direccion_id: int,
+    db: Session = Depends(get_db),
+    usuario: Usuario = Depends(current_active_user)
+):
+    direccion = db.query(Direccion).filter(
+        Direccion.id == direccion_id,
+        Direccion.usuario_id == usuario.id
+    ).first()
+    
+    if direccion:
+        db.delete(direccion)
+        db.commit()
+    
+    return RedirectResponse(url="/perfil", status_code=303)

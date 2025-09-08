@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <title>Detalle de Orden #{{ orden.id }} - Santolina</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+
+    <section>
+        <div class="container mt-5">
+            <!-- Header con botón de regreso -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-receipt"></i> Detalle de Orden #{{ orden.id }}</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/admin/tienda-panel">Panel Tienda</a></li>
+                            <li class="breadcrumb-item"><a href="/admin/ordenes">Órdenes</a></li>
+                            <li class="breadcrumb-item active">Orden #{{ orden.id }}</li>
+                        </ol>
+                    </nav>
+                </div>
+                <a href="/admin/ordenes" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver a Órdenes
+                </a>
+            </div>
+
+            <!-- Estado de la orden -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h5 class="card-title mb-1">Estado de la Orden</h5>
+                                    <span class="badge fs-6 
+                                        {% if orden.estado == 'pendiente' %}bg-warning
+                                        {% elif orden.estado == 'pagado' %}bg-success
+                                        {% elif orden.estado == 'enviado' %}bg-info
+                                        {% elif orden.estado == 'cancelado' %}bg-danger
+                                        {% else %}bg-secondary{% endif %}">
+                                        <i class="fas fa-
+                                            {% if orden.estado == 'pendiente' %}clock
+                                            {% elif orden.estado == 'pagado' %}check-circle
+                                            {% elif orden.estado == 'enviado' %}shipping-fast
+                                            {% elif orden.estado == 'cancelado' %}times-circle
+                                            {% else %}question-circle{% endif %}"></i>
+                                        {{ orden.estado.title() }}
+                                    </span>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="mb-2">Cambiar Estado:</h6>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-sm btn-outline-warning {% if orden.estado == 'pendiente' %}active{% endif %}" 
+                                                onclick="cambiarEstado({{ orden.id }}, 'pendiente')"
+                                                {% if orden.estado == 'pendiente' %}disabled{% endif %}>
+                                            <i class="fas fa-clock"></i> Pendiente
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-success {% if orden.estado == 'pagado' %}active{% endif %}" 
+                                                onclick="cambiarEstado({{ orden.id }}, 'pagado')"
+                                                {% if orden.estado == 'pagado' %}disabled{% endif %}>
+                                            <i class="fas fa-check-circle"></i> Pagado
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-info {% if orden.estado == 'enviado' %}active{% endif %}" 
+                                                onclick="cambiarEstado({{ orden.id }}, 'enviado')"
+                                                {% if orden.estado == 'enviado' %}disabled{% endif %}>
+                                            <i class="fas fa-shipping-fast"></i> Enviado
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger {% if orden.estado == 'cancelado' %}active{% endif %}" 
+                                                onclick="cambiarEstado({{ orden.id }}, 'cancelado')"
+                                                {% if orden.estado == 'cancelado' %}disabled{% endif %}>
+                                            <i class="fas fa-times-circle"></i> Cancelado
+                                        </button>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle"></i> 
+                                            Puedes cambiar el estado de la orden según sea necesario para el procesamiento.
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información principal -->
+            <div class="row mb-4">
+                <!-- Información del cliente -->
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5><i class="fas fa-user"></i> Información del Cliente</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Nombre:</strong> {{ orden.usuario.nombre }}</p>
+                            <p><strong>Email:</strong> 
+                                <a href="mailto:{{ orden.usuario.email }}">{{ orden.usuario.email }}</a>
+                            </p>
+                            <p><strong>Teléfono:</strong> 
+                                {% if orden.usuario.celular %}
+                                    <a href="tel:{{ orden.usuario.celular }}">{{ orden.usuario.celular }}</a>
+                                {% else %}
+                                    <span class="text-muted">No proporcionado</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de la orden -->
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5><i class="fas fa-info-circle"></i> Información de la Orden</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>ID:</strong> #{{ orden.id }}</p>
+                            <p><strong>Fecha:</strong> {{ orden.fecha.strftime('%d/%m/%Y %H:%M') }}</p>
+                            <p><strong>Método de pago:</strong> {{ orden.metodo_pago or 'N/A' }}</p>
+                            <p><strong>Total:</strong> <span class="h5 text-success">${{ "%.2f"|format(orden.total_final) }}</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dirección de envío -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-map-marker-alt"></i> Dirección de Envío</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <address class="mb-0">
+                                        <strong>{{ orden.direccion_envio.direccion }}</strong><br>
+                                        {{ orden.direccion_envio.ciudad }}, {{ orden.direccion_envio.departamento }}<br>
+                                        {{ orden.direccion_envio.pais }}
+                                    </address>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <a href="https://maps.google.com/?q={{ orden.direccion_envio.direccion }}, {{ orden.direccion_envio.ciudad }}, {{ orden.direccion_envio.departamento }}" 
+                                       target="_blank" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-map"></i> Ver en Maps
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Productos -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-shopping-bag"></i> Productos ({{ orden.detalle|length }})</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th class="text-center">Cantidad</th>
+                                            <th class="text-end">Precio Unitario</th>
+                                            <th class="text-end">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for detalle in orden.detalle %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ detalle.producto.nombre }}</strong>
+                                                {% if detalle.producto.descripcion %}
+                                                <br><small class="text-muted">{{ detalle.producto.descripcion[:100] }}{% if detalle.producto.descripcion|length > 100 %}...{% endif %}</small>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-primary">{{ detalle.cantidad }}</span>
+                                            </td>
+                                            <td class="text-end">${{ "%.2f"|format(detalle.precio_unitario) }}</td>
+                                            <td class="text-end">
+                                                <strong>${{ "%.2f"|format(detalle.cantidad * detalle.precio_unitario) }}</strong>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    <tfoot class="table-light">
+                                        <tr>
+                                            <th colspan="3" class="text-end">Subtotal:</th>
+                                            <th class="text-end">${{ "%.2f"|format(orden.total) }}</th>
+                                        </tr>
+                                        {% if orden.descuento_total > 0 %}
+                                        <tr>
+                                            <th colspan="3" class="text-end text-success">Descuento:</th>
+                                            <th class="text-end text-success">-${{ "%.2f"|format(orden.descuento_total) }}</th>
+                                        </tr>
+                                        {% endif %}
+                                        <tr class="table-success">
+                                            <th colspan="3" class="text-end">TOTAL:</th>
+                                            <th class="text-end h5">${{ "%.2f"|format(orden.total_final) }}</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones adicionales -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-cogs"></i> Acciones</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-outline-primary" onclick="window.print()">
+                                    <i class="fas fa-print"></i> Imprimir
+                                </button>
+                                <a href="mailto:{{ orden.usuario.email }}?subject=Información sobre tu pedido #{{ orden.id }}" class="btn btn-outline-info">
+                                    <i class="fas fa-envelope"></i> Contactar Cliente
+                                </a>
+                                <a href="/admin/ordenes" class="btn btn-outline-secondary">
+                                    <i class="fas fa-list"></i> Ver Todas las Órdenes
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {% include "partials/footer.html" %}
+
+    <script src="/static/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function cambiarEstado(ordenId, nuevoEstado) {
+            if (confirm(`¿Estás seguro de cambiar el estado de la orden #${ordenId} a "${nuevoEstado}"?`)) {
+                fetch(`/admin/ordenes/${ordenId}/estado`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({estado: nuevoEstado})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error al cambiar el estado: ' + (data.message || 'Error desconocido'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al cambiar el estado');
+                });
+            }
+        }
+    </script>
+
+    <style>
+        @media print {
+            .btn, .card-header, nav, header, footer {
+                display: none !important;
+            }
+            .card {
+                border: none !important;
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</body>
+</html>

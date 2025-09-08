@@ -96,3 +96,103 @@ async def enviar_mail_password_reset(destinatario: str, reset_link: str):
     <p>Si no solicitaste esto, podés ignorar este mensaje.</p>
     """
     send_email(destinatario, "Restablecer contraseña", content)
+
+def enviar_confirmacion_orden(orden, usuario):
+    """Envía email de confirmación al cliente cuando se confirma una orden"""
+    try:
+        print(f"🔄 Enviando email de confirmación de orden #{orden.id} a {usuario.email}")
+        
+        content = f"""
+        <h2>¡Tu pedido ha sido confirmado!</h2>
+        <p>Hola {usuario.nombre},</p>
+        <p>Te confirmamos que hemos recibido tu pedido correctamente.</p>
+        
+        <h3>Detalles del pedido:</h3>
+        <p><strong>Número de orden:</strong> #{orden.id}<br>
+        <strong>Fecha:</strong> {orden.fecha.strftime('%d/%m/%Y %H:%M')}<br>
+        <strong>Estado:</strong> {orden.estado.title()}</p>
+        
+        <h3>Productos:</h3>
+        <ul>
+        """
+        
+        for detalle in orden.detalle:
+            content += f"<li>{detalle.producto.nombre} - Cantidad: {detalle.cantidad} - Precio: $ {detalle.precio_unitario:.2f}</li>"
+        
+        content += f"""
+        </ul>
+        
+        <h3>Dirección de envío:</h3>
+        <p>{orden.direccion_envio.direccion}<br>
+        {orden.direccion_envio.ciudad}, {orden.direccion_envio.departamento}</p>
+        
+        <p><strong>Total del pedido:</strong> $ {orden.total_final:.2f}</p>
+        
+        <p>Te contactaremos pronto para coordinar la entrega.</p>
+        <p>¡Gracias por tu compra!</p>
+        
+        <p>Saludos,<br>
+        Equipo de Santolina</p>
+        """
+        
+        send_email(usuario.email, f"Confirmación de pedido #{orden.id} - Santolina", content)
+        print(f"✅ Email de confirmación de orden enviado exitosamente a {usuario.email}")
+        
+    except Exception as e:
+        print(f"❌ Error enviando email de confirmación de orden: {e}")
+        import traceback
+        traceback.print_exc()
+
+def notificar_admin_orden(orden, usuario):
+    """Notifica al administrador sobre una nueva orden confirmada"""
+    try:
+        admin_email = os.getenv("ADMIN_EMAIL")
+        if not admin_email:
+            print("⚠️ ADMIN_EMAIL no configurado, no se puede enviar notificación")
+            return
+
+        print(f"🔄 Enviando notificación de orden #{orden.id} al admin {admin_email}")
+
+        content = f"""
+        <h2>Nueva orden confirmada</h2>
+        <p>Se ha confirmado una nueva orden en la tienda.</p>
+        
+        <h3>Detalles del pedido:</h3>
+        <p><strong>Número de orden:</strong> #{orden.id}<br>
+        <strong>Fecha:</strong> {orden.fecha.strftime('%d/%m/%Y %H:%M')}<br>
+        <strong>Estado:</strong> {orden.estado.title()}</p>
+        
+        <h3>Cliente:</h3>
+        <p><strong>Nombre:</strong> {usuario.nombre}<br>
+        <strong>Email:</strong> {usuario.email}<br>
+        <strong>Celular:</strong> {usuario.celular or 'No proporcionado'}</p>
+        
+        <h3>Productos:</h3>
+        <ul>
+        """
+        
+        for detalle in orden.detalle:
+            content += f"<li>{detalle.producto.nombre} - Cantidad: {detalle.cantidad} - Precio unitario: $ {detalle.precio_unitario:.2f} - Subtotal: $ {detalle.precio_unitario * detalle.cantidad:.2f}</li>"
+        
+        content += f"""
+        </ul>
+        
+        <h3>Dirección de envío:</h3>
+        <p>{orden.direccion_envio.direccion}<br>
+        {orden.direccion_envio.ciudad}, {orden.direccion_envio.departamento}<br>
+        {orden.direccion_envio.pais}</p>
+        
+        <p><strong>Subtotal productos:</strong> $ {orden.total:.2f}<br>
+        <strong>Descuento:</strong> $ {orden.descuento_total:.2f}<br>
+        <strong>Total final:</strong> $ {orden.total_final:.2f}</p>
+        
+        <p>Método de pago: {orden.metodo_pago.upper()}</p>
+        """
+        
+        send_email(admin_email, f"Nueva orden #{orden.id} confirmada - Santolina", content)
+        print(f"✅ Notificación de orden enviada exitosamente al admin")
+        
+    except Exception as e:
+        print(f"❌ Error enviando notificación de orden al admin: {e}")
+        import traceback
+        traceback.print_exc()

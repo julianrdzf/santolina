@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <title>{{ producto.nombre }} - Santolina</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+{% include "partials/header.html" %}
+
+<!-- Breadcrumb Navigation -->
+<div class="breadcrumb-container">
+    <div class="container">
+        <nav class="breadcrumb-nav">
+            <a href="/" class="breadcrumb-link">
+                <i class="fas fa-home"></i>
+                Inicio
+            </a>
+            <i class="fas fa-chevron-right breadcrumb-separator"></i>
+            <a href="/tienda" class="breadcrumb-link">Tienda</a>
+            <i class="fas fa-chevron-right breadcrumb-separator"></i>
+            <span class="breadcrumb-current">{{ producto.nombre }}</span>
+        </nav>
+    </div>
+</div>
+
+<div class="product-page">
+    <div class="container">
+        <div class="product-layout">
+            <!-- Product Gallery -->
+            <div class="product-gallery-section">
+                <div class="product-gallery">
+                    <div class="gallery-main" id="gallery-main" data-images='{% if producto.imagenes and producto.imagenes|length > 0 %}[{% for img in producto.imagenes %}"{{ img.url_imagen }}"{% if not loop.last %}, {% endif %}{% endfor %}]{% else %}["/static/img/default-product.png"]{% endif %}'>
+                        {% if producto.imagenes and producto.imagenes|length > 0 %}
+                            <img src="{{ producto.imagenes[0].url_imagen }}" alt="{{ producto.nombre }}" id="main-image" class="main-product-image">
+                        {% else %}
+                            <img src="/static/img/default-product.png" alt="{{ producto.nombre }}" id="main-image" class="main-product-image">
+                        {% endif %}
+                        
+                        {% if producto.imagenes and producto.imagenes|length > 1 %}
+                        <button type="button" class="gallery-arrow gallery-arrow-left" id="arrow-left" aria-label="Imagen anterior">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button type="button" class="gallery-arrow gallery-arrow-right" id="arrow-right" aria-label="Imagen siguiente">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        {% endif %}
+                        
+                        <div class="image-zoom-indicator">
+                            <i class="fas fa-search-plus"></i>
+                            <span>Hacer clic para ampliar</span>
+                        </div>
+                    </div>
+                    
+                    {% if producto.imagenes and producto.imagenes|length > 1 %}
+                    <div class="gallery-thumbs" id="gallery-thumbs">
+                        {% for img in producto.imagenes %}
+                        <button type="button" class="thumb-button" data-src="{{ img.url_imagen }}" data-index="{{ loop.index0 }}">
+                            <img src="{{ img.url_imagen }}" alt="{{ producto.nombre }} {{ loop.index }}" class="thumb-image">
+                        </button>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Product Information -->
+            <div class="product-info-section">
+                <div class="product-header">
+                    <h1 class="product-title">{{ producto.nombre }}</h1>
+                    
+                </div>
+
+                <div class="product-price">
+                    <div class="price-section">
+                        {% if producto.promocion_activa %}
+                        <div class="promotion-info">
+                            <div class="promotion-badge">
+                                <i class="fas fa-tag"></i>
+                                <span>
+                                    {% if producto.promocion_activa.tipo_descuento == 'porcentaje' %}
+                                        -{{ producto.promocion_activa.valor|int }}%
+                                    {% else %}
+                                        -${{ producto.promocion_activa.valor|int }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="price-with-discount">
+                                <span class="original-price">$ {{ "%.2f"|format(producto.precio) }}</span>
+                                <span class="discounted-price">$ {{ "%.2f"|format(producto.precio_con_descuento) }}</span>
+                            </div>
+                        </div>
+                        {% else %}
+                        <span class="current-price">$ {{ "%.2f"|format(producto.precio) }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="shipping-info">
+                        <i class="fas fa-truck"></i>
+                        <span>Envío a todo el país</span>
+                    </div>
+                </div>
+
+                <div class="product-description">
+                    <h3 class="description-title">Descripción</h3>
+                    <p class="description-text">{{ producto.descripcion }}</p>
+                </div>
+
+                <div class="product-features">
+                    <div class="feature-item">
+                        <i class="fas fa-leaf"></i>
+                        <span>Producto natural</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-award"></i>
+                        <span>Calidad premium</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Garantía de satisfacción</span>
+                    </div>
+                </div>
+
+                <form class="product-actions" action="/tienda/carrito/agregar/{{ producto.id }}" method="post">
+                    <div class="quantity-section">
+                        <label class="quantity-label">Cantidad:</label>
+                        <div class="quantity-controls">
+                            <button type="button" class="qty-btn qty-decrease" id="qty-minus" aria-label="Disminuir cantidad">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number" id="qty" name="cantidad" value="1" min="1" class="qty-input" readonly>
+                            <button type="button" class="qty-btn qty-increase" id="qty-plus" aria-label="Aumentar cantidad">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button type="submit" class="btn-add-to-cart" id="add-to-cart">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Agregar al carrito</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="product-guarantees">
+                    
+                    <div class="guarantee-item">
+                        <i class="fas fa-lock"></i>
+                        <div class="guarantee-text">
+                            <strong>Compra protegida</strong>
+                            <span>Tus datos siempre protegidos</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/script.js"></script>
+
+<script>
+
+    (function(){
+    const thumbs = document.querySelectorAll('.gallery-thumbs .thumb-button');
+    const mainImage = document.getElementById('main-image');
+    const arrowLeft = document.getElementById('arrow-left');
+    const arrowRight = document.getElementById('arrow-right');
+
+    const main = document.getElementById('gallery-main');
+    let imageSources = [];
+    try {
+        const imagesAttr = main?.getAttribute('data-images');
+        imageSources = imagesAttr ? JSON.parse(imagesAttr) : ["/static/img/default-product.png"];
+    } catch (e) {
+        imageSources = ["/static/img/default-product.png"];
+    }
+    let currentIndex = 0;
+
+    function setActiveThumb(index){
+        thumbs.forEach(t => t.classList.remove('active'));
+        const active = document.querySelector('.gallery-thumbs .thumb-button[data-index="' + index + '"]');
+        if (active) active.classList.add('active');
+    }
+
+    function showImage(index){
+        if (!mainImage || !imageSources.length) return;
+        currentIndex = (index + imageSources.length) % imageSources.length;
+        mainImage.src = imageSources[currentIndex];
+        setActiveThumb(currentIndex);
+    }
+
+    // Enhanced Touch/Swipe functionality
+    let touchStartX = 0;
+    let touchEndX = 0;
+    let touchStartY = 0;
+    let touchEndY = 0;
+    let isSwipeInProgress = false;
+
+    main?.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+        isSwipeInProgress = true;
+        
+        // Add visual feedback
+        if (mainImage) {
+            mainImage.style.transition = 'none';
+        }
+    }, { passive: true });
+
+    main?.addEventListener('touchmove', (e) => {
+        if (!isSwipeInProgress) return;
+        
+        touchEndX = e.changedTouches[0].screenX;
+        touchEndY = e.changedTouches[0].screenY;
+        
+        const deltaX = touchEndX - touchStartX;
+        const deltaY = Math.abs(touchEndY - touchStartY);
+        
+        // Prevent vertical scrolling if horizontal swipe is detected
+        if (Math.abs(deltaX) > deltaY && Math.abs(deltaX) > 10) {
+            e.preventDefault();
+            
+            // Visual feedback during swipe
+            if (mainImage && Math.abs(deltaX) > 20) {
+                const opacity = Math.max(0.7, 1 - Math.abs(deltaX) / 200);
+                mainImage.style.opacity = opacity;
+            }
+        }
+    }, { passive: false });
+
+    main?.addEventListener('touchend', (e) => {
+        if (!isSwipeInProgress) return;
+        
+        touchEndX = e.changedTouches[0].screenX;
+        touchEndY = e.changedTouches[0].screenY;
+        isSwipeInProgress = false;
+        
+        // Restore visual state
+        if (mainImage) {
+            mainImage.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+            mainImage.style.opacity = '1';
+        }
+        
+        handleSwipe();
+    }, { passive: true });
+
+    function handleSwipe(){
+        const deltaX = touchEndX - touchStartX;
+        const deltaY = Math.abs(touchEndY - touchStartY);
+        
+        // Only process horizontal swipes (ignore vertical scrolls)
+        if (Math.abs(deltaX) < 50 || deltaY > Math.abs(deltaX)) return;
+        
+        // Prevent swipe if only one image
+        if (imageSources.length <= 1) return;
+        
+        if (deltaX > 0) {
+            // Swipe right - previous image
+            showImage(currentIndex - 1);
+        } else {
+            // Swipe left - next image
+            showImage(currentIndex + 1);
+        }
+    }
+
+    // Thumbnail clicks
+    thumbs.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const idx = parseInt(btn.getAttribute('data-index') || '0', 10);
+            showImage(idx);
+        });
+    });
+
+    // Arrow navigation
+    arrowLeft?.addEventListener('click', () => showImage(currentIndex - 1));
+    arrowRight?.addEventListener('click', () => showImage(currentIndex + 1));
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (imageSources.length <= 1) return;
+        if (e.key === 'ArrowLeft') showImage(currentIndex - 1);
+        if (e.key === 'ArrowRight') showImage(currentIndex + 1);
+    });
+
+    // Image zoom on click
+    mainImage?.addEventListener('click', () => {
+        if (mainImage.style.transform === 'scale(2)') {
+            mainImage.style.transform = 'scale(1)';
+            mainImage.style.cursor = 'zoom-in';
+        } else {
+            mainImage.style.transform = 'scale(2)';
+            mainImage.style.cursor = 'zoom-out';
+        }
+    });
+
+    // Initialize active thumbnail
+    setActiveThumb(0);
+
+    // Quantity controls
+    const qty = document.getElementById('qty');
+    const qtyMinus = document.getElementById('qty-minus');
+    const qtyPlus = document.getElementById('qty-plus');
+
+    qtyMinus?.addEventListener('click', () => {
+        const val = Math.max(1, parseInt(qty.value || '1', 10) - 1);
+        qty.value = String(val);
+    });
+
+    qtyPlus?.addEventListener('click', () => {
+        const val = parseInt(qty.value || '1', 10) + 1;
+        qty.value = String(val);
+    });
+
+})();
+</script>
+
+</body>
+</html>
+
+

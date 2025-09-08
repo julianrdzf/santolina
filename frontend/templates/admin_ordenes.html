@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <title>Panel de administración - Órdenes</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+
+    <section>
+        <div class="container mt-5">
+            <h2><i class="fas fa-shopping-cart"></i> Gestión de Órdenes</h2>
+            
+            <!-- Filtros -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <select class="form-select" id="filtroEstado" onchange="filtrarOrdenes()">
+                        <option value="">Todos los estados</option>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="pagado">Pagado</option>
+                        <option value="enviado">Enviado</option>
+                        <option value="cancelado">Cancelado</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="date" class="form-control" id="filtroFecha" onchange="filtrarOrdenes()" placeholder="Filtrar por fecha">
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" id="buscarCliente" onchange="filtrarOrdenes()" placeholder="Buscar por cliente...">
+                </div>
+            </div>
+
+            <!-- Estadísticas rápidas -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <h5>Pendientes</h5>
+                            <h3>{{ ordenes_stats.pendientes or 0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h5>Pagadas</h5>
+                            <h3>{{ ordenes_stats.pagadas or 0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <h5>Enviadas</h5>
+                            <h3>{{ ordenes_stats.enviadas or 0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <h5>Total Hoy</h5>
+                            <h3>${{ "%.2f"|format(ordenes_stats.total_hoy or 0) }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de órdenes -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Total</th>
+                            <th>Productos</th>
+                            <th>Dirección</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for orden in ordenes %}
+                        <tr class="orden-row" data-estado="{{ orden.estado }}" data-fecha="{{ orden.fecha.strftime('%Y-%m-%d') }}" data-cliente="{{ orden.usuario.nombre.lower() }}">
+                            <td><strong>#{{ orden.id }}</strong></td>
+                            <td>
+                                <div>
+                                    <strong>{{ orden.usuario.nombre }}</strong><br>
+                                    <small class="text-muted">{{ orden.usuario.email }}</small><br>
+                                    <small class="text-muted">{{ orden.usuario.celular or 'Sin teléfono' }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <small>{{ orden.fecha.strftime('%d/%m/%Y') }}</small><br>
+                                <small class="text-muted">{{ orden.fecha.strftime('%H:%M') }}</small>
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if orden.estado == 'pendiente' %}bg-warning
+                                    {% elif orden.estado == 'pagado' %}bg-success
+                                    {% elif orden.estado == 'enviado' %}bg-info
+                                    {% elif orden.estado == 'cancelado' %}bg-danger
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ orden.estado.title() }}
+                                </span>
+                            </td>
+                            <td>
+                                <strong>${{ "%.2f"|format(orden.total_final) }}</strong><br>
+                                <small class="text-muted">{{ orden.metodo_pago or 'N/A' }}</small>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#productos-{{ orden.id }}">
+                                    <i class="fas fa-eye"></i> Ver ({{ orden.detalle|length }})
+                                </button>
+                                <div class="collapse mt-2" id="productos-{{ orden.id }}">
+                                    <div class="card card-body">
+                                        {% for detalle in orden.detalle %}
+                                        <small>
+                                            <strong>{{ detalle.producto.nombre }}</strong><br>
+                                            Cantidad: {{ detalle.cantidad }} - ${{ "%.2f"|format(detalle.precio_unitario) }} c/u
+                                        </small>
+                                        {% if not loop.last %}<hr class="my-1">{% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <small>
+                                    {{ orden.direccion_envio.direccion }}<br>
+                                    {{ orden.direccion_envio.ciudad }}, {{ orden.direccion_envio.departamento }}<br>
+                                    {{ orden.direccion_envio.pais }}
+                                </small>
+                            </td>
+                            <td>
+                                <div class="btn-group-vertical" role="group">
+                                    {% if orden.estado == 'pagado' %}
+                                    <button class="btn btn-sm btn-success" onclick="cambiarEstado({{ orden.id }}, 'enviado')">
+                                        <i class="fas fa-shipping-fast"></i> Marcar Enviado
+                                    </button>
+                                    {% endif %}
+                                    
+                                    {% if orden.estado in ['pendiente', 'pagado'] %}
+                                    <button class="btn btn-sm btn-danger" onclick="cambiarEstado({{ orden.id }}, 'cancelado')">
+                                        <i class="fas fa-times"></i> Cancelar
+                                    </button>
+                                    {% endif %}
+                                    
+                                    <a href="/admin/ordenes/{{ orden.id }}/detalle" class="btn btn-sm btn-outline-info">
+                                        <i class="fas fa-info-circle"></i> Detalle
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if not ordenes %}
+            <div class="text-center py-5">
+                <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No hay órdenes registradas</h4>
+                <p class="text-muted">Las órdenes aparecerán aquí cuando los clientes realicen compras.</p>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    {% include "partials/footer.html" %}
+
+
+    <script src="/static/script.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function cambiarEstado(ordenId, nuevoEstado) {
+            if (confirm(`¿Estás seguro de cambiar el estado de la orden #${ordenId} a "${nuevoEstado}"?`)) {
+                fetch(`/admin/ordenes/${ordenId}/estado`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({estado: nuevoEstado})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error al cambiar el estado: ' + (data.message || 'Error desconocido'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al cambiar el estado');
+                });
+            }
+        }
+
+
+        function filtrarOrdenes() {
+            const filtroEstado = document.getElementById('filtroEstado').value.toLowerCase();
+            const filtroFecha = document.getElementById('filtroFecha').value;
+            const buscarCliente = document.getElementById('buscarCliente').value.toLowerCase();
+            
+            const filas = document.querySelectorAll('.orden-row');
+            
+            filas.forEach(fila => {
+                const estado = fila.getAttribute('data-estado');
+                const fecha = fila.getAttribute('data-fecha');
+                const cliente = fila.getAttribute('data-cliente');
+                
+                let mostrar = true;
+                
+                if (filtroEstado && estado !== filtroEstado) {
+                    mostrar = false;
+                }
+                
+                if (filtroFecha && fecha !== filtroFecha) {
+                    mostrar = false;
+                }
+                
+                if (buscarCliente && !cliente.includes(buscarCliente)) {
+                    mostrar = false;
+                }
+                
+                fila.style.display = mostrar ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>
