@@ -320,7 +320,7 @@
 <script>
     const subtotal = {{ total_carrito }};
     
-    function updateShippingCost() {
+    async function updateShippingCost() {
         let selectedDepartment = '';
         
         // Verificar si hay una dirección seleccionada
@@ -335,20 +335,36 @@
             selectedDepartment = departmentSelect ? departmentSelect.value : '';
         }
         
-        // Calcular costo de envío y actualizar etiqueta
+        let shippingCost = 0;
         const shippingLabel = document.getElementById('shipping-label');
-        const shippingCost = selectedDepartment === 'Montevideo' ? 200 : 0;
+        
+        if (selectedDepartment) {
+            try {
+                // Consultar costo de envío desde la base de datos
+                const response = await fetch(`/tienda/costo-envio/${encodeURIComponent(selectedDepartment)}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    shippingCost = data.costo || 0;
+                }
+            } catch (error) {
+                console.error('Error al obtener costo de envío:', error);
+                shippingCost = 0;
+            }
+        }
+        
         const total = subtotal + shippingCost;
         
-        // Actualizar texto del envío según el departamento
-        if (selectedDepartment && selectedDepartment !== 'Montevideo') {
+        // Actualizar texto del envío según el costo
+        if (shippingCost > 0) {
+            shippingLabel.textContent = 'Envío';
+        } else if (selectedDepartment && shippingCost === 0) {
             shippingLabel.textContent = 'Envío (a cargo del cliente)';
         } else {
             shippingLabel.textContent = 'Envío';
         }
         
         // Actualizar la interfaz
-        document.getElementById('shipping-cost').textContent = `$ ${shippingCost.toFixed(2)}`;
+        document.getElementById('shipping-cost').textContent = shippingCost > 0 ? `$ ${shippingCost.toFixed(2)}` : 'Gratis';
         document.getElementById('total-price').textContent = `$ ${total.toFixed(2)}`;
     }
     

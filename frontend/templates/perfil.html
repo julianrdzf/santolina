@@ -236,7 +236,27 @@
                                     </div>
                                     
                                     <div class="order-total">
-                                        <strong>Total: $ {{ "%.2f"|format(orden.total_final) }}</strong>
+                                        <div class="total-breakdown">
+                                            <div class="total-line">
+                                                <span>Subtotal productos:</span>
+                                                <span>$ {{ "%.2f"|format(orden.total) }}</span>
+                                            </div>
+                                            {% if orden.descuento_total > 0 %}
+                                            <div class="total-line discount">
+                                                <span>Descuento cupón:</span>
+                                                <span>- $ {{ "%.2f"|format(orden.descuento_total) }}</span>
+                                            </div>
+                                            {% endif %}
+                                            {% if orden.costo_envio > 0 %}
+                                            <div class="total-line">
+                                                <span>Costo de envío:</span>
+                                                <span>$ {{ "%.2f"|format(orden.costo_envio) }}</span>
+                                            </div>
+                                            {% endif %}
+                                            <div class="total-line final-total">
+                                                <strong>Total: $ {{ "%.2f"|format(orden.total_final) }}</strong>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -61,6 +61,9 @@ from app.models.direcciones import Direccion
 from app.models.cupones import Cupon
 from app.models.cupones_uso import CuponUso
 
+# Envíos
+from app.models.costos_envio import CostoEnvio
+
 
 from sqlalchemy import insert
 from sqlalchemy.dialects.postgresql import insert as pg_insert

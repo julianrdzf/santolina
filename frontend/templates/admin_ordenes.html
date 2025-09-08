@@ -18,7 +18,8 @@
             
             <!-- Filtros -->
             <div class="row mb-4">
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <label class="form-label">Estado</label>
                     <select class="form-select" id="filtroEstado" onchange="filtrarOrdenes()">
                         <option value="">Todos los estados</option>
                         <option value="pendiente">Pendiente</option>
@@ -27,10 +28,35 @@
                         <option value="cancelado">Cancelado</option>
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <input type="date" class="form-control" id="filtroFecha" onchange="filtrarOrdenes()" placeholder="Filtrar por fecha">
+                <div class="col-md-6">
+                    <label class="form-label">Filtros de Fecha</label>
+                    <div class="d-flex gap-2 mb-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="aplicarFiltroFecha(7)">
+                            <i class="fas fa-calendar-week"></i> Últimos 7 días
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="aplicarFiltroFecha(30)">
+                            <i class="fas fa-calendar-alt"></i> Últimos 30 días
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="limpiarFiltroFecha()">
+                            <i class="fas fa-times"></i> Limpiar
+                        </button>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <input type="date" class="form-control form-control-sm" id="fechaDesde" placeholder="Desde">
+                        </div>
+                        <div class="col-4">
+                            <input type="date" class="form-control form-control-sm" id="fechaHasta" placeholder="Hasta">
+                        </div>
+                        <div class="col-4">
+                            <button type="button" class="btn btn-primary btn-sm w-100" onclick="aplicarRangoPersonalizado()">
+                                <i class="fas fa-search"></i> Aplicar
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <label class="form-label">Buscar Cliente</label>
                     <input type="text" class="form-control" id="buscarCliente" onchange="filtrarOrdenes()" placeholder="Buscar por cliente...">
                 </div>
             </div>
@@ -205,34 +231,118 @@
         }
 
 
+        // Variables globales para filtros de fecha
+        let fechaDesdeActual = null;
+        let fechaHastaActual = null;
+
         function filtrarOrdenes() {
             const filtroEstado = document.getElementById('filtroEstado').value.toLowerCase();
-            const filtroFecha = document.getElementById('filtroFecha').value;
             const buscarCliente = document.getElementById('buscarCliente').value.toLowerCase();
             
             const filas = document.querySelectorAll('.orden-row');
             
             filas.forEach(fila => {
                 const estado = fila.getAttribute('data-estado');
-                const fecha = fila.getAttribute('data-fecha');
+                const fechaOrden = new Date(fila.getAttribute('data-fecha'));
                 const cliente = fila.getAttribute('data-cliente');
                 
                 let mostrar = true;
                 
+                // Filtro por estado
                 if (filtroEstado && estado !== filtroEstado) {
                     mostrar = false;
                 }
                 
-                if (filtroFecha && fecha !== filtroFecha) {
+                // Filtro por rango de fechas
+                if (fechaDesdeActual && fechaOrden < fechaDesdeActual) {
+                    mostrar = false;
+                }
+                if (fechaHastaActual && fechaOrden > fechaHastaActual) {
                     mostrar = false;
                 }
                 
+                // Filtro por cliente
                 if (buscarCliente && !cliente.includes(buscarCliente)) {
                     mostrar = false;
                 }
                 
                 fila.style.display = mostrar ? '' : 'none';
             });
+        }
+
+        function aplicarFiltroFecha(dias) {
+            const hoy = new Date();
+            const fechaDesde = new Date();
+            fechaDesde.setDate(hoy.getDate() - dias);
+            
+            // Establecer fechas globales
+            fechaDesdeActual = fechaDesde;
+            fechaHastaActual = hoy;
+            
+            // Actualizar campos visuales
+            document.getElementById('fechaDesde').value = formatearFecha(fechaDesde);
+            document.getElementById('fechaHasta').value = formatearFecha(hoy);
+            
+            // Aplicar filtros
+            filtrarOrdenes();
+            
+            // Resaltar botón activo
+            document.querySelectorAll('.btn-outline-primary').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function aplicarRangoPersonalizado() {
+            const fechaDesdeInput = document.getElementById('fechaDesde').value;
+            const fechaHastaInput = document.getElementById('fechaHasta').value;
+            
+            if (!fechaDesdeInput && !fechaHastaInput) {
+                alert('Por favor selecciona al menos una fecha');
+                return;
+            }
+            
+            // Establecer fechas globales
+            fechaDesdeActual = fechaDesdeInput ? new Date(fechaDesdeInput) : null;
+            fechaHastaActual = fechaHastaInput ? new Date(fechaHastaInput) : null;
+            
+            // Si solo hay fecha hasta, ajustar al final del día
+            if (fechaHastaActual) {
+                fechaHastaActual.setHours(23, 59, 59, 999);
+            }
+            
+            // Aplicar filtros
+            filtrarOrdenes();
+            
+            // Quitar resaltado de botones predefinidos
+            document.querySelectorAll('.btn-outline-primary').forEach(btn => {
+                btn.classList.remove('active');
+            });
+        }
+
+        function limpiarFiltroFecha() {
+            // Limpiar fechas globales
+            fechaDesdeActual = null;
+            fechaHastaActual = null;
+            
+            // Limpiar campos
+            document.getElementById('fechaDesde').value = '';
+            document.getElementById('fechaHasta').value = '';
+            
+            // Quitar resaltado de botones
+            document.querySelectorAll('.btn-outline-primary').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Aplicar filtros
+            filtrarOrdenes();
+        }
+
+        function formatearFecha(fecha) {
+            const año = fecha.getFullYear();
+            const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+            const dia = String(fecha.getDate()).padStart(2, '0');
+            return `${año}-${mes}-${dia}`;
         }
     </script>
 </body>

@@ -203,8 +203,14 @@
                                         </tr>
                                         {% if orden.descuento_total > 0 %}
                                         <tr>
-                                            <th colspan="3" class="text-end text-success">Descuento:</th>
+                                            <th colspan="3" class="text-end text-success">Descuento cupón:</th>
                                             <th class="text-end text-success">-${{ "%.2f"|format(orden.descuento_total) }}</th>
+                                        </tr>
+                                        {% endif %}
+                                        {% if orden.costo_envio > 0 %}
+                                        <tr>
+                                            <th colspan="3" class="text-end">Costo de envío:</th>
+                                            <th class="text-end">${{ "%.2f"|format(orden.costo_envio) }}</th>
                                         </tr>
                                         {% endif %}
                                         <tr class="table-success">
@@ -231,9 +237,7 @@
                                 <button class="btn btn-outline-primary" onclick="window.print()">
                                     <i class="fas fa-print"></i> Imprimir
                                 </button>
-                                <a href="mailto:{{ orden.usuario.email }}?subject=Información sobre tu pedido #{{ orden.id }}" class="btn btn-outline-info">
-                                    <i class="fas fa-envelope"></i> Contactar Cliente
-                                </a>
+                                
                                 <a href="/admin/ordenes" class="btn btn-outline-secondary">
                                     <i class="fas fa-list"></i> Ver Todas las Órdenes
                                 </a>
