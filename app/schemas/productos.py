@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, List
-from .categorias_productos import CategoriaProductoOut
-from .imagenes_productos import ImagenProductoOut
+from app.schemas.categorias_productos import CategoriaProductoOut
+from app.schemas.imagenes_productos import ImagenProductoOut
 
 class ProductoCreate(BaseModel):
     nombre: str

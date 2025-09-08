@@ -111,7 +111,7 @@ def crear_reserva_con_pago(
             "pending": f"{base_url}/pago-pendiente"
         },
         "auto_return": "approved",
-        "external_reference": str(nueva_reserva.id),
+        "external_reference": f"RES{nueva_reserva.id}",
         "notification_url": f"{base_url}/webhooks/mercadopago"
     }
 
@@ -174,10 +174,15 @@ async def pago_error(request: Request):
 @router.get("/pago-pendiente")
 def pago_pendiente(
     request: Request, 
-    external_reference: int,
+    external_reference: str,
     db: Session = Depends(get_db)    
 ):
-    reserva_id = int(external_reference)
+    # Extraer ID de reserva del external_reference con prefijo
+    if external_reference.startswith("RES"):
+        reserva_id = int(external_reference[3:])  # Remover "RES" prefix
+    else:
+        reserva_id = int(external_reference)  # Compatibilidad con formato anterior
+    
     reserva = db.query(Reserva).get(reserva_id)
     evento = reserva.evento
 
@@ -191,4 +196,3 @@ def pago_pendiente(
         "evento": evento,
         "referencia": external_reference
     })
-    

@@ -9,3 +9,6 @@ class Usuario(SQLAlchemyBaseUserTableUUID, Base):
     celular = Column(String, nullable=True)
 
     reservas = relationship("Reserva", back_populates="usuario", cascade="all, delete-orphan")
+    carritos = relationship("Carrito", back_populates="usuario", cascade="all, delete-orphan")
+    direcciones = relationship("Direccion", back_populates="usuario", cascade="all, delete-orphan")
+    ordenes = relationship("Orden", back_populates="usuario", cascade="all, delete-orphan")

@@ -9,5 +9,18 @@ class CategoriaProducto(Base):
     nombre = Column(String, nullable=False)
     id_categoria_padre = Column(Integer, ForeignKey("categorias_productos.id"), nullable=True)
 
-    subcategorias = relationship("CategoriaProducto", backref="categoria_padre", remote_side=[id])
+    # Relación hacia subcategorías
+    subcategorias = relationship(
+        "CategoriaProducto",
+        back_populates="categoria_padre",
+        cascade="all, delete"
+    )
+
+    # Relación hacia la categoría padre
+    categoria_padre = relationship(
+        "CategoriaProducto",
+        remote_side=[id],
+        back_populates="subcategorias"
+    )
+
     productos = relationship("Producto", back_populates="categoria")

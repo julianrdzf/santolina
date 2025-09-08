@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pago Exitoso - Santolina</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+
+    <div class="container">
+        <div class="payment-success">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            
+            <h1>¡Pago Exitoso!</h1>
+            <p class="success-message">Tu pedido ha sido procesado correctamente.</p>
+            
+            <div class="order-details">
+                <h3>Detalles del Pedido</h3>
+                <div class="order-info">
+                    <p><strong>Número de Orden:</strong> #{{ orden.id }}</p>
+                    <p><strong>Estado:</strong> {{ orden.estado.title() }}</p>
+                    <p><strong>Fecha:</strong> {{ orden.fecha.strftime('%d/%m/%Y %H:%M') }}</p>
+                    <p><strong>Total:</strong> $ {{ "%.2f"|format(orden.total_final) }}</p>
+                </div>
+            </div>
+            
+            <div class="next-steps">
+                <h3>¿Qué sigue?</h3>
+                <ul>
+                    <li>Recibirás un email de confirmación en breve</li>
+                    <li>Te contactaremos para coordinar la entrega</li>
+                    <li>Puedes seguir el estado de tu pedido en tu cuenta</li>
+                </ul>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="/tienda" class="btn btn-primary">
+                    <i class="fas fa-shopping-bag"></i>
+                    Seguir Comprando
+                </a>
+                <a href="/perfil" class="btn btn-secondary">
+                    <i class="fas fa-user"></i>
+                    Ver Mi Cuenta
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% include "partials/footer.html" %}
+</body>
+</html>

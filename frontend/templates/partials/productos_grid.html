@@ -1,0 +1,17 @@
+<div class="products-grid" id="products-container">
+    {% for producto in productos %}
+    <div class="product-card">
+        <div class="product-media">
+            <img src="{{ producto.imagenes[0].url_imagen if producto.imagenes else '/static/img/default-product.png' }}" alt="{{ producto.nombre }}">
+        </div>
+        <div class="product-info">
+            <h4 class="product-title">{{ producto.nombre }}</h4>
+            <p class="product-desc">{{ producto.descripcion }}</p>
+            <div class="product-bottom">
+                <span class="price">$ {{ "%.2f"|format(producto.precio) }}</span>
+                <a href="/tienda/producto/{{ producto.id }}" class="btn-view" aria-label="Ver {{ producto.nombre }}">Ver producto</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
