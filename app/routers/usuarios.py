@@ -11,13 +11,13 @@ from app.models.user import Usuario
 from app.models.reserva import Reserva
 from app.models.ordenes import Orden
 from app.models.direcciones import Direccion
+from app.schemas.user import UserCreate
 from app.dependencies.users import get_user_manager
 from app.routers.auth import auth_backend, fastapi_users, cookie_transport, current_active_user
 from fastapi_users.authentication import JWTStrategy
 from fastapi_users.router.common import ErrorCode
 from fastapi_users import exceptions
 from fastapi_users.exceptions import UserNotExists
-
 
 templates = Jinja2Templates(directory="frontend/templates")
 router = APIRouter()
