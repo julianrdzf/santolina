@@ -98,20 +98,33 @@ async def webhook_mercado_pago(
                 elif external_reference.startswith("EBOOK"):
                     # Es una compra de ebook
                     compra_id = int(external_reference[5:])  # Remover "EBOOK" prefix
+                    print(f"🔍 Procesando compra de ebook ID: {compra_id}")
+                    
                     compra = db.query(CompraEbook).options(
-                        joinedload(CompraEbook.ebook),
+                        joinedload(CompraEbook.ebook).joinedload(Ebook.categoria),
                         joinedload(CompraEbook.usuario)
                     ).get(compra_id)
-                    if compra and compra.estado_pago != "pagado":
-                        compra.estado_pago = "pagado"
-                        db.commit()
-                        
-                        # ✅ Enviar mails de confirmación de ebook
-                        background_tasks.add_task(enviar_confirmacion_compra_ebook, compra, compra.usuario)
-                        background_tasks.add_task(notificar_admin_compra_ebook, compra, compra.usuario)
-                        
-                        print("🎉 Compra de ebook completada y correos enviados")
-                        return {"status": "ebook purchase completed and emails sent"}
+                    
+                    if compra:
+                        print(f"📚 Ebook encontrado: {compra.ebook.titulo}, Estado actual: {compra.estado_pago}")
+                        if compra.estado_pago != "pagado":
+                            compra.estado_pago = "pagado"
+                            db.commit()
+                            print(f"✅ Estado actualizado a 'pagado' para compra #{compra.id}")
+                            
+                            # ✅ Enviar mails de confirmación de ebook
+                            print(f"📧 Programando envío de emails para {compra.usuario.email}")
+                            background_tasks.add_task(enviar_confirmacion_compra_ebook, compra, compra.usuario)
+                            background_tasks.add_task(notificar_admin_compra_ebook, compra, compra.usuario)
+                            
+                            print("🎉 Compra de ebook completada y correos programados")
+                            return {"status": "ebook purchase completed and emails sent"}
+                        else:
+                            print(f"⚠️ La compra #{compra.id} ya estaba marcada como pagada")
+                            return {"status": "ebook already paid"}
+                    else:
+                        print(f"❌ No se encontró compra de ebook con ID: {compra_id}")
+                        return {"status": "ebook purchase not found"}
                 
                 else:
                     # Formato anterior sin prefijo - intentar como reserva primero por compatibilidad

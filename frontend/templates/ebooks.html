@@ -129,14 +129,14 @@
         <!-- GRID DE EBOOKS -->
         <div class="ebooks-grid" id="ebooks-container">
             {% for ebook in ebooks %}
-            <div class="ebook-card">
+            <div class="product-card">
                 <div class="product-media">
                     <img src="{{ ebook.imagen_portada if ebook.imagen_portada else '/static/img/default-ebook.png' }}" alt="{{ ebook.titulo }}">
                 </div>
-                <div class="ebook-info">
+                <div class="product-info">
                     <h4 class="product-title">{{ ebook.titulo }}</h4>
-                    <p class="ebook-desc">{{ ebook.descripcion[:100] }}{% if ebook.descripcion|length > 100 %}...{% endif %}</p>
-                    <div class="ebook-bottom">
+                    <p class="product-desc">{{ ebook.descripcion[:100] if ebook.descripcion else 'Ebook digital' }}{% if ebook.descripcion and ebook.descripcion|length > 100 %}...{% endif %}</p>
+                    <div class="product-bottom">
                         <span class="price">USD {{ "%.2f"|format(ebook.precio) }}</span>
                         <a href="/ebooks/{{ ebook.id }}" class="btn-view" aria-label="Ver {{ ebook.titulo }}">Ver ebook</a>
                     </div>
@@ -214,9 +214,9 @@
         });
     }
 
-    // Captura el click en ebook-card y lleva al link del botón de ver ebook
+    // Captura el click en product-card y lleva al link del botón de ver ebook
     document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.ebook-card').forEach(card => {
+        document.querySelectorAll('.product-card').forEach(card => {
             card.addEventListener('click', (e) => {
                 // No navegar si se hace click en un enlace o botón
                 if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') return;

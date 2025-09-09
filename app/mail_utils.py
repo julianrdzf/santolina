@@ -209,25 +209,15 @@ def enviar_confirmacion_compra_ebook(compra, usuario):
         
         <h3>Detalles de la compra:</h3>
         <p><strong>Ebook:</strong> {compra.ebook.titulo}<br>
-        <strong>Autor:</strong> {compra.ebook.autor}<br>
-        <strong>Categoría:</strong> {compra.ebook.categoria.nombre}<br>
+        <strong>Categoría:</strong> {compra.ebook.categoria.nombre if compra.ebook.categoria else 'Sin categoría'}<br>
         <strong>Precio:</strong> USD {compra.precio_pagado:.2f}<br>
         <strong>Fecha de compra:</strong> {compra.fecha_compra.strftime('%d/%m/%Y %H:%M')}<br>
         <strong>Estado:</strong> {compra.estado_pago.title()}</p>
         
         <h3>📥 Descarga tu ebook</h3>
-        <p>Tu ebook estará disponible para descarga en tu cuenta de usuario. Puedes acceder a él en cualquier momento desde tu perfil.</p>
-        
-        <h3>✨ Características de tu compra digital:</h3>
-        <ul>
-            <li>📱 Compatible con todos los dispositivos</li>
-            <li>♾️ Acceso de por vida</li>
-            <li>🔄 Descarga ilimitada</li>
-            <li>📖 Formato PDF de alta calidad</li>
-        </ul>
-        
-        <p><strong>Nota:</strong> Recibirás un email adicional con el enlace de descarga directo una vez que se procese completamente tu pago.</p>
-        
+        <p>Tu ebook estará disponible para descarga en tu cuenta de usuario.</p>
+        <p>Puedes acceder a él en cualquier momento desde tu perfil en la sección de Mis Ebooks.</p>
+                
         <p>¡Gracias por tu compra y disfruta la lectura!</p>
         
         <p>Saludos,<br>
@@ -235,10 +225,10 @@ def enviar_confirmacion_compra_ebook(compra, usuario):
         """
         
         send_email(usuario.email, f"Tu ebook '{compra.ebook.titulo}' está listo - Santolina", content)
-        print(f"✅ Email de confirmación de ebook enviado exitosamente a {usuario.email}")
+        print(f" Email de confirmación de ebook enviado exitosamente a {usuario.email}")
         
     except Exception as e:
-        print(f"❌ Error enviando email de confirmación de ebook: {e}")
+        print(f" Error enviando email de confirmación de ebook: {e}")
         import traceback
         traceback.print_exc()
 
@@ -247,10 +237,10 @@ def notificar_admin_compra_ebook(compra, usuario):
     try:
         admin_email = os.getenv("ADMIN_EMAIL")
         if not admin_email:
-            print("⚠️ ADMIN_EMAIL no configurado, no se puede enviar notificación")
+            print(" ADMIN_EMAIL no configurado, no se puede enviar notificación")
             return
 
-        print(f"🔄 Enviando notificación de compra ebook #{compra.id} al admin {admin_email}")
+        print(f" Enviando notificación de compra ebook #{compra.id} al admin {admin_email}")
 
         content = f"""
         <h2>Nueva compra de ebook confirmada</h2>
@@ -259,8 +249,7 @@ def notificar_admin_compra_ebook(compra, usuario):
         <h3>Detalles de la compra:</h3>
         <p><strong>ID de compra:</strong> #{compra.id}<br>
         <strong>Ebook:</strong> {compra.ebook.titulo}<br>
-        <strong>Autor:</strong> {compra.ebook.autor}<br>
-        <strong>Categoría:</strong> {compra.ebook.categoria.nombre}<br>
+        <strong>Categoría:</strong> {compra.ebook.categoria.nombre if compra.ebook.categoria else 'Sin categoría'}<br>
         <strong>Precio:</strong> USD {compra.precio_pagado:.2f}<br>
         <strong>Fecha:</strong> {compra.fecha_compra.strftime('%d/%m/%Y %H:%M')}<br>
         <strong>Estado:</strong> {compra.estado_pago.title()}</p>
@@ -271,8 +260,7 @@ def notificar_admin_compra_ebook(compra, usuario):
         <strong>Celular:</strong> {usuario.celular or 'No proporcionado'}</p>
         
         <h3>Información del ebook:</h3>
-        <p><strong>Descripción:</strong> {compra.ebook.descripcion[:200]}{'...' if len(compra.ebook.descripcion) > 200 else ''}<br>
-        <strong>Páginas:</strong> {compra.ebook.num_paginas}<br>
+        <p><strong>Descripción:</strong> {compra.ebook.descripcion[:200] if compra.ebook.descripcion else 'Sin descripción'}{'...' if compra.ebook.descripcion and len(compra.ebook.descripcion) > 200 else ''}<br>
         <strong>Fecha de publicación:</strong> {compra.ebook.fecha_publicacion.strftime('%d/%m/%Y') if compra.ebook.fecha_publicacion else 'No especificada'}</p>
         
         <p><strong>💰 Total recaudado:</strong> USD {compra.precio_pagado:.2f}</p>
