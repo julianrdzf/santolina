@@ -31,6 +31,9 @@
                 <button class="tab-button" onclick="showTab('reservas')">
                     <i class="fas fa-calendar-check"></i> Mis Reservas
                 </button>
+                <button class="tab-button" onclick="showTab('ebooks')">
+                    <i class="fas fa-book"></i> Mis Ebooks
+                </button>
             </div>
 
             <!-- Tab: Mis Datos -->
@@ -320,6 +323,65 @@
                     {% endif %}
                 </div>
             </div>
+
+            <!-- Tab: Mis Ebooks -->
+            <div id="ebooks" class="tab-content">
+                <div class="profile-section">
+                    <h2>Mis Ebooks</h2>
+                    {% if compras_ebooks %}
+                        <div class="ebooks-list">
+                            {% for compra in compras_ebooks %}
+                            <div class="ebook-purchase-card">
+                                <div class="ebook-purchase-header">
+                                    <div class="ebook-thumbnail-section">
+                                        <img src="{{ compra.ebook.imagen_portada or '/static/img/default-ebook.png' }}" 
+                                             alt="{{ compra.ebook.titulo }}" class="ebook-thumbnail-img">
+                                        
+                                    </div>
+                                    <div class="ebook-purchase-content">
+                                        <div class="ebook-purchase-info">
+                                            <h3>{{ compra.ebook.titulo }}</h3>
+                                            <p class="purchase-date">Comprado: {{ compra.fecha_compra.strftime('%d/%m/%Y %H:%M') }}</p>
+                                        </div>
+                                        <div class="ebook-purchase-status">
+                                            <span class="status-badge status-pagado">
+                                                <i class="fas fa-check-circle"></i> Disponible
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="ebook-purchase-details">
+                                    <div class="ebook-metadata">
+                                        <p><strong>Categoría:</strong> {{ compra.ebook.categoria.nombre }}</p>
+                                        <p><strong>Precio pagado:</strong> USD {{ "%.2f"|format(compra.precio_pagado) }}</p>
+                                        {% if compra.ebook.descripcion %}
+                                        <p><strong>Descripción:</strong> {{ compra.ebook.descripcion[:150] }}{% if compra.ebook.descripcion|length > 150 %}...{% endif %}</p>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="ebook-purchase-actions">
+                                        <button class="btn btn-primary btn-download" 
+                                                onclick="descargarEbook({{ compra.ebook.id }})">
+                                            <i class="fas fa-download"></i> Descargar PDF
+                                        </button>
+                                        <a href="/ebooks/{{ compra.ebook.id }}" class="btn btn-secondary">
+                                            <i class="fas fa-eye"></i> Ver detalles
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-book"></i>
+                            <p>No tienes ebooks comprados</p>
+                            <a href="/ebooks" class="btn btn-primary">Explorar ebooks</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 
@@ -344,6 +406,13 @@
             const form = document.getElementById('address-form');
             const isVisible = form.style.display !== 'none';
             form.style.display = isVisible ? 'none' : 'block';
+        }
+        
+        function descargarEbook(ebookId) {
+            // Redirigir al endpoint de descarga
+            window.location.href = '/ebooks/' + ebookId + '/descargar';
+            // Ejemplo de implementación futura:
+            // window.open('/ebooks/descargar/' + ebookId, '_blank');
         }
     </script>
 

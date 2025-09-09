@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <title>{{ ebook.titulo }} - Santolina</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+{% include "partials/header.html" %}
+
+<!-- Breadcrumb Navigation -->
+<div class="breadcrumb-container">
+    <div class="container">
+        <nav class="breadcrumb-nav">
+            <a href="/" class="breadcrumb-link">
+                <i class="fas fa-home"></i>
+                Inicio
+            </a>
+            <i class="fas fa-chevron-right breadcrumb-separator"></i>
+            <a href="/ebooks" class="breadcrumb-link">Ebooks</a>
+            <i class="fas fa-chevron-right breadcrumb-separator"></i>
+            <span class="breadcrumb-current">{{ ebook.titulo }}</span>
+        </nav>
+    </div>
+</div>
+
+<div class="product-page">
+    <div class="container">
+        <div class="product-layout">
+            <!-- Ebook Cover -->
+            <div class="product-gallery-section">
+                <div class="ebook-detail-cover">
+                    {% if ebook.imagen_portada %}
+                        <img src="{{ ebook.imagen_portada }}" alt="{{ ebook.titulo }}" class="ebook-cover-image">
+                    {% else %}
+                        <div class="default-ebook-cover">
+                            <i class="fas fa-book-open"></i>
+                            <span>{{ ebook.titulo[:2].upper() }}</span>
+                        </div>
+                    {% endif %}
+                    <div class="ebook-format-badge">
+                        <i class="fas fa-file-pdf"></i>
+                        <span>PDF Digital</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ebook Information -->
+            <div class="product-info-section">
+                <div class="product-header">
+                    <h1 class="ebook-title">{{ ebook.titulo }}</h1>
+                    {% if ebook.categoria %}
+                        <div class="ebook-category-badge">
+                            <i class="fas fa-tag"></i>
+                            <span>{{ ebook.categoria.nombre }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                
+
+                <div class="product-description">
+                    <h3 class="description-title">Descripción</h3>
+                    <p class="description-text">{{ ebook.descripcion }}</p>
+                </div>
+
+                <div class="ebook-features">
+                    <div class="feature-item">
+                        <i class="fas fa-file-pdf"></i>
+                        <span>Formato en PDF</span>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <i class="fas fa-download"></i>
+                        <span>Descarga inmediata después del pago</span>
+                    </div>
+                </div>
+
+                <div class="product-price">
+                    <div class="price-section">
+                        <span class="current-price">USD {{ "%.2f"|format(ebook.precio) }}</span>
+                    </div>                    
+                </div>
+
+                <div class="ebook-actions">
+                    <button type="button" class="btn-buy-ebook btn-mercadopago btn-full" id="buy-ebook" data-ebook-id="{{ ebook.id }}">
+                        <img class="logo-img-mercadopago" src="/static/img/mercadopago-logo.svg" alt="Mercado Pago">
+                        
+                    </button>
+                </div>
+
+                <div class="ebook-info-details">
+                    <div class="info-item">
+                        <strong>Fecha de publicación:</strong>
+                        <span>{{ ebook.fecha_publicacion.strftime('%d/%m/%Y') }}</span>
+                    </div>
+                    {% if ebook.numero_paginas %}
+                    <div class="info-item">
+                        <strong>Número de páginas:</strong>
+                        <span>{{ ebook.numero_paginas }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="info-item">
+                        <strong>Formato:</strong>
+                        <span>PDF Digital</span>
+                    </div>
+                </div>
+
+                <div class="product-guarantees">
+                    
+                    <div class="guarantee-item">
+                        <i class="fas fa-lock"></i>
+                        <div class="guarantee-text">
+                            <strong>Compra protegida</strong>
+                            <span>Tus datos siempre protegidos</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Ebooks -->
+        {% if ebooks_relacionados %}
+        <div class="related-products">
+            <h2 class="related-title">Ebooks relacionados</h2>
+            <div class="products-grid">
+                {% for related_ebook in ebooks_relacionados %}
+                <div class="ebook-card">
+                    <div class="ebook-image">
+                        <div class="ebook-cover">
+                            {% if related_ebook.imagen_portada %}
+                                <img src="{{ related_ebook.imagen_portada }}" alt="{{ related_ebook.titulo }}">
+                            {% else %}
+                                <div class="default-cover">
+                                    <i class="fas fa-book-open"></i>
+                                    <span>{{ related_ebook.titulo[:2].upper() }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="ebook-info">
+                        <h4 class="ebook-title">{{ related_ebook.titulo }}</h4>
+                        <p class="ebook-desc">{{ related_ebook.descripcion[:100] }}{% if related_ebook.descripcion|length > 100 %}...{% endif %}</p>
+                        <div class="ebook-bottom">
+                            <span class="price">USD ${{ "%.2f"|format(related_ebook.precio) }}</span>
+                            <a href="/ebooks/{{ related_ebook.id }}" class="btn-view" aria-label="Ver {{ related_ebook.titulo }}">Ver ebook</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script src="/static/script.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const buyButton = document.getElementById('buy-ebook');
+    
+    if (buyButton) {
+        buyButton.addEventListener('click', async function() {
+            const ebookId = this.getAttribute('data-ebook-id');
+            
+            // Disable button during processing
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+            
+            try {
+                const response = await fetch('/ebooks/comprar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ebook_id: parseInt(ebookId)
+                    })
+                });
+                
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('Non-JSON response:', text);
+                    throw new Error('El servidor devolvió una respuesta inválida. Por favor, inicia sesión e intenta nuevamente.');
+                }
+                
+                const data = await response.json();
+                
+                if (response.ok && data.init_point) {
+                    // Redirect to MercadoPago
+                    window.location.href = data.init_point;
+                } else {
+                    throw new Error(data.detail || 'Error al procesar la compra');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al procesar la compra: ' + error.message);
+                
+                // Re-enable button
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-credit-card"></i> <span>Comprar ahora - USD ${{ "%.2f"|format(ebook.precio) }}</span>';
+            }
+        });
+    }
+});
+</script>
+
+</body>
+</html>

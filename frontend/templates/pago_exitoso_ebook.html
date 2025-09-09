@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compra Exitosa - Santolina</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+
+    <div class="container">
+        <div class="payment-success">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            
+            <h1>¡Compra Exitosa!</h1>
+            <p class="success-message">Tu ebook ha sido adquirido correctamente.</p>
+            
+            <div class="order-details">
+                <h3>Detalles de la Compra</h3>
+                <div class="order-info">
+                    <p><strong>Ebook:</strong> {{ compra.ebook.titulo }}</p>
+                    <p><strong>Precio:</strong> USD {{ "%.2f"|format(compra.precio_pagado) }}</p>
+                    <p><strong>Fecha:</strong> {{ compra.fecha_compra.strftime('%d/%m/%Y %H:%M') }}</p>
+                    <p><strong>Estado:</strong> Pagado</p>
+                </div>
+            </div>
+
+            {% if compra and compra.ebook %}
+                <a href="/ebooks/{{ compra.ebook.id }}/descargar" class="btn btn-primary" target="_blank">
+                    <i class="fas fa-download"></i>
+                    Descargar Ebook Ahora
+                </a>
+            {% endif %}
+            
+            <div class="next-steps">
+                <h3>¿Qué sigue?</h3>
+                <ul>                                       
+                    <li><i class="fas fa-user-circle"></i> También lo puedes encontrar en la sección "Mis Ebooks" en tu perfil</li>
+                    <li><i class="fas fa-envelope"></i> Recibirás un email de confirmación</li>
+                </ul>
+            </div>
+            
+            <div class="action-buttons">
+                
+                <a href="/perfil#ebooks" class="btn btn-primary">
+                    <i class="fas fa-book-open"></i>
+                    Ver Mis Ebooks
+                </a>
+                <a href="/ebooks" class="btn btn-secondary">
+                    <i class="fas fa-shopping-cart"></i>
+                    Explorar Más Ebooks
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% include "partials/footer.html" %}
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

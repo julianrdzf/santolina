@@ -14,9 +14,22 @@
 
     <section>
         <div class="container mt-5">
-            <h2 class="mb-4">Promociones</h2>
-
-            <a href="/admin/promociones/crear" class="btn btn-success mb-3">+ Crear nueva promoción</a>
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-percentage"></i> Promociones</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/admin">Panel Admin</a></li>
+                            <li class="breadcrumb-item"><a href="/admin/tienda-panel">Panel Tienda</a></li>
+                            <li class="breadcrumb-item active">Promociones</li>
+                        </ol>
+                    </nav>
+                </div>
+                <a href="/admin/promociones/crear" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Crear nueva promoción
+                </a>
+            </div>
 
             <div class="hscroll">
                 <table class="table table-bordered table-hover">

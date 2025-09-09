@@ -11,6 +11,7 @@ from app.models.user import Usuario
 from app.models.reserva import Reserva
 from app.models.ordenes import Orden
 from app.models.direcciones import Direccion
+from app.models.compra_ebooks import CompraEbook
 from app.schemas.user import UserCreate
 from app.dependencies.users import get_user_manager
 from app.routers.auth import auth_backend, fastapi_users, cookie_transport, current_active_user
@@ -126,12 +127,19 @@ def perfil_usuario(
     # Obtener direcciones del usuario
     direcciones = db.query(Direccion).filter(Direccion.usuario_id == usuario.id).all()
     
+    # Obtener ebooks comprados del usuario
+    compras_ebooks = db.query(CompraEbook).filter(
+        CompraEbook.usuario_id == usuario.id,
+        CompraEbook.estado_pago == "pagado"
+    ).order_by(CompraEbook.fecha_compra.desc()).all()
+    
     return templates.TemplateResponse("perfil.html", {
         "request": request,
         "usuario": usuario,
         "ordenes": ordenes,
         "reservas": reservas,
-        "direcciones": direcciones
+        "direcciones": direcciones,
+        "compras_ebooks": compras_ebooks
     })
 
 

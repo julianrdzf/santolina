@@ -12,3 +12,4 @@ class Usuario(SQLAlchemyBaseUserTableUUID, Base):
     carritos = relationship("Carrito", back_populates="usuario", cascade="all, delete-orphan")
     direcciones = relationship("Direccion", back_populates="usuario", cascade="all, delete-orphan")
     ordenes = relationship("Orden", back_populates="usuario", cascade="all, delete-orphan")
+    compras_ebooks = relationship("CompraEbook", back_populates="usuario", cascade="all, delete-orphan")

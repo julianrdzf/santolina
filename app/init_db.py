@@ -64,6 +64,11 @@ from app.models.cupones_uso import CuponUso
 # Envíos
 from app.models.costos_envio import CostoEnvio
 
+# Ebooks
+from app.models.categorias_ebooks import CategoriaEbook
+from app.models.ebooks import Ebook
+from app.models.compra_ebooks import CompraEbook
+
 
 from sqlalchemy import insert
 from sqlalchemy.dialects.postgresql import insert as pg_insert
