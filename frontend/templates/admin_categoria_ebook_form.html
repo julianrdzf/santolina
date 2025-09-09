@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        {% if modo == 'crear' %}
+          Crear Categoría de Ebook
+        {% else %}
+          Editar Categoría de Ebook
+        {% endif %}
+    </title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+    
+    <div class="container mt-5">
+        <h2>
+            {% if modo == 'crear' %}
+              Crear nueva categoría de ebook
+            {% else %}
+              Editar categoría de ebook
+            {% endif %}
+        </h2>
+
+        <form action="{% if modo == 'crear' %}/admin/categorias_ebooks/crear{% else %}/admin/categorias_ebooks/{{ categoria.id }}/editar{% endif %}" method="post">
+            <div class="mb-3">
+                <label class="form-label">Nombre</label>
+                <input type="text" name="nombre" class="form-control" required
+                       value="{{ '' if modo == 'crear' else categoria.nombre }}">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Categoría Padre</label>
+                <select name="id_categoria_padre" class="form-select">
+                    <option value="">Sin categoría padre</option>
+                    {% for cat in categorias %}
+                        <option value="{{ cat.id }}" {% if modo != 'crear' and categoria.id_categoria_padre == cat.id %}selected{% endif %}>
+                            {{ cat.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-success">
+                {% if modo == 'crear' %}
+                    Crear categoría
+                {% else %}
+                    Actualizar categoría
+                {% endif %}
+            </button>
+            <a href="/admin/categorias_ebooks" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

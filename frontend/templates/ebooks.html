@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
-    <title>Tienda - Santolina</title>
+    <title>Ebooks - Santolina</title>
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -12,14 +12,14 @@
 
 {% include "partials/header.html" %}
 
-<!-- Tienda Header -->
-<div class="tienda-container">
-    <div class="tienda-header">
-        <h1 class="tienda-title">
-            <i class="fas fa-store"></i>
-            Nuestra Tienda
+<!-- Ebooks Header -->
+<div class="ebooks-container">
+    <div class="ebooks-header">
+        <h1 class="ebooks-title">
+            <i class="fas fa-book"></i>
+            Ebooks
         </h1>
-        <p class="tienda-subtitle">Descubre productos naturales y saludables seleccionados especialmente para ti</p>
+        <p class="ebooks-subtitle">Descarga y disfruta de nuestra colección de ebooks sobre bienestar y crecimiento personal</p>
     </div>
 </div>
 
@@ -38,7 +38,7 @@
             <!-- Macro recursivo para mostrar categorías anidadas -->
             {% macro render_category(categoria, level=0) %}
                 <div class="category-item" data-level="{{ level }}">
-                    <a href="/tienda?categoria={{ categoria.id }}" class="category-link" data-level="{{ level }}">
+                    <a href="/ebooks?categoria={{ categoria.id }}" class="category-link" data-level="{{ level }}">
                         {% if level == 0 %}
                             <i class="fas fa-folder"></i>
                         {% else %}
@@ -68,7 +68,7 @@
             <!-- Mostrar todas las categorías si hay filtro activo -->
             {% if categoria_actual %}
                 <div class="all-categories">
-                    <a href="/tienda" class="btn-clear-all">
+                    <a href="/ebooks" class="btn-clear-all">
                         <i class="fas fa-times"></i>
                         Ver todas las categorías
                     </a>
@@ -87,7 +87,7 @@
         <div class="search-bar">
             <form id="search-form">
                 <div class="search-input-wrapper">
-                    <input type="text" name="q" id="search-input" placeholder="Buscar productos..." value="{{ q }}">
+                    <input type="text" name="q" id="search-input" placeholder="Buscar ebooks..." value="{{ q }}">
                     <button type="submit" aria-label="Buscar"><i class="fas fa-search"></i></button>
                 </div>
             </form>
@@ -101,7 +101,7 @@
                 {% if q %}
                 <div class="filter-tag">
                     <span class="filter-text">Búsqueda: "{{ q }}"</span>
-                    <a href="/tienda{% if categoria_actual %}?categoria={{ categoria_actual.id }}{% endif %}" class="filter-remove" title="Quitar filtro de búsqueda">
+                    <a href="/ebooks{% if categoria_actual %}?categoria={{ categoria_actual.id }}{% endif %}" class="filter-remove" title="Quitar filtro de búsqueda">
                         <i class="fas fa-times"></i>
                     </a>
                 </div>
@@ -110,14 +110,14 @@
                 {% if categoria_actual %}
                 <div class="filter-tag">
                     <span class="filter-text">{{ categoria_actual.nombre }}</span>
-                    <a href="/tienda{% if q %}?q={{ q }}{% endif %}" class="filter-remove" title="Quitar filtro de categoría">
+                    <a href="/ebooks{% if q %}?q={{ q }}{% endif %}" class="filter-remove" title="Quitar filtro de categoría">
                         <i class="fas fa-times"></i>
                     </a>
                 </div>
                 {% endif %}
                 
                 {% if categoria_actual or q %}
-                <a href="/tienda" class="clear-all-filters">
+                <a href="/ebooks" class="clear-all-filters">
                     <i class="fas fa-times-circle"></i>
                     Limpiar todos
                 </a>
@@ -126,41 +126,26 @@
         </div>
         {% endif %}
 
-        <!-- GRID DE PRODUCTOS -->
-        <div class="products-grid" id="products-container">
-            {% for producto in productos %}
-            <div class="product-card">
+        <!-- GRID DE EBOOKS -->
+        <div class="ebooks-grid" id="ebooks-container">
+            {% for ebook in ebooks %}
+            <div class="ebook-card">
                 <div class="product-media">
-                    {% if producto.promocion_activa %}
-                    <div class="discount-badge">
-                        {% if producto.promocion_activa.tipo_descuento == 'porcentaje' %}
-                            -{{ producto.promocion_activa.valor|int }}%
-                        {% else %}
-                            -${{ producto.promocion_activa.valor|int }}
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                    <img src="{{ producto.imagenes[0].url_imagen if producto.imagenes else '/static/img/default-product.png' }}" alt="{{ producto.nombre }}">
+                    <img src="{{ ebook.imagen_portada if ebook.imagen_portada else '/static/img/default-ebook.png' }}" alt="{{ ebook.titulo }}">
                 </div>
-                <div class="product-info">
-                    <h4 class="product-title">{{ producto.nombre }}</h4>
-                    <p class="product-desc">{{ producto.descripcion }}</p>
-                    <div class="product-bottom">
-                        {% if producto.promocion_activa %}
-                        <div class="price-container">
-                            <span class="price-original">$ {{ "%.2f"|format(producto.precio) }}</span>
-                            <span class="price-discount">$ {{ "%.2f"|format(producto.precio_con_descuento) }}</span>
-                        </div>
-                        {% else %}
-                        <span class="price">$ {{ "%.2f"|format(producto.precio) }}</span>
-                        {% endif %}
-                        <a href="/tienda/producto/{{ producto.id }}" class="btn-view" aria-label="Ver {{ producto.nombre }}">Ver producto</a>
+                <div class="ebook-info">
+                    <h4 class="product-title">{{ ebook.titulo }}</h4>
+                    <p class="ebook-desc">{{ ebook.descripcion[:100] }}{% if ebook.descripcion|length > 100 %}...{% endif %}</p>
+                    <div class="ebook-bottom">
+                        <span class="price">USD {{ "%.2f"|format(ebook.precio) }}</span>
+                        <a href="/ebooks/{{ ebook.id }}" class="btn-view" aria-label="Ver {{ ebook.titulo }}">Ver ebook</a>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
 
+        <!-- PAGINACIÓN -->
         <div class="pagination">
             {% if page > 1 %}
                 <a href="?{% if q %}q={{ q }}&{% endif %}{% if categoria_actual %}categoria={{ categoria_actual.id }}&{% endif %}page={{ page-1 }}">Anterior</a>
@@ -179,7 +164,7 @@
 <script>
     const searchInput = document.getElementById('search-input');
     const searchForm = document.getElementById('search-form');
-    const productsContainer = document.getElementById('products-container');
+    const ebooksContainer = document.getElementById('ebooks-container');
     const sidebar = document.getElementById('sidebar');
     const sidebarBackdrop = document.getElementById('sidebar-backdrop');
     const filtersToggleBtn = document.getElementById('filters-toggle');
@@ -229,9 +214,9 @@
         });
     }
 
-    // Captura el click en product-card y lleva al link del botón de ver producto
+    // Captura el click en ebook-card y lleva al link del botón de ver ebook
     document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.product-card').forEach(card => {
+        document.querySelectorAll('.ebook-card').forEach(card => {
             card.addEventListener('click', (e) => {
                 // No navegar si se hace click en un enlace o botón
                 if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') return;

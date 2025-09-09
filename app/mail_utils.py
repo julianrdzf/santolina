@@ -196,3 +196,92 @@ def notificar_admin_orden(orden, usuario):
         print(f"❌ Error enviando notificación de orden al admin: {e}")
         import traceback
         traceback.print_exc()
+
+def enviar_confirmacion_compra_ebook(compra, usuario):
+    """Envía email de confirmación al cliente cuando compra un ebook"""
+    try:
+        print(f"🔄 Enviando email de confirmación de compra ebook #{compra.id} a {usuario.email}")
+        
+        content = f"""
+        <h2>¡Tu ebook ha sido adquirido exitosamente!</h2>
+        <p>Hola {usuario.nombre},</p>
+        <p>Te confirmamos que has adquirido el ebook <strong>"{compra.ebook.titulo}"</strong> correctamente.</p>
+        
+        <h3>Detalles de la compra:</h3>
+        <p><strong>Ebook:</strong> {compra.ebook.titulo}<br>
+        <strong>Autor:</strong> {compra.ebook.autor}<br>
+        <strong>Categoría:</strong> {compra.ebook.categoria.nombre}<br>
+        <strong>Precio:</strong> USD {compra.precio_pagado:.2f}<br>
+        <strong>Fecha de compra:</strong> {compra.fecha_compra.strftime('%d/%m/%Y %H:%M')}<br>
+        <strong>Estado:</strong> {compra.estado_pago.title()}</p>
+        
+        <h3>📥 Descarga tu ebook</h3>
+        <p>Tu ebook estará disponible para descarga en tu cuenta de usuario. Puedes acceder a él en cualquier momento desde tu perfil.</p>
+        
+        <h3>✨ Características de tu compra digital:</h3>
+        <ul>
+            <li>📱 Compatible con todos los dispositivos</li>
+            <li>♾️ Acceso de por vida</li>
+            <li>🔄 Descarga ilimitada</li>
+            <li>📖 Formato PDF de alta calidad</li>
+        </ul>
+        
+        <p><strong>Nota:</strong> Recibirás un email adicional con el enlace de descarga directo una vez que se procese completamente tu pago.</p>
+        
+        <p>¡Gracias por tu compra y disfruta la lectura!</p>
+        
+        <p>Saludos,<br>
+        Equipo de Santolina</p>
+        """
+        
+        send_email(usuario.email, f"Tu ebook '{compra.ebook.titulo}' está listo - Santolina", content)
+        print(f"✅ Email de confirmación de ebook enviado exitosamente a {usuario.email}")
+        
+    except Exception as e:
+        print(f"❌ Error enviando email de confirmación de ebook: {e}")
+        import traceback
+        traceback.print_exc()
+
+def notificar_admin_compra_ebook(compra, usuario):
+    """Notifica al administrador sobre una nueva compra de ebook"""
+    try:
+        admin_email = os.getenv("ADMIN_EMAIL")
+        if not admin_email:
+            print("⚠️ ADMIN_EMAIL no configurado, no se puede enviar notificación")
+            return
+
+        print(f"🔄 Enviando notificación de compra ebook #{compra.id} al admin {admin_email}")
+
+        content = f"""
+        <h2>Nueva compra de ebook confirmada</h2>
+        <p>Se ha confirmado una nueva compra de ebook en la tienda digital.</p>
+        
+        <h3>Detalles de la compra:</h3>
+        <p><strong>ID de compra:</strong> #{compra.id}<br>
+        <strong>Ebook:</strong> {compra.ebook.titulo}<br>
+        <strong>Autor:</strong> {compra.ebook.autor}<br>
+        <strong>Categoría:</strong> {compra.ebook.categoria.nombre}<br>
+        <strong>Precio:</strong> USD {compra.precio_pagado:.2f}<br>
+        <strong>Fecha:</strong> {compra.fecha_compra.strftime('%d/%m/%Y %H:%M')}<br>
+        <strong>Estado:</strong> {compra.estado_pago.title()}</p>
+        
+        <h3>Cliente:</h3>
+        <p><strong>Nombre:</strong> {usuario.nombre}<br>
+        <strong>Email:</strong> {usuario.email}<br>
+        <strong>Celular:</strong> {usuario.celular or 'No proporcionado'}</p>
+        
+        <h3>Información del ebook:</h3>
+        <p><strong>Descripción:</strong> {compra.ebook.descripcion[:200]}{'...' if len(compra.ebook.descripcion) > 200 else ''}<br>
+        <strong>Páginas:</strong> {compra.ebook.num_paginas}<br>
+        <strong>Fecha de publicación:</strong> {compra.ebook.fecha_publicacion.strftime('%d/%m/%Y') if compra.ebook.fecha_publicacion else 'No especificada'}</p>
+        
+        <p><strong>💰 Total recaudado:</strong> USD {compra.precio_pagado:.2f}</p>
+        """
+        
+        send_email(admin_email, f"Nueva compra de ebook: '{compra.ebook.titulo}' - Santolina", content)
+        print(f"✅ Notificación de compra ebook enviada exitosamente al admin")
+        
+    except Exception as e:
+        print(f"❌ Error enviando notificación de compra ebook al admin: {e}")
+        import traceback
+        traceback.print_exc()

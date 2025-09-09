@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
 from sqlalchemy.orm import Session, joinedload
 import json
 import mercadopago
-from app.mail_utils import enviar_confirmacion_reserva, notificar_admin_reserva, enviar_confirmacion_orden, notificar_admin_orden
+from app.mail_utils import enviar_confirmacion_reserva, notificar_admin_reserva, enviar_confirmacion_orden, notificar_admin_orden, enviar_confirmacion_compra_ebook, notificar_admin_compra_ebook
 
 from app.db import get_db
 from app.models.reserva import Reserva
@@ -11,6 +11,8 @@ from app.models.ordenes import Orden
 from app.models.orden_detalle import OrdenDetalle
 from app.models.productos import Producto
 from app.models.direcciones import Direccion
+from app.models.compra_ebooks import CompraEbook
+from app.models.ebooks import Ebook
 import httpx
 import os
 
@@ -92,6 +94,24 @@ async def webhook_mercado_pago(
                         
                         print("🎉 Orden actualizada a pagado y correos enviados")
                         return {"status": "orden updated to paid and emails sent"}
+                
+                elif external_reference.startswith("EBOOK"):
+                    # Es una compra de ebook
+                    compra_id = int(external_reference[5:])  # Remover "EBOOK" prefix
+                    compra = db.query(CompraEbook).options(
+                        joinedload(CompraEbook.ebook),
+                        joinedload(CompraEbook.usuario)
+                    ).get(compra_id)
+                    if compra and compra.estado_pago != "pagado":
+                        compra.estado_pago = "pagado"
+                        db.commit()
+                        
+                        # ✅ Enviar mails de confirmación de ebook
+                        background_tasks.add_task(enviar_confirmacion_compra_ebook, compra, compra.usuario)
+                        background_tasks.add_task(notificar_admin_compra_ebook, compra, compra.usuario)
+                        
+                        print("🎉 Compra de ebook completada y correos enviados")
+                        return {"status": "ebook purchase completed and emails sent"}
                 
                 else:
                     # Formato anterior sin prefijo - intentar como reserva primero por compatibilidad
