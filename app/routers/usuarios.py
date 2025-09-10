@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from fastapi import Form, status
 from fastapi.responses import RedirectResponse
@@ -10,6 +10,7 @@ from app.db import get_db
 from app.models.user import Usuario
 from app.models.reserva import Reserva
 from app.models.ordenes import Orden
+from app.models.orden_detalle import OrdenDetalle
 from app.models.direcciones import Direccion
 from app.models.compra_ebooks import CompraEbook
 from app.schemas.user import UserCreate
@@ -118,8 +119,12 @@ def perfil_usuario(
     db: Session = Depends(get_db),
     usuario: Usuario = Depends(current_active_user)
 ):
-    # Obtener órdenes del usuario
-    ordenes = db.query(Orden).filter(Orden.usuario_id == usuario.id).order_by(Orden.fecha.desc()).all()
+    # Obtener órdenes del usuario con relaciones
+    ordenes = db.query(Orden).options(
+        joinedload(Orden.direccion_envio),
+        joinedload(Orden.metodo_envio),
+        joinedload(Orden.detalle).joinedload(OrdenDetalle.producto)
+    ).filter(Orden.usuario_id == usuario.id).order_by(Orden.fecha.desc()).all()
     
     # Obtener reservas del usuario
     reservas = db.query(Reserva).filter(Reserva.usuario_id == usuario.id).order_by(Reserva.fecha_creacion.desc()).all()

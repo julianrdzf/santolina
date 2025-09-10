@@ -38,22 +38,25 @@
             <!-- Macro recursivo para mostrar categorías anidadas -->
             {% macro render_category(categoria, level=0) %}
                 <div class="category-item" data-level="{{ level }}">
-                    <a href="/ebooks?categoria={{ categoria.id }}" class="category-link" data-level="{{ level }}">
-                        {% if level == 0 %}
-                            <i class="fas fa-folder"></i>
-                        {% else %}
-                            <i class="fas fa-chevron-right"></i>
-                        {% endif %}
-                        {{ categoria.nombre }}
-                    </a>
-                    
-                    <!-- Subcategorías recursivas -->
                     {% if categoria.subcategorias %}
-                        <div class="subcategory-list" data-level="{{ level + 1 }}">
+                        <!-- Categoría con subcategorías - clickeable para expandir -->
+                        <div class="category-header" data-category-id="{{ categoria.id }}">
+                            <i class="fas fa-chevron-right category-toggle"></i>
+                            <a href="/ebooks?categoria={{ categoria.id }}" class="category-link">
+                                {{ categoria.nombre }}
+                            </a>
+                        </div>
+                        <!-- Subcategorías ocultas inicialmente -->
+                        <div class="subcategory-list collapsed" data-level="{{ level + 1 }}">
                             {% for subcategoria in categoria.subcategorias %}
                                 {{ render_category(subcategoria, level + 1) }}
                             {% endfor %}
                         </div>
+                    {% else %}
+                        <!-- Categoría sin subcategorías -->
+                        <a href="/ebooks?categoria={{ categoria.id }}" class="category-link" data-level="{{ level }}">
+                            {{ categoria.nombre }}
+                        </a>
                     {% endif %}
                 </div>
             {% endmacro %}
@@ -169,13 +172,12 @@
     const sidebarBackdrop = document.getElementById('sidebar-backdrop');
     const filtersToggleBtn = document.getElementById('filters-toggle');
 
-    // Búsqueda con debounce
-    let searchTimeout;
-    searchInput.addEventListener('input', () => {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
+    // Búsqueda solo con Enter o botón de búsqueda
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
             performSearch();
-        }, 300);
+        }
     });
 
     function performSearch() {
@@ -214,8 +216,29 @@
         });
     }
 
-    // Captura el click en product-card y lleva al link del botón de ver ebook
+    // Funcionalidad de categorías desplegables
     document.addEventListener('DOMContentLoaded', () => {
+        // Toggle de categorías
+        document.querySelectorAll('.category-toggle').forEach(toggle => {
+            toggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const categoryHeader = toggle.parentElement;
+                const subcategoryList = categoryHeader.nextElementSibling;
+                
+                if (subcategoryList && subcategoryList.classList.contains('subcategory-list')) {
+                    // Toggle collapsed class
+                    subcategoryList.classList.toggle('collapsed');
+                    
+                    // Rotar el ícono
+                    toggle.classList.toggle('fa-chevron-right');
+                    toggle.classList.toggle('fa-chevron-down');
+                }
+            });
+        });
+
+        // Captura el click en product-card y lleva al link del botón de ver ebook
         document.querySelectorAll('.product-card').forEach(card => {
             card.addEventListener('click', (e) => {
                 // No navegar si se hace click en un enlace o botón
@@ -228,6 +251,99 @@
     });
     
 </script>
+
+<style>
+/* Estilos para categorías desplegables */
+.category-header {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 8px 0;
+}
+
+.category-toggle {
+    margin-right: 8px;
+    transition: transform 0.2s ease;
+    cursor: pointer;
+    color: #666;
+}
+
+.category-toggle:hover {
+    color: #333;
+}
+
+.subcategory-list {
+    margin-left: 20px;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    max-height: 500px;
+    opacity: 1;
+}
+
+.subcategory-list.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-bottom: 0;
+}
+
+.category-item[data-level="1"] .category-link {
+    padding-left: 10px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.category-item[data-level="1"] .category-link:hover {
+    color: #333;
+}
+
+.category-item[data-level="2"] .category-link {
+    padding-left: 20px;
+    font-size: 0.85em;
+    color: #777;
+}
+
+.category-item[data-level="2"] .category-link:hover {
+    color: #444;
+}
+
+.category-item[data-level="3"] .category-link {
+    padding-left: 30px;
+    font-size: 0.8em;
+    color: #888;
+}
+
+.category-item[data-level="3"] .category-link:hover {
+    color: #555;
+}
+
+/* Estilos generales para niveles superiores */
+.category-item[data-level] .category-link {
+    display: block;
+    padding: 4px 0;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.category-item[data-level] .category-header {
+    margin: 2px 0;
+}
+
+/* Indentación progresiva para niveles múltiples */
+.subcategory-list .subcategory-list {
+    margin-left: 15px;
+}
+
+.category-header .category-link {
+    flex: 1;
+    text-decoration: none;
+    color: inherit;
+}
+
+.category-header .category-link:hover {
+    text-decoration: none;
+}
+</style>
+
 <script src="/static/script.js"></script>
 
 </body>

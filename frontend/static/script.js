@@ -360,7 +360,7 @@ async function checkUser() {
             if (logoutBtnMobile) {
                 logoutBtnMobile.addEventListener('click', async function () {
                     await fetch('/auth/jwt/logout', { method: 'POST', credentials: 'include' });
-                    window.location.reload();
+                    window.location.href = '/';
                 });
             }
 
@@ -385,7 +385,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async function () {
             await fetch('/auth/jwt/logout', { method: 'POST', credentials: 'include' });
-            window.location.reload();
+            window.location.href = '/';
         });
     }
 

@@ -67,6 +67,7 @@ async def webhook_mercado_pago(
                     reserva = db.query(Reserva).get(reserva_id)
                     if reserva and reserva.estado_pago != "aprobado":
                         reserva.estado_pago = "aprobado"
+                        reserva.transaction_id = str(payment_id)
                         db.commit()
 
                         # ✅ Enviar mails
@@ -86,6 +87,7 @@ async def webhook_mercado_pago(
                     ).get(orden_id)
                     if orden and orden.estado != "pagado":
                         orden.estado = "pagado"
+                        orden.transaction_id = str(payment_id)
                         db.commit()
                         
                         # ✅ Enviar mails de confirmación de orden
@@ -109,6 +111,7 @@ async def webhook_mercado_pago(
                         print(f"📚 Ebook encontrado: {compra.ebook.titulo}, Estado actual: {compra.estado_pago}")
                         if compra.estado_pago != "pagado":
                             compra.estado_pago = "pagado"
+                            compra.transaction_id = str(payment_id)
                             db.commit()
                             print(f"✅ Estado actualizado a 'pagado' para compra #{compra.id}")
                             
@@ -133,6 +136,7 @@ async def webhook_mercado_pago(
                     reserva = db.query(Reserva).get(reference_id)
                     if reserva and reserva.estado_pago != "aprobado":
                         reserva.estado_pago = "aprobado"
+                        reserva.transaction_id = str(payment_id)
                         db.commit()
                         background_tasks.add_task(enviar_confirmacion_reserva, reserva, reserva.evento)
                         background_tasks.add_task(notificar_admin_reserva, reserva, reserva.evento)
@@ -147,6 +151,7 @@ async def webhook_mercado_pago(
                     ).get(reference_id)
                     if orden and orden.estado != "pagado":
                         orden.estado = "pagado"
+                        orden.transaction_id = str(payment_id)
                         db.commit()
                         background_tasks.add_task(enviar_confirmacion_orden, orden, orden.usuario)
                         background_tasks.add_task(notificar_admin_orden, orden, orden.usuario)

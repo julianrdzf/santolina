@@ -16,6 +16,7 @@ class Reserva(Base):
     fecha_creacion = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     usuario_id = Column(UUID(as_uuid=True), ForeignKey("usuarios.id"), nullable=True)
     estado_pago = Column(String, default="pendiente", nullable=False)
+    transaction_id = Column(String, nullable=True)  # ID de la transacción del proveedor de pago
 
     evento = relationship("Evento", back_populates="reservas")
     usuario = relationship("Usuario", back_populates="reservas")

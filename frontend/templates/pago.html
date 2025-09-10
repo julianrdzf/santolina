@@ -7,6 +7,228 @@
     <title>Envío y Pago - Santolina</title>
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Estilos para selección de métodos de envío */
+        .shipping-option {
+            margin-bottom: 1rem;
+        }
+        
+        .shipping-option input[type="radio"] {
+            display: none;
+        }
+        
+        .shipping-card {
+            display: block;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .shipping-card:hover {
+            border-color: #28a745;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.15);
+        }
+        
+        .shipping-card.selected {
+            border-color: #28a745;
+            background-color: #f8fff9;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+        }
+        
+        .shipping-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+        
+        .shipping-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .shipping-cost {
+            font-weight: 600;
+            color: #28a745;
+            font-size: 1.1rem;
+        }
+        
+        .shipping-badges {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .badge-delivery {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .badge-pickup {
+            background-color: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .shipping-description {
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .shipping-description p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        /* Estilos para el botón de ver imagen */
+        .view-image-btn {
+            margin-left: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .view-image-btn:hover {
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+            color: white;
+        }
+        
+        .shipping-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        /* Estilos para advertencia de envío */
+        .shipping-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-left: 4px solid #f39c12;
+            color: #856404;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+        }
+        
+        .shipping-warning i {
+            color: #f39c12;
+            font-size: 1.1rem;
+        }
+        
+        /* Custom modal styles */
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .image-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content-custom {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .modal-header-custom {
+            padding: 1rem;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f8f9fa;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .modal-title-custom {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #333;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+        
+        .modal-close:hover {
+            background-color: #e9ecef;
+            color: #333;
+        }
+        
+        .modal-body-custom {
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .modal-image {
+            max-width: 100%;
+            max-height: 70vh;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { 
+                opacity: 0;
+                transform: scale(0.8) translateY(-50px);
+            }
+            to { 
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -33,8 +255,81 @@
 
     <div class="checkout-content">
         <div class="checkout-main">
-            <!-- Sección de Dirección de Envío -->
+            <!-- Sección de Método de Envío -->
             <div class="checkout-section">
+                <h2 class="section-title">
+                    <i class="fas fa-truck"></i>
+                    Método de Envío
+                </h2>
+                
+                <!-- Advertencia sobre tiempos de entrega -->
+                <div class="shipping-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Importante:</strong> Los retiros y envíos se coordinan de una semana para la otra. <br> La entrega no es inmediata.
+                </div>
+                
+                <div class="shipping-methods">
+                    {% if metodos_envio %}
+                    <h3>Selecciona tu método de envío:</h3>
+                    <form id="shipping-form">
+                        {% for metodo in metodos_envio %}
+                        <div class="shipping-option">
+                            <input type="radio" name="metodo_envio_id" value="{{ metodo.id }}" id="shipping_{{ metodo.id }}" 
+                                   data-requiere-direccion="{{ metodo.requiere_direccion|lower }}"
+                                   data-costo="{{ metodo.costo }}"
+                                   {% if loop.first %}checked{% endif %} 
+                                   onchange="updateShippingSelection()">
+                            <label for="shipping_{{ metodo.id }}" class="shipping-card">
+                                <div class="shipping-header">
+                                    <div class="shipping-info">
+                                        <strong>{{ metodo.nombre }}</strong>
+                                        <span class="shipping-cost">
+                                            {% if metodo.costo > 0 %}
+                                                $ {{ "%.2f"|format(metodo.costo) }}
+                                            
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="shipping-badges">
+                                        {% if metodo.url_imagen %}
+                                            <button type="button" class="btn btn-sm btn-outline-info view-image-btn" 
+                                                    onclick="showShippingImage('{{ metodo.url_imagen }}', '{{ metodo.nombre }}')"
+                                                    title="Ver mapa/imagen">
+                                                <i class="fa-regular fa-map"></i> Ver zona
+                                            </button>
+                                        {% endif %}
+                                        {% if metodo.requiere_direccion %}
+                                            <span class="badge badge-delivery">
+                                                <i class="fas fa-map-marker-alt"></i> Envío a domicilio
+                                            </span>
+                                        {% else %}
+                                            <span class="badge badge-pickup">
+                                                <i class="fas fa-store"></i> Retiro
+                                            </span>
+                                        {% endif %}
+                                        
+                                    </div>
+                                </div>
+                                {% if metodo.descripcion %}
+                                <div class="shipping-description">
+                                    <p>{{ metodo.descripcion }}</p>
+                                </div>
+                                {% endif %}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </form>
+                    {% else %}
+                    <div class="no-shipping-methods">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>No hay métodos de envío disponibles en este momento.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sección de Dirección de Envío (solo si se requiere) -->
+            <div class="checkout-section" id="address-section">
                 <h2 class="section-title">
                     <i class="fas fa-map-marker-alt"></i>
                     Dirección de Envío
@@ -172,7 +467,7 @@
                                 <strong>Mercado Pago</strong>
                             </div>
                             <p class="payment-description">
-                                Paga de forma segura con tarjeta de crédito, débito o transferencia bancaria.
+                                Paga de forma segura con tarjeta de crédito o débito.
                             </p>
                         </label>
                     </div>
@@ -250,7 +545,7 @@
                     
                     <div class="summary-row">
                         <span id="shipping-label">Envío</span>
-                        <span id="shipping-cost">Gratis</span>
+                        <span id="shipping-cost">$0</span>
                     </div>
                     
                     <!-- Sección de cupón -->
@@ -289,6 +584,9 @@
 
                 <div class="checkout-actions">
                     <form method="post" action="/tienda/pago/procesar" id="checkout-form">
+                        <!-- Hidden field for shipping method -->
+                        <input type="hidden" name="metodo_envio_id" id="selected_metodo_envio_id">
+                        
                         <!-- Hidden fields for selected address -->
                         <input type="hidden" name="direccion_id" id="selected_direccion_id">
                         
@@ -320,51 +618,53 @@
 <script>
     const subtotal = {{ total_carrito }};
     
-    async function updateShippingCost() {
-        let selectedDepartment = '';
+    function updateShippingSelection() {
+        const selectedShipping = document.querySelector('input[name="metodo_envio_id"]:checked');
+        const addressSection = document.getElementById('address-section');
         
-        // Verificar si hay una dirección seleccionada
-        const selectedAddress = document.querySelector('input[name="direccion_id"]:checked');
-        if (selectedAddress) {
-            const addressCard = selectedAddress.nextElementSibling;
-            const badge = addressCard.querySelector('.address-badge');
-            selectedDepartment = badge ? badge.textContent.trim() : '';
-        } else {
-            /* Verificar el formulario de nueva dirección */
-            const departmentSelect = document.getElementById('departamento');
-            selectedDepartment = departmentSelect ? departmentSelect.value : '';
-        }
-        
-        let shippingCost = 0;
-        const shippingLabel = document.getElementById('shipping-label');
-        
-        if (selectedDepartment) {
-            try {
-                // Consultar costo de envío desde la base de datos
-                const response = await fetch(`/tienda/costo-envio/${encodeURIComponent(selectedDepartment)}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    shippingCost = data.costo || 0;
+        if (selectedShipping) {
+            const requiereDireccion = selectedShipping.dataset.requiereDireccion === 'true';
+            const costo = parseFloat(selectedShipping.dataset.costo) || 0;
+            
+            // Mostrar u ocultar sección de dirección según el método seleccionado
+            const direccionField = document.getElementById('selected_direccion_id');
+            if (requiereDireccion) {
+                addressSection.style.display = 'block';
+                // Restaurar el atributo name para métodos que requieren dirección
+                if (direccionField) {
+                    direccionField.setAttribute('name', 'direccion_id');
                 }
-            } catch (error) {
-                console.error('Error al obtener costo de envío:', error);
-                shippingCost = 0;
+            } else {
+                addressSection.style.display = 'none';
+                // Limpiar selección de dirección si no se requiere
+                const addressRadios = document.querySelectorAll('input[name="direccion_id"]');
+                addressRadios.forEach(radio => radio.checked = false);
+                // Remover el atributo name para métodos de retiro
+                if (direccionField) {
+                    direccionField.removeAttribute('name');
+                    direccionField.value = '';
+                }
             }
+            
+            // Actualizar costo de envío
+            updateShippingCost(costo);
+            
+            // Guardar método seleccionado
+            document.getElementById('selected_metodo_envio_id').value = selectedShipping.value;
+        }
+    }
+    
+    function updateShippingCost(shippingCost = null) {
+        // Si no se proporciona costo, obtenerlo del método seleccionado
+        if (shippingCost === null) {
+            const selectedShipping = document.querySelector('input[name="metodo_envio_id"]:checked');
+            shippingCost = selectedShipping ? parseFloat(selectedShipping.dataset.costo) || 0 : 0;
         }
         
-        const total = subtotal + shippingCost;
-        
-        // Actualizar texto del envío según el costo
-        if (shippingCost > 0) {
-            shippingLabel.textContent = 'Envío';
-        } else if (selectedDepartment && shippingCost === 0) {
-            shippingLabel.textContent = 'Envío (a cargo del cliente)';
-        } else {
-            shippingLabel.textContent = 'Envío';
-        }
+        const total = subtotal - descuentoCupon + shippingCost;
         
         // Actualizar la interfaz
-        document.getElementById('shipping-cost').textContent = shippingCost > 0 ? `$ ${shippingCost.toFixed(2)}` : 'Gratis';
+        document.getElementById('shipping-cost').textContent = shippingCost > 0 ? `$ ${shippingCost.toFixed(2)}` : '$0';
         document.getElementById('total-price').textContent = `$ ${total.toFixed(2)}`;
     }
     
@@ -383,42 +683,69 @@
     
     // Validación del formulario antes del envío
     document.getElementById('checkout-form').addEventListener('submit', function(e) {
-        // Validar que hay una dirección seleccionada o completada
-        const selectedAddress = document.querySelector('input[name="direccion_id"]:checked');
-        const newAddressForm = document.getElementById('new-address-form');
-        const isNewAddressVisible = newAddressForm.style.display !== 'none';
-        
-        if (!selectedAddress && !isNewAddressVisible) {
+        // Validar que hay un método de envío seleccionado
+        const selectedShipping = document.querySelector('input[name="metodo_envio_id"]:checked');
+        if (!selectedShipping) {
             e.preventDefault();
-            alert('Por favor selecciona una dirección de envío');
+            alert('Por favor selecciona un método de envío');
             return;
         }
         
-        // Preparar datos para envío
-        if (selectedAddress) {
-            // Usar dirección existente
-            document.getElementById('selected_direccion_id').value = selectedAddress.value;
-        } else if (isNewAddressVisible) {
-            // Validar y usar nueva dirección
-            const requiredFields = ['direccion', 'departamento', 'ciudad'];
-            for (let field of requiredFields) {
-                const input = document.getElementById(field);
-                if (!input.value.trim()) {
-                    e.preventDefault();
-                    alert(`Por favor completa el campo ${field}`);
-                    input.focus();
-                    return;
-                }
+        const requiereDireccion = selectedShipping.dataset.requiereDireccion === 'true';
+        
+        // Si el método requiere dirección, validar que esté seleccionada o completada
+        if (requiereDireccion) {
+            const selectedAddress = document.querySelector('input[name="direccion_id"]:checked');
+            const newAddressForm = document.getElementById('new-address-form');
+            const isNewAddressVisible = newAddressForm.style.display !== 'none';
+            
+            if (!selectedAddress && !isNewAddressVisible) {
+                e.preventDefault();
+                alert('Por favor selecciona una dirección de envío para este método');
+                return;
             }
             
-            // Copiar valores de nueva dirección a campos ocultos
-            document.getElementById('new_direccion').value = document.getElementById('direccion').value;
-            document.getElementById('new_detalle').value = document.getElementById('detalle').value || '';
-            document.getElementById('new_ciudad').value = document.getElementById('ciudad').value;
-            document.getElementById('new_departamento').value = document.getElementById('departamento').value;
-            document.getElementById('new_codigo_postal').value = document.getElementById('codigo_postal').value || '';
-            document.getElementById('new_tipo').value = document.getElementById('tipo').value || '';
+            // Preparar datos de dirección para envío
+            if (selectedAddress) {
+                // Usar dirección existente
+                document.getElementById('selected_direccion_id').value = selectedAddress.value;
+            } else if (isNewAddressVisible) {
+                // Validar y usar nueva dirección
+                const requiredFields = ['direccion', 'departamento', 'ciudad'];
+                for (let field of requiredFields) {
+                    const input = document.getElementById(field);
+                    if (!input.value.trim()) {
+                        e.preventDefault();
+                        alert(`Por favor completa el campo ${field}`);
+                        input.focus();
+                        return;
+                    }
+                }
+                
+                // Copiar valores de nueva dirección a campos ocultos
+                document.getElementById('new_direccion').value = document.getElementById('direccion').value;
+                document.getElementById('new_detalle').value = document.getElementById('detalle').value || '';
+                document.getElementById('new_ciudad').value = document.getElementById('ciudad').value;
+                document.getElementById('new_departamento').value = document.getElementById('departamento').value;
+                document.getElementById('new_codigo_postal').value = document.getElementById('codigo_postal').value || '';
+                document.getElementById('new_tipo').value = document.getElementById('tipo').value || '';
+            }
+        } else {
+            // Para métodos de retiro, remover el campo direccion_id del formulario
+            const direccionField = document.getElementById('selected_direccion_id');
+            if (direccionField) {
+                direccionField.removeAttribute('name');
+                direccionField.value = '';
+            }
         }
+        
+        // Asegurar que el método de envío esté en el campo oculto
+        const metodoEnvioId = selectedShipping.value;
+        document.getElementById('selected_metodo_envio_id').value = metodoEnvioId;
+        
+        // Debug: verificar que el valor se asignó correctamente
+        console.log('Método de envío seleccionado:', metodoEnvioId);
+        console.log('Valor en campo oculto:', document.getElementById('selected_metodo_envio_id').value);
         
         // Si llegamos aquí, el formulario es válido y se enviará
     });
@@ -516,11 +843,89 @@
         document.getElementById('total-price').textContent = `$ ${totalConCupon.toFixed(2)}`;
     }
     
-    // Inicializar costo de envío
+    // Inicializar página
     document.addEventListener('DOMContentLoaded', function() {
-        updateShippingCost();
+        // Inicializar selección de método de envío
+        updateShippingSelection();
+        
+        // Agregar event listeners para resaltar selección de métodos de envío
+        const shippingRadios = document.querySelectorAll('input[name="metodo_envio_id"]');
+        shippingRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Remover clase selected de todas las tarjetas
+                document.querySelectorAll('.shipping-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                
+                // Agregar clase selected a la tarjeta seleccionada
+                if (this.checked) {
+                    this.nextElementSibling.classList.add('selected');
+                }
+            });
+        });
+        
+        // Inicializar primera selección
+        const firstShippingRadio = document.querySelector('input[name="metodo_envio_id"]:checked');
+        if (firstShippingRadio) {
+            firstShippingRadio.nextElementSibling.classList.add('selected');
+            // Asegurar que el campo oculto tenga el valor inicial
+            document.getElementById('selected_metodo_envio_id').value = firstShippingRadio.value;
+        }
+    });
+    
+    // Función para mostrar imagen del método de envío
+    function showShippingImage(imageUrl, methodName) {
+        const modal = document.getElementById('shippingImageModal');
+        const modalImage = document.getElementById('shippingModalImage');
+        const modalTitle = document.getElementById('shippingModalTitle');
+        
+        modalImage.src = imageUrl;
+        modalTitle.textContent = methodName;
+        
+        // Show modal with custom animation
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    }
+    
+    // Función para cerrar el modal
+    function closeShippingModal() {
+        const modal = document.getElementById('shippingImageModal');
+        modal.classList.remove('show');
+        document.body.style.overflow = ''; // Restore scrolling
+    }
+    
+    // Cerrar modal al hacer clic fuera de él
+    document.addEventListener('click', function(event) {
+        const modal = document.getElementById('shippingImageModal');
+        if (event.target === modal) {
+            closeShippingModal();
+        }
+    });
+    
+    // Cerrar modal con tecla Escape
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeShippingModal();
+        }
     });
 </script>
+
+<!-- Modal personalizado para mostrar imagen del método de envío -->
+<div class="image-modal" id="shippingImageModal">
+    <div class="modal-content-custom">
+        <div class="modal-header-custom">
+            <h3 class="modal-title-custom">
+                <i class="fa-regular fa-map"></i> <span id="shippingModalTitle">Imagen del Método de Envío</span>
+            </h3>
+            <button type="button" class="modal-close" onclick="closeShippingModal()" aria-label="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body-custom">
+            <img id="shippingModalImage" src="" alt="Imagen del método de envío" class="modal-image">
+        </div>
+    </div>
+</div>
 
 <script src="/static/script.js"></script>
 

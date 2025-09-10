@@ -21,7 +21,7 @@
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="/admin">Panel Admin</a></li>
-                            <li class="breadcrumb-item"><a href="/admin/eventos">Eventos</a></li>
+                            <li class="breadcrumb-item"><a href="/admin/eventos-panel">Panel Eventos</a></li>
                             <li class="breadcrumb-item active">Categorías</li>
                         </ol>
                     </nav>
@@ -33,7 +33,7 @@
 
             <div>
                 <a href="/admin/categorias_eventos" class="btn btn-dark mb-3">Todas</a>
-                <a href="/admin/categorias_eventos/padres" class="btn btn-dark mb-3">Principales</a>                
+                <a href="/admin/categorias_eventos/padres" class="btn btn-dark mb-3">Madres</a>                
             </div>
 
             <div class="hscroll">
@@ -42,8 +42,8 @@
                         <tr>
                             <th>ID</th>
                             <th>Nombre</th>
-                            <th>Categoría Padre</th>
-                            <th>Subcategorías</th>
+                            <th>Madre</th>
+                            <th>Hijes</th>
                             <th>Eventos</th>
                             <th>Acciones</th>
                         </tr>
@@ -63,13 +63,13 @@
                                 {% if categoria.categoria_padre %}
                                     <span class="badge bg-secondary">{{ categoria.categoria_padre.nombre }}</span>
                                 {% else %}
-                                    <span class="text-muted">Categoría principal</span>
+                                    <span class="text-muted">Categoría madre</span>
                                 {% endif %}
                             </td>
                             <td>
                                 {% if categoria.subcategorias %}
                                     <a href="/admin/categorias_eventos/{{ categoria.id }}/hijos" class="badge bg-info text-decoration-none">
-                                        {{ categoria.subcategorias | length }} subcategorías
+                                        {{ categoria.subcategorias | length }}
                                     </a>
                                 {% else %}
                                     <span class="text-muted">0</span>

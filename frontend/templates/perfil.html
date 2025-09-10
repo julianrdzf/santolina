@@ -231,11 +231,30 @@
                                     </div>
                                     
                                     <div class="order-shipping">
-                                        <h4>Dirección de envío:</h4>
-                                        <p>
-                                            {{ orden.direccion_envio.direccion }}<br>
-                                            {{ orden.direccion_envio.ciudad }}, {{ orden.direccion_envio.departamento }}
-                                        </p>
+                                        <h4>Método de entrega:</h4>
+                                        {% if orden.metodo_envio %}
+                                            <p><strong>{{ orden.metodo_envio.nombre }}</strong></p>
+                                            {% if orden.metodo_envio.descripcion %}
+                                                <p class="shipping-description">{{ orden.metodo_envio.descripcion }}</p>
+                                            {% endif %}
+                                            
+                                            {% if orden.direccion_envio %}
+                                                <h5>Dirección de envío:</h5>
+                                                <p>
+                                                    {{ orden.direccion_envio.direccion }}<br>
+                                                    {% if orden.direccion_envio.detalle %}{{ orden.direccion_envio.detalle }}<br>{% endif %}
+                                                    {{ orden.direccion_envio.ciudad }}, {{ orden.direccion_envio.departamento }}
+                                                    {% if orden.direccion_envio.codigo_postal %} - {{ orden.direccion_envio.codigo_postal }}{% endif %}
+                                                </p>
+                                            {% else %}
+                                                <p class="pickup-info">
+                                                    <i class="fas fa-store"></i> 
+                                                    <strong>Retiro</strong> - No requiere dirección de envío
+                                                </p>
+                                            {% endif %}
+                                        {% else %}
+                                            <p>Información no disponible</p>
+                                        {% endif %}
                                     </div>
                                     
                                     <div class="order-total">

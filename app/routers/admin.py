@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Request, Depends, UploadFile, File, HTTPException
+from fastapi import APIRouter, Request, Depends, UploadFile, File, HTTPException, Form
+from typing import List
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from app.db import SessionLocal
@@ -1224,7 +1225,7 @@ async def crear_ebook(
     descripcion: str = Form(""),
     precio: float = Form(...),
     id_categoria: int = Form(None),
-    activo: bool = Form(True),
+    activo: List[str] = Form([]),
     imagen_portada: UploadFile = File(None),
     url_archivo: UploadFile = File(...),
     current_user: dict = Depends(current_superuser),
@@ -1262,7 +1263,7 @@ async def crear_ebook(
             descripcion=descripcion,
             precio=precio,
             id_categoria=id_categoria if id_categoria else None,
-            activo=activo,
+            activo="true" in activo,
             url_archivo=pdf_result['secure_url'],
             imagen_portada=imagen_portada_url
         )
@@ -1297,7 +1298,7 @@ async def actualizar_ebook(
     descripcion: str = Form(""),
     precio: float = Form(...),
     id_categoria: int = Form(None),
-    activo: bool = Form(True),
+    activo: List[str] = Form([]),
     imagen_portada: UploadFile = File(None),
     url_archivo: UploadFile = File(None),
     current_user: dict = Depends(current_superuser),
@@ -1314,7 +1315,7 @@ async def actualizar_ebook(
         ebook.descripcion = descripcion
         ebook.precio = precio
         ebook.id_categoria = id_categoria if id_categoria else None
-        ebook.activo = activo
+        ebook.activo = "true" in activo
         
         # Actualizar PDF si se proporciona uno nuevo
         if url_archivo and url_archivo.filename:
@@ -1573,23 +1574,48 @@ def admin_envios(request: Request, db: Session = Depends(get_db)):
 @router.post("/admin/envios/agregar", dependencies=[Depends(current_superuser)])
 def agregar_costo_envio(
     request: Request,
-    departamento: str = Form(...),
+    nombre: str = Form(...),
+    descripcion: str = Form(""),
     costo: float = Form(...),
-    activo: Optional[str] = Form(None),
+    url_imagen: str = Form(""),
+    imagen_file: UploadFile = File(None),
+    activo: List[str] = Form(...),
+    requiere_direccion: List[str] = Form(...),
     db: Session = Depends(get_db)
 ):
     """Agregar nuevo costo de envío"""
     try:
-        # Verificar si ya existe el departamento
-        existe = db.query(CostoEnvio).filter(CostoEnvio.departamento == departamento).first()
-        if existe:
-            return RedirectResponse(url="/admin/envios?error=departamento_existe", status_code=303)
+        # Procesar valores booleanos de checkboxes
+        # Si el checkbox está marcado, se envía ["false", "true"], si no está marcado solo ["false"]
+        activo_value = "true" in activo
+        requiere_direccion_value = "true" in requiere_direccion
+        
+        # Subir imagen a Cloudinary si se proporciona
+        imagen_url_final = url_imagen if url_imagen else None
+        if imagen_file and imagen_file.filename:
+            try:
+                result = cloudinary.uploader.upload(
+                    imagen_file.file,
+                    folder="envios",
+                    public_id=f"envio_{nombre.replace(' ', '_')}",
+                    transformation=[
+                        {"width": 800, "height": 600, "crop": "limit"},
+                        {"quality": "auto"}
+                    ]
+                )
+                imagen_url_final = result["secure_url"]
+            except Exception as e:
+                print(f"Error subiendo imagen a Cloudinary: {e}")
+                # Continuar sin imagen si falla la subida
         
         # Crear nuevo costo de envío
         nuevo_costo = CostoEnvio(
-            departamento=departamento,
+            nombre=nombre,
+            descripcion=descripcion if descripcion else None,
             costo=costo,
-            activo=bool(activo)
+            url_imagen=imagen_url_final,
+            activo=activo_value,
+            requiere_direccion=requiere_direccion_value
         )
         
         db.add(nuevo_costo)
@@ -1605,9 +1631,13 @@ def agregar_costo_envio(
 def editar_costo_envio(
     costo_id: int,
     request: Request,
-    departamento: str = Form(...),
+    nombre: str = Form(...),
+    descripcion: str = Form(""),
     costo: float = Form(...),
-    activo: Optional[str] = Form(None),
+    url_imagen: str = Form(""),
+    imagen_file: UploadFile = File(None),
+    activo: List[str] = Form([]),
+    requiere_direccion: List[str] = Form([]),
     db: Session = Depends(get_db)
 ):
     """Editar costo de envío existente"""
@@ -1616,18 +1646,36 @@ def editar_costo_envio(
         if not costo_envio:
             return RedirectResponse(url="/admin/envios?error=no_encontrado", status_code=303)
         
-        # Verificar si el departamento ya existe (excepto el actual)
-        existe = db.query(CostoEnvio).filter(
-            CostoEnvio.departamento == departamento,
-            CostoEnvio.id != costo_id
-        ).first()
-        if existe:
-            return RedirectResponse(url="/admin/envios?error=departamento_existe", status_code=303)
+        # Procesar valores booleanos de checkboxes
+        # Si el checkbox está marcado, se envía ["false", "true"], si no está marcado solo ["false"]
+        activo_value = "true" in activo
+        requiere_direccion_value = "true" in requiere_direccion
+        
+        # Subir nueva imagen a Cloudinary si se proporciona
+        imagen_url_final = url_imagen if url_imagen else costo_envio.url_imagen
+        if imagen_file and imagen_file.filename:
+            try:
+                result = cloudinary.uploader.upload(
+                    imagen_file.file,
+                    folder="envios",
+                    public_id=f"envio_{nombre.replace(' ', '_')}",
+                    transformation=[
+                        {"width": 800, "height": 600, "crop": "limit"},
+                        {"quality": "auto"}
+                    ]
+                )
+                imagen_url_final = result["secure_url"]
+            except Exception as e:
+                print(f"Error subiendo imagen a Cloudinary: {e}")
+                # Mantener imagen anterior si falla la subida
         
         # Actualizar datos
-        costo_envio.departamento = departamento
+        costo_envio.nombre = nombre
+        costo_envio.descripcion = descripcion if descripcion else None
         costo_envio.costo = costo
-        costo_envio.activo = bool(activo)
+        costo_envio.url_imagen = imagen_url_final
+        costo_envio.activo = activo_value
+        costo_envio.requiere_direccion = requiere_direccion_value
         
         db.commit()
         
