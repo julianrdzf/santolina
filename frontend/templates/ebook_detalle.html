@@ -194,6 +194,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Redirect to MercadoPago
                     window.location.href = data.init_point;
                 } else {
+                    // Check for unauthorized error
+                    if (response.status === 401 || (data.detail && data.detail.toLowerCase().includes('unauthorized'))) {
+                        throw new Error('Debes iniciar sesión o registrarte para comprar este ebook.');
+                    }
                     throw new Error(data.detail || 'Error al procesar la compra');
                 }
             } catch (error) {
@@ -202,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Re-enable button
                 this.disabled = false;
-                this.innerHTML = '<i class="fas fa-credit-card"></i> <span>Comprar ahora - USD ${{ "%.2f"|format(ebook.precio) }}</span>';
+                this.innerHTML = '<img class="logo-img-mercadopago" src="/static/img/mercadopago-logo.svg" alt="Mercado Pago">';
             }
         });
     }

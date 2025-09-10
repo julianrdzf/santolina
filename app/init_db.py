@@ -32,7 +32,7 @@ from app.db import SessionLocal, Base, engine  # tu Base declarative
 from app.models.user import Usuario
 from app.models.evento import Evento
 from app.models.reserva import Reserva
-from app.models.categorias import Categoria
+from app.models.categorias_eventos import CategoriaEvento
 
 # Categorías y productos
 from app.models.categorias_productos import CategoriaProducto
@@ -178,32 +178,7 @@ def main():
     # Fallback / sync init
     engine = init_db_sync(sync_url)
 
-    from sqlalchemy.orm import sessionmaker
-    Session = sessionmaker(bind=engine)
-    db = Session()
-    print("→ Intentando insertar los datos iniciales de categorias")    
-
-    try:
-        categorias_iniciales = [
-            (1, "Yoga"),
-            (2, "Alimentación"),
-            (3, "Terapias"),
-            (4, "Otros"),            
-        ]
-
-        for cat_id, nombre in categorias_iniciales:
-            stmt = pg_insert(Categoria).values(id=cat_id, nombre=nombre)
-            # Si ya existe, no hace nada (ON CONFLICT DO NOTHING)
-            stmt = stmt.on_conflict_do_update(
-                index_elements=["id"],
-                set_={"nombre": stmt.excluded.nombre}
-            )
-            db.execute(stmt)
-        db.commit()
-        print("✅ Categorías inicializadas.")
-    except Exception as e:
-        db.rollback()
-        print(f"❌ Error en seed: {e}")
+    print("✅ Base de datos inicializada. Las categorías de eventos se gestionan desde el panel de administración.")
 
 
 if __name__ == "__main__":
