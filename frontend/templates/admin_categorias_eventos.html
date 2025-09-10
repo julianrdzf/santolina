@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <title>Panel de administración - Categorías de Eventos</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+
+    <section>
+        <div class="container mt-5">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-calendar-alt"></i> Categorías de Eventos</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/admin">Panel Admin</a></li>
+                            <li class="breadcrumb-item"><a href="/admin/eventos">Eventos</a></li>
+                            <li class="breadcrumb-item active">Categorías</li>
+                        </ol>
+                    </nav>
+                </div>
+                <a href="/admin/categorias_eventos/crear" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Crear nueva categoría
+                </a>
+            </div>
+
+            <div>
+                <a href="/admin/categorias_eventos" class="btn btn-dark mb-3">Todas</a>
+                <a href="/admin/categorias_eventos/padres" class="btn btn-dark mb-3">Principales</a>                
+            </div>
+
+            <div class="hscroll">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Categoría Padre</th>
+                            <th>Subcategorías</th>
+                            <th>Eventos</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for categoria in categorias %}
+                        <tr>
+                            <td>{{ categoria.id }}</td>
+                            <td>
+                                {% if categoria.id_categoria_padre %}
+                                    <span class="text-muted">└─</span> {{ categoria.nombre }}
+                                {% else %}
+                                    <strong>{{ categoria.nombre }}</strong>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if categoria.categoria_padre %}
+                                    <span class="badge bg-secondary">{{ categoria.categoria_padre.nombre }}</span>
+                                {% else %}
+                                    <span class="text-muted">Categoría principal</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if categoria.subcategorias %}
+                                    <a href="/admin/categorias_eventos/{{ categoria.id }}/hijos" class="badge bg-info text-decoration-none">
+                                        {{ categoria.subcategorias | length }} subcategorías
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">0</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if categoria.eventos %}
+                                    <span class="badge bg-primary">{{ categoria.eventos | length }}</span>
+                                {% else %}
+                                    <span class="text-muted">0</span>
+                                {% endif %}
+                            </td>
+                            <td class="acciones-evento">
+                                <!-- Editar (ícono de lápiz) -->
+                                <a href="/admin/categorias_eventos/{{ categoria.id }}/editar" class="btn-editar" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+
+                                <!-- Eliminar (ícono de basura) -->
+                                <form action="/admin/categorias_eventos/{{ categoria.id }}/eliminar" method="post" style="display:inline;">
+                                    <button type="submit" class="btn-eliminar" onclick="return confirm('¿Estás seguro de eliminar esta categoría?');" title="Eliminar">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if not categorias %}
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle"></i>
+                No hay categorías de eventos creadas. <a href="/admin/categorias_eventos/crear">Crear la primera categoría</a>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

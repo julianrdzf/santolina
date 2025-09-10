@@ -11,12 +11,13 @@ class Evento(Base):
     descripcion = Column(String)
     fecha = Column(Date, nullable=False)
     cupos_totales = Column(Integer, nullable=False)
-    categoria_id = Column(Integer, ForeignKey("categorias.id"), nullable=True)
-    categoria = relationship("Categoria", backref="eventos")
+    categoria_id = Column(Integer, ForeignKey("categorias_eventos.id"), nullable=True)
+    categoria = relationship("CategoriaEvento", back_populates="eventos")
     hora = Column(String, nullable=True)       # Podrías usar Time si querés validación de hora
     ubicacion = Column(String, nullable=True)
     direccion = Column(String, nullable=True)
     costo = Column(Numeric(10, 2), nullable=True)
+    imagen = Column(String, nullable=True)  # URL de la imagen del evento
 
     created_at = Column(DateTime, default=datetime.utcnow)
 

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <title>{{ evento.titulo }} - Santolina</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+{% include "partials/header.html" %}
+
+<!-- Breadcrumb Navigation -->
+<div class="breadcrumb-container">
+    <div class="container">
+        <nav class="breadcrumb-nav">
+            <a href="/" class="breadcrumb-link">
+                <i class="fas fa-home"></i>
+                Inicio
+            </a>
+            <i class="fas fa-chevron-right breadcrumb-separator"></i>
+            <a href="/eventos-disponibles" class="breadcrumb-link">Eventos</a>
+            <i class="fas fa-chevron-right breadcrumb-separator"></i>
+            <span class="breadcrumb-current">{{ evento.titulo }}</span>
+        </nav>
+    </div>
+</div>
+
+<div class="product-page">
+    <div class="container">
+        <div class="product-layout">
+            <!-- Event Image -->
+            <div class="product-gallery-section">
+                <div class="ebook-detail-cover">
+                    
+                    <img src="{{ evento.imagen if evento.imagen else '/static/img/default-event.jpg' }}" alt="{{ evento.titulo }}" class="ebook-cover-image">
+                    
+                </div>
+            </div>
+
+            <!-- Event Information -->
+            <div class="product-info-section">
+                <div class="product-header">
+                    <h1 class="ebook-title">{{ evento.titulo }}</h1>
+                    {% if evento.categoria %}
+                        <div class="ebook-category-badge">
+                            <i class="fas fa-tag"></i>
+                            <span>{{ evento.categoria.nombre }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="product-description">
+                    <h3 class="description-title">Descripción</h3>
+                    <p class="description-text">{{ evento.descripcion }}</p>
+                </div>
+
+                <div class="ebook-features">
+                    <div class="feature-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>{{ evento.fecha.strftime('%d/%m/%Y') }}</span>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <i class="fas fa-clock"></i>
+                        <span>{{ evento.hora or "Horario a confirmar" }}</span>
+                    </div>
+
+                    <div class="feature-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>{{ evento.ubicacion or "Ubicación a confirmar" }}</span>
+                    </div>
+
+                    {% if evento.cupos_totales %}
+                    <div class="feature-item">
+                        <i class="fas fa-users"></i>
+                        <span>{{ evento.cupos_totales }} cupos disponibles</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="product-price">
+                    <div class="price-section">
+                        {% if evento.costo %}
+                        <span class="current-price">$ {{ "%.2f"|format(evento.costo) }}</span>
+                        {% else %}
+                        <span class="current-price">Costo a confirmar</span>
+                        {% endif %}
+                    </div>                    
+                </div>
+
+                <div class="ebook-actions">
+                    <a href="/reservas/{{ evento.id }}" class="btn-checkout">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Reservar ahora</span>
+                    </a>
+                </div>
+
+                <div class="ebook-info-details">
+                    <div class="info-item">
+                        <strong>Fecha del evento:</strong>
+                        <span>{{ evento.fecha.strftime('%d/%m/%Y') }}</span>
+                    </div>
+                    {% if evento.hora %}
+                    <div class="info-item">
+                        <strong>Horario:</strong>
+                        <span>{{ evento.hora }}</span>
+                    </div>
+                    {% endif %}
+                    {% if evento.ubicacion %}
+                    <div class="info-item">
+                        <strong>Ubicación:</strong>
+                        <span>{{ evento.ubicacion }}</span>
+                    </div>
+                    {% endif %}
+                    {% if evento.cupos_totales %}
+                    <div class="info-item">
+                        <strong>Cupos totales:</strong>
+                        <span>{{ evento.cupos_totales }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="product-guarantees">
+                    <div class="guarantee-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <div class="guarantee-text">
+                            <strong>Reserva segura</strong>
+                            <span>Confirmación inmediata</span>
+                        </div>
+                    </div>
+                    
+                    <div class="guarantee-item">
+                        <i class="fas fa-lock"></i>
+                        <div class="guarantee-text">
+                            <strong>Datos protegidos</strong>
+                            <span>Tu información siempre segura</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Events -->
+        {% if eventos_relacionados %}
+        <div class="related-products">
+            <h2 class="related-title">Eventos relacionados</h2>
+            <div class="products-grid">
+                {% for related_evento in eventos_relacionados %}
+                <div class="ebook-card">
+                    <div class="ebook-image">
+                        <div class="ebook-cover">
+                            {% if related_evento.imagen %}
+                                <img src="{{ related_evento.imagen }}" alt="{{ related_evento.titulo }}">
+                            {% else %}
+                                <div class="default-cover">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>{{ related_evento.titulo[:2].upper() }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="ebook-info">
+                        <h4 class="ebook-title">{{ related_evento.titulo }}</h4>
+                        <p class="ebook-desc">{{ related_evento.descripcion[:100] }}{% if related_evento.descripcion|length > 100 %}...{% endif %}</p>
+                        <div class="event-meta">
+                            <span><i class="fas fa-calendar"></i> {{ related_evento.fecha.strftime('%d/%m/%Y') }}</span>
+                            <span><i class="fas fa-clock"></i> {{ related_evento.hora or "A confirmar" }}</span>
+                        </div>
+                        <div class="ebook-bottom">
+                            {% if related_evento.costo %}
+                            <span class="price">$ {{ "%.2f"|format(related_evento.costo) }}</span>
+                            {% else %}
+                            <span class="price">Gratuito</span>
+                            {% endif %}
+                            <a href="/eventos/{{ related_evento.id }}" class="btn-view" aria-label="Ver {{ related_evento.titulo }}">Ver detalles</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script src="/static/script.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        {% if modo == 'crear' %}
+          Crear Categoría de Evento
+        {% else %}
+          Editar Categoría de Evento
+        {% endif %}
+    </title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+    
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-calendar-alt"></i>
+                            {% if modo == 'crear' %}
+                              Crear nueva categoría de evento
+                            {% else %}
+                              Editar categoría de evento
+                            {% endif %}
+                        </h3>
+                        <nav aria-label="breadcrumb" class="mt-2">
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item"><a href="/admin">Panel Admin</a></li>
+                                <li class="breadcrumb-item"><a href="/admin/categorias_eventos">Categorías de Eventos</a></li>
+                                <li class="breadcrumb-item active">
+                                    {% if modo == 'crear' %}Crear{% else %}Editar{% endif %}
+                                </li>
+                            </ol>
+                        </nav>
+                    </div>
+                    <div class="card-body">
+                        <form action="{% if modo == 'crear' %}/admin/categorias_eventos/crear{% else %}/admin/categorias_eventos/{{ categoria.id }}/editar{% endif %}" method="post">
+                            <div class="mb-3">
+                                <label for="nombre" class="form-label">
+                                    <i class="fas fa-tag"></i> Nombre de la categoría
+                                </label>
+                                <input type="text" id="nombre" name="nombre" class="form-control" required
+                                       placeholder="Ej: Yoga, Alimentación, Terapias..."
+                                       value="{{ '' if modo == 'crear' else categoria.nombre }}">
+                                <div class="form-text">Nombre descriptivo para la categoría de eventos</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_categoria_padre" class="form-label">
+                                    <i class="fas fa-sitemap"></i> Categoría Padre
+                                </label>
+                                <select id="id_categoria_padre" name="id_categoria_padre" class="form-select">
+                                    <option value="">Sin categoría padre (Categoría principal)</option>
+                                    {% for cat in categorias %}
+                                        {% if cat.id_categoria_padre is none %}
+                                            <option value="{{ cat.id }}" {% if modo != 'crear' and categoria.id_categoria_padre == cat.id %}selected{% endif %}>
+                                                📁 {{ cat.nombre }}
+                                            </option>
+                                            {% for subcat in cat.subcategorias %}
+                                                <option value="{{ subcat.id }}" {% if modo != 'crear' and categoria.id_categoria_padre == subcat.id %}selected{% endif %}>
+                                                    &nbsp;&nbsp;&nbsp;&nbsp;└─ {{ subcat.nombre }}
+                                                </option>
+                                            {% endfor %}
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Selecciona una categoría padre para crear una subcategoría</div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save"></i>
+                                    {% if modo == 'crear' %}
+                                        Crear categoría
+                                    {% else %}
+                                        Actualizar categoría
+                                    {% endif %}
+                                </button>
+                                <a href="/admin/categorias_eventos" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i>
+                                    Cancelar
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

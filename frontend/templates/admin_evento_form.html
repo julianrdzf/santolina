@@ -32,77 +32,152 @@
             {% endif %}
         </h2>
 
-        <form action="{% if modo in ['crear', 'clonar'] %}/admin/eventos/crear{% else %}/admin/eventos/{{ evento.id }}/editar{% endif %}" method="post">
-            <div class="mb-3">
-                <label class="form-label">Título</label>
-                <input type="text" name="titulo" class="form-control" required value="{{ '' if modo == 'crear' else evento.titulo }}">
+        <form action="{% if modo in ['crear', 'clonar'] %}/admin/eventos/crear{% else %}/admin/eventos/{{ evento.id }}/editar{% endif %}" method="post" enctype="multipart/form-data">
+
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <label class="form-label">Título *</label>
+                        <input type="text" name="titulo" class="form-control" required value="{{ '' if modo == 'crear' else evento.titulo }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <textarea name="descripcion" class="form-control" rows="4" required>{{ '' if modo == 'crear' else evento.descripcion }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Fecha *</label>
+                        <input type="date" name="fecha" class="form-control" required
+                               value="{{ '' if modo == 'crear' else evento.fecha }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Horario (opcional)</label>
+                        <input type="text" name="horario" class="form-control"
+                               value="{{ '' if modo == 'crear' else evento.hora }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Ubicación (opcional)</label>
+                        <input type="text" name="ubicacion" class="form-control"
+                               value="{{ '' if modo == 'crear' else evento.ubicacion }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Dirección (opcional)</label>
+                        <input type="text" name="direccion" class="form-control"
+                               value="{{ '' if modo == 'crear' else evento.direccion }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Cupos *</label>
+                        <input type="number" name="cupos" class="form-control" min="1" required
+                               value="{{ '' if modo == 'crear' else evento.cupos_totales }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Costo</label>
+                        <input type="number" step="0.01" name="costo" class="form-control"
+                        value="{{ '' if modo == 'crear' else evento.costo }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Categoría</label>
+                        <select name="categoria_id" class="form-select">
+                            <option value="">Sin categoría</option>
+                            {% for cat in categorias %}
+                                <option value="{{ cat.id }}" {% if modo != 'crear' and evento.categoria_id == cat.id %}selected{% endif %}>
+                                    {{ cat.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Imagen del evento</label>
+                        <div class="img-uploader-container">
+                            <div class="img-uploader-subcontainer">
+                                {% if modo != 'crear' and evento.imagen %}
+                                    <img src="{{ evento.imagen }}" alt="Imagen del evento" style="max-width: 100%; height: auto;">
+                                {% else %}
+                                    <i class="fa-solid fa-image img-uploader-icon"></i>
+                                {% endif %}
+                                <input type="file" name="imagen" accept="image/*" onchange="previewImage(event)">
+                            </div>
+                        </div>
+                        <small class="form-text text-muted mt-2">Formatos: JPG, PNG, GIF. Máximo: 5MB</small>
+                    </div>
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">Descripción</label>
-                <textarea name="descripcion" class="form-control" rows="3" required>{{ '' if modo == 'crear' else evento.descripcion }}</textarea>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> {% if modo == 'crear' %}Crear evento{% elif modo == 'clonar' %}Clonar evento{% else %}Actualizar evento{% endif %}
+                </button>
+                <a href="/admin/eventos" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
             </div>
-
-            <div class="mb-3">
-                <label class="form-label">Fecha</label>
-                <input type="date" name="fecha" class="form-control" required
-                       value="{{ '' if modo == 'crear' else evento.fecha }}">
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Horario (opcional)</label>
-                <input type="text" name="horario" class="form-control"
-                       value="{{ '' if modo == 'crear' else evento.hora }}">
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Ubicación (opcional)</label>
-                <input type="text" name="ubicacion" class="form-control"
-                       value="{{ '' if modo == 'crear' else evento.ubicacion }}">
-            </div>
-
-            <div class="form-group">
-                <label for="direccion">Dirección (opcional)</label>
-                <input type="text" id="direccion" name="direccion"
-                       value="{{ '' if modo == 'crear' else evento.direccion }}">
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Cupos</label>
-                <input type="number" name="cupos" class="form-control" min="1" required
-                       value="{{ '' if modo == 'crear' else evento.cupos_totales }}">
-            </div>
-
-            <div class="mb-3">
-                <label for="costo">Costo</label>
-                <input type="number" step="0.01" name="costo" id="costo" class="form-control"
-                value="{{ '' if modo == 'crear' else evento.costo }}">
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Categoría</label>
-                <select name="categoria_id" class="form-select">
-                    <option value="">Sin categoría</option>
-                    {% for cat in categorias %}
-                        <option value="{{ cat.id }}" {% if modo != 'crear' and evento.categoria_id == cat.id %}selected{% endif %}>
-                            {{ cat.nombre }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <button type="submit" class="btn btn-success">
-                {% if modo == 'crear' %}
-                    Crear evento
-                {% elif modo == 'clonar' %}
-                    Clonar evento
-                {% else %}
-                    Actualizar evento
-                {% endif %}
-            </button>
-            <a href="/admin/eventos" class="btn btn-secondary">Cancelar</a>
         </form>
     </div>
+
+    <script>
+        function previewImage(event) {
+            const container = document.querySelector('.img-uploader-subcontainer');
+            if (!container) return;
+
+            const img = container.querySelector('img');
+            const icon = container.querySelector('.img-uploader-icon');
+
+            const reader = new FileReader();
+            reader.onload = function() {
+                if (img) {
+                    img.src = reader.result;
+                } else if (icon) {
+                    icon.outerHTML = '<img src="'+reader.result+'" alt="Imagen del evento" style="max-width: 100%; height: auto;">';
+                }
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    </script>
+
+    <style>
+        .img-uploader-container {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .img-uploader-subcontainer {
+            position: relative;
+        }
+
+        .img-uploader-icon {
+            font-size: 3rem;
+            color: #ccc;
+        }
+
+        .img-uploader-container input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .img-uploader-container:hover {
+            border-color: #007bff;
+        }
+    </style>
+
     <script src="/static/script.js"></script>
 </body>
 </html>
