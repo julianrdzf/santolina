@@ -1064,6 +1064,7 @@ transform: rotate(90deg);
     padding: 0 20px;
     display: grid;
     align-items: center;
+    margin-bottom: 20px;
     
 }
 
