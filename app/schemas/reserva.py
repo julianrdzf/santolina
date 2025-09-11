@@ -1,26 +1,22 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
 class ReservaCreate(BaseModel):
-    nombre: str
-    email: EmailStr
-    celular: Optional[str] = None
+    usuario_id: UUID
+    horario_id: int
     cupos: int
-    evento_id: int
     estado_pago: Optional[str] = "pendiente"
 
 class ReservaOut(BaseModel):
     id: int
-    nombre: str
-    email: EmailStr
-    celular: Optional[str] = None
-    cupos: int
-    evento_id: int
+    usuario_id: UUID
+    horario_id: int
     fecha_creacion: datetime
-    usuario_id: Optional[UUID] = None
+    cupos: int
     estado_pago: str
+    transaction_id: Optional[str] = None
 
     class Config:
         orm_mode = True

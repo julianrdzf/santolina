@@ -7,6 +7,9 @@ from app.mail_utils import enviar_confirmacion_reserva, notificar_admin_reserva,
 
 from app.db import get_db
 from app.models.reserva import Reserva
+from app.models.horario_fecha_evento import HorarioFechaEvento
+from app.models.fecha_evento import FechaEvento
+from app.models.evento import Evento
 from app.models.ordenes import Orden
 from app.models.orden_detalle import OrdenDetalle
 from app.models.productos import Producto
@@ -64,15 +67,18 @@ async def webhook_mercado_pago(
                 if external_reference.startswith("RES"):
                     # Es una reserva
                     reserva_id = int(external_reference[3:])  # Remover "RES" prefix
-                    reserva = db.query(Reserva).get(reserva_id)
+                    reserva = db.query(Reserva).options(
+                        joinedload(Reserva.horario).joinedload(HorarioFechaEvento.fecha_evento).joinedload(FechaEvento.evento)
+                    ).get(reserva_id)
                     if reserva and reserva.estado_pago != "aprobado":
                         reserva.estado_pago = "aprobado"
                         reserva.transaction_id = str(payment_id)
                         db.commit()
 
-                        # ✅ Enviar mails
-                        background_tasks.add_task(enviar_confirmacion_reserva, reserva, reserva.evento)
-                        background_tasks.add_task(notificar_admin_reserva, reserva, reserva.evento)
+                        # ✅ Enviar mails - acceder al evento a través de la nueva estructura
+                        evento = reserva.horario.fecha_evento.evento
+                        background_tasks.add_task(enviar_confirmacion_reserva, reserva, evento)
+                        background_tasks.add_task(notificar_admin_reserva, reserva, evento)
 
                         print("🎉 Reserva actualizada y correos enviados")
                         return {"status": "reserva updated and emails sent"}
@@ -133,13 +139,17 @@ async def webhook_mercado_pago(
                     # Formato anterior sin prefijo - intentar como reserva primero por compatibilidad
                     reference_id = int(external_reference)
                     
-                    reserva = db.query(Reserva).get(reference_id)
+                    reserva = db.query(Reserva).options(
+                        joinedload(Reserva.horario).joinedload(HorarioFechaEvento.fecha_evento).joinedload(FechaEvento.evento)
+                    ).get(reference_id)
                     if reserva and reserva.estado_pago != "aprobado":
                         reserva.estado_pago = "aprobado"
                         reserva.transaction_id = str(payment_id)
                         db.commit()
-                        background_tasks.add_task(enviar_confirmacion_reserva, reserva, reserva.evento)
-                        background_tasks.add_task(notificar_admin_reserva, reserva, reserva.evento)
+                        # Acceder al evento a través de la nueva estructura
+                        evento = reserva.horario.fecha_evento.evento
+                        background_tasks.add_task(enviar_confirmacion_reserva, reserva, evento)
+                        background_tasks.add_task(notificar_admin_reserva, reserva, evento)
                         print("🎉 Reserva (formato anterior) actualizada y correos enviados")
                         return {"status": "reserva updated and emails sent"}
                     

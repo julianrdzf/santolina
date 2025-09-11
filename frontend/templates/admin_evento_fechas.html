@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionar Fechas y Horarios - {{ evento.titulo }}</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+    
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-calendar-alt"></i>
+                            Gestionar Fechas y Horarios
+                        </h3>
+                        <nav aria-label="breadcrumb" class="mt-2">
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item"><a href="/admin">Panel Admin</a></li>
+                                <li class="breadcrumb-item"><a href="/admin/eventos">Eventos</a></li>
+                                <li class="breadcrumb-item active">{{ evento.titulo }}</li>
+                            </ol>
+                        </nav>
+                    </div>
+                    <div class="card-body">
+                        <!-- Información del evento -->
+                        <div class="alert alert-info mb-4">
+                            <h5><i class="fas fa-info-circle"></i> {{ evento.titulo }}</h5>
+                            <p class="mb-0">{{ evento.descripcion }}</p>
+                            {% if evento.ubicacion %}
+                                <small class="text-muted"><i class="fa-regular fa-map"></i> {{ evento.ubicacion }}</small>
+
+                            {% endif %}
+                            {% if evento.direccion %}
+                                | <small class="text-muted"><i class="fas fa-map-marker-alt"></i> {{ evento.direccion }}</small>
+                            {% endif %}
+                        </div>
+
+                        <!-- Gestión de fechas y horarios -->
+                        <div class="row">
+                            <!-- Fechas disponibles (columna izquierda) -->
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-header bg-light">
+                                        <h5><i class="fas fa-calendar"></i> Fechas Programadas</h5>
+                                        <!-- Formulario para agregar nueva fecha -->
+                                        <div class="mt-3">
+                                            <form onsubmit="agregarFecha(event)" class="d-flex gap-2 mb-3">
+                                                <input type="date" class="form-control form-control-sm" name="fecha" id="fecha-input" required>
+                                                <button type="submit" class="btn btn-primary btn-sm">
+                                                    <i class="fas fa-plus"></i> Agregar
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div class="list-group list-group-flush" style="max-height: 500px; overflow-y: auto;">
+                                            {% for fecha in evento.fechas_evento %}
+                                                <div class="list-group-item fecha-item" data-fecha-id="{{ fecha.id }}" onclick="seleccionarFecha({{ fecha.id }})">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div class="flex-grow-1">
+                                                            <h6 class="mb-1">
+                                                                <i class="fas fa-calendar-day"></i> 
+                                                                {{ fecha.fecha.strftime('%d/%m/%Y') }}
+                                                            </h6>
+                                                            <small class="text-muted">
+                                                                {{ fecha.horarios|length }} horario{% if fecha.horarios|length != 1 %}s{% endif %}
+                                                            </small>
+                                                        </div>
+                                                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="event.stopPropagation(); eliminarFecha({{ fecha.id }})">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                            {% if not evento.fechas_evento %}
+                                                <div class="list-group-item text-center text-muted">
+                                                    <i class="fas fa-calendar-plus fa-2x mb-2"></i>
+                                                    <p>No hay fechas programadas</p>
+                                                    <small>Agrega una fecha usando el formulario de arriba</small>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Horarios de la fecha seleccionada (columna derecha) -->
+                            <div class="col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5><i class="fas fa-clock"></i> Horarios de la Fecha Seleccionada</h5>
+                                        <!-- Formulario para agregar horario -->
+                                        <div class="mt-3" id="form-agregar-horario">
+                                            <form onsubmit="agregarHorario(event)" id="horario-form">
+                                                <div class="row g-2">
+                                                    <div class="col-md-4">
+                                                        <input type="time" class="form-control form-control-sm" name="hora_inicio" step="300" placeholder="Hora" required>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <input type="number" class="form-control form-control-sm" name="duracion_minutos" placeholder="Duración" min="15" step="5" value="60" required>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <input type="number" class="form-control form-control-sm" name="cupos" placeholder="Cupos" min="1" value="20" required>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <button type="submit" class="btn btn-light btn-sm w-100">
+                                                            <i class="fas fa-plus"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div id="horarios-container" style="max-height: 500px; overflow-y: auto;">
+                                            <!-- Mensaje inicial -->
+                                            <div class="text-center py-5" id="mensaje-sin-fecha">
+                                                <i class="fas fa-hand-pointer fa-3x text-muted mb-3"></i>
+                                                <h5 class="text-muted">Debe seleccionar una fecha</h5>
+                                                <p class="text-muted">Haz clic en una fecha de la columna izquierda para ver y gestionar sus horarios</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <a href="/admin/eventos" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver a Eventos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let fechaSeleccionada = null;
+        
+        // Datos de fechas y horarios (generados desde el servidor)
+        const fechasData = {
+            {% for fecha in evento.fechas_evento %}
+            {{ fecha.id }}: {
+                fecha: "{{ fecha.fecha.strftime('%d/%m/%Y') }}",
+                horarios: [
+                    {% for horario in fecha.horarios %}
+                    {
+                        id: {{ horario.id }},
+                        hora_inicio: "{{ horario.hora_inicio.strftime('%H:%M') }}",
+                        duracion_minutos: {{ horario.duracion_minutos }},
+                        cupos: {{ horario.cupos }}
+                    }{% if not loop.last %},{% endif %}
+                    {% endfor %}
+                ]
+            }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        };
+
+        function seleccionarFecha(fechaId) {
+            fechaSeleccionada = fechaId;
+            
+            // Actualizar estilos de selección
+            document.querySelectorAll('.fecha-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[data-fecha-id="${fechaId}"]`).classList.add('active');
+            
+            // Mostrar horarios de la fecha seleccionada
+            mostrarHorarios(fechaId);
+        }
+
+        function mostrarHorarios(fechaId) {
+            const container = document.getElementById('horarios-container');
+            const mensajeSinFecha = document.getElementById('mensaje-sin-fecha');
+            
+            if (mensajeSinFecha) {
+                mensajeSinFecha.style.display = 'none';
+            }
+            
+            const fecha = fechasData[fechaId];
+            if (!fecha) return;
+            
+            let html = '';
+            if (fecha.horarios.length === 0) {
+                html = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-clock fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">No hay horarios para esta fecha</p>
+                        <small class="text-muted">Usa el formulario de arriba para agregar horarios</small>
+                    </div>
+                `;
+            } else {
+                html = '<div class="list-group list-group-flush">';
+                fecha.horarios.forEach(horario => {
+                    html += `
+                        <div class="list-group-item" id="horario-${horario.id}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>${horario.hora_inicio}</strong> 
+                                    <span class="text-muted">(${horario.duracion_minutos} min)</span> - 
+                                    <span class="badge bg-primary">${horario.cupos} cupos</span>
+                                </div>
+                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="eliminarHorario(${horario.id})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+            
+            container.innerHTML = html;
+        }
+
+        async function agregarFecha(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const fechaSeleccionada = formData.get('fecha');
+            
+            // Validar que la fecha no sea pasada
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0); // Resetear horas para comparar solo fechas
+            const fechaInput = new Date(fechaSeleccionada);
+            
+            if (fechaInput < hoy) {
+                alert('Debe elegir una fecha futura');
+                return;
+            }
+            
+            // Validar que la fecha no esté repetida
+            const fechaFormateada = fechaInput.toLocaleDateString('es-ES');
+            const fechasExistentes = Object.values(fechasData).map(fecha => fecha.fecha);
+            
+            if (fechasExistentes.includes(fechaFormateada)) {
+                alert('La fecha ya existe');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/admin/eventos/{{ evento.id }}/fechas`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    location.reload();
+                } else if (response.status === 400) {
+                    // Manejar errores específicos del backend
+                    const errorData = await response.json();
+                    alert(errorData.error || 'Error al agregar la fecha');
+                } else {
+                    alert('Error al agregar la fecha');
+                }
+            } catch (error) {
+                alert('Error al agregar la fecha');
+            }
+        }
+
+        async function agregarHorario(event) {
+            event.preventDefault();
+            
+            if (!fechaSeleccionada) {
+                alert('Debe seleccionar una fecha primero');
+                return;
+            }
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            try {
+                const response = await fetch(`/admin/fechas/${fechaSeleccionada}/horarios`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Error al agregar el horario');
+                }
+            } catch (error) {
+                alert('Error al agregar el horario');
+            }
+        }
+
+        async function eliminarFecha(fechaId) {
+            if (!confirm('¿Estás seguro de eliminar esta fecha y todos sus horarios?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/admin/fechas/${fechaId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Error al eliminar la fecha');
+                }
+            } catch (error) {
+                alert('Error al eliminar la fecha');
+            }
+        }
+
+        async function eliminarHorario(horarioId) {
+            if (!confirm('¿Estás seguro de eliminar este horario?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/admin/horarios/${horarioId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    // Actualizar la vista sin recargar toda la página
+                    document.getElementById(`horario-${horarioId}`).remove();
+                    
+                    // Actualizar datos locales
+                    if (fechaSeleccionada && fechasData[fechaSeleccionada]) {
+                        fechasData[fechaSeleccionada].horarios = fechasData[fechaSeleccionada].horarios.filter(h => h.id !== horarioId);
+                        mostrarHorarios(fechaSeleccionada);
+                    }
+                } else {
+                    alert('Error al eliminar el horario');
+                }
+            } catch (error) {
+                alert('Error al eliminar el horario');
+            }
+        }
+
+        // Agregar estilos CSS para la selección y configurar fecha mínima
+        document.addEventListener('DOMContentLoaded', function() {
+            const style = document.createElement('style');
+            style.textContent = `
+                .fecha-item {
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+                }
+                .fecha-item:hover {
+                    background-color: #f8f9fa;
+                }
+                .fecha-item.active {
+                    background-color: #e3f2fd;
+                    border-left: 4px solid #2196f3;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Configurar fecha mínima como hoy
+            const fechaInput = document.getElementById('fecha-input');
+            const hoy = new Date();
+            const fechaMinima = hoy.toISOString().split('T')[0];
+            fechaInput.setAttribute('min', fechaMinima);
+        });
+    </script>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

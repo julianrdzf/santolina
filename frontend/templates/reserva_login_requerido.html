@@ -1,0 +1,39 @@
+<!-- templates/reserva_login_requerido.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio de sesión requerido</title>    
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+    <div class="login-container">
+        <div class="login-container-img">
+            <img class="login-img" src="/static/img/logo.png" alt="Santolina">
+        </div>        
+        <br>        
+        <h2>Para hacer una reserva debes iniciar sesión</h2>
+        <br> 
+
+        <div class="btn-registro-container">
+            <a class="btn-registro" href="/login?redirect={{ redirect_url }}">Iniciar sesión</a>
+        </div>
+        
+        <br>
+        
+        <br>        
+        ¿No tienes usuario?
+        <br>
+        <div class="btn-registro-container">
+            <a class="btn-registro" href="/registro?redirect={{ redirect_url }}">Registrarse</a>
+        </div>
+
+    </div>
+    
+    <script src="/static/script.js"></script>
+</body>
+</html>

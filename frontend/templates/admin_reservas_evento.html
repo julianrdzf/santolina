@@ -14,61 +14,127 @@
     
     <div class="container mt-5">
         <h2>Reservas para: "{{ evento.titulo }}"</h2>
-        <p><strong>Fecha:</strong> {{ evento.fecha.strftime("%d/%m/%Y") }}</p>
-        <p><strong>Hora:</strong> {{ evento.hora or "Hora a confirmar"}}</p>
-        <p><strong>Cupos totales:</strong> {{ evento.cupos_totales }}</p>
-        <p><strong>Reservas confirmadas:</strong> {{ evento.reservas | selectattr('estado_pago', 'equalto', 'aprobado') | sum(attribute='cupos') }}</p>
-        <p><strong>Reservas totales:</strong> {{ evento.reservas | sum(attribute='cupos') }}</p>
+        <p><strong>Descripción:</strong> {{ evento.descripcion or "Sin descripción" }}</p>
+        <p><strong>Ubicación:</strong> {{ evento.ubicacion or "A confirmar" }}</p>
+        <p><strong>Dirección:</strong> {{ evento.direccion or "A confirmar" }}</p>
         
-
-        
-
-        {% if reservas %}
-
-        <div class = "hscroll">
-            <table class="table table-bordered mt-3">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Email</th>
-                        <th>Celular</th>
-                        <th>Cupos reservados</th>
-                        <th>Estado pago</th>
-                        <th>Fecha de reserva</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for r in reservas %}
-                    <tr>
-                        <td>{{ r.id }}</td>
-                        <td>{{ r.nombre }}</td>
-                        <td>{{ r.email }}</td>
-                        <td>{{ r.celular }}</td>
-                        <td>{{ r.cupos }}</td>
-                        <td>{{ r.estado_pago }}</td>
-                        <td>{{ r.fecha_creacion.strftime("%d/%m/%Y %H:%M") }}</td>
-                        <td>
-                            <form action="/admin/reservas/{{ r.id }}/eliminar" method="post" style="display:inline;">
-                                <button type="submit" class="btn-eliminar"
-                                        onclick="return confirm('¿Estás seguro de eliminar esta reserva?');"
-                                        title="Eliminar">
-                                        <i class="fas fa-trash-alt"></i>
+        <!-- Filtro de fechas -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Filtros de Fecha</h5>
+                        <form id="filtroFechas" method="GET" class="row g-3">
+                            <div class="col-md-4">
+                                <label for="fechaInicio" class="form-label">Fecha Inicio</label>
+                                <input type="date" class="form-control" id="fechaInicio" name="fecha_inicio" 
+                                       value="{{ request.query_params.get('fecha_inicio', '') }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="fechaFin" class="form-label">Fecha Fin</label>
+                                <input type="date" class="form-control" id="fechaFin" name="fecha_fin" 
+                                       value="{{ request.query_params.get('fecha_fin', '') }}">
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i class="fas fa-filter"></i> Filtrar
                                 </button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                                <a href="/admin/eventos/{{ evento.id }}/reservas" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Limpiar
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% for fecha in evento.fechas_evento %}
+        <div class="card mb-4 fecha-card" data-fecha="{{ fecha.fecha.isoformat() }}">
+            <div class="card-header">
+                <h4><i class="fas fa-calendar"></i> {{ fecha.fecha.strftime("%d/%m/%Y") }}</h4>
+            </div>
+            <div class="card-body">
+                {% for horario in fecha.horarios %}
+                <div class="mb-4">
+                    <h5><i class="fas fa-clock"></i> {{ horario.hora_inicio.strftime("%H:%M") }} 
+                        {% if horario.hora_fin %}- {{ horario.hora_fin.strftime("%H:%M") }}{% endif %}
+                        <small class="text-muted">({{ horario.duracion_minutos }} min)</small>
+                    </h5>
+                    <p><strong>Cupos disponibles:</strong> {{ horario.cupos }}</p>
+                    <p><strong>Cupos reservados:</strong> {{ horario.reservas | sum(attribute='cupos') }}</p>
+                    <p><strong>Reservas:</strong> {{ horario.reservas|length }}</p>
+                    
+                    {% if horario.reservas %}
+                    <div class="hscroll">
+                        <table class="table table-bordered table-sm">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Usuario</th>
+                                    <th>Email</th>
+                                    <th>Celular</th>
+                                    <th>Cantidad</th>
+                                    <th>Estado</th>
+                                    <th>Fecha de reserva</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reserva in horario.reservas %}
+                                <tr>
+                                    <td>{{ reserva.id }}</td>
+                                    <td>{{ reserva.usuario.nombre }} {{ reserva.usuario.apellido }}</td>
+                                    <td>{{ reserva.usuario.email }}</td>
+                                    <td>{{ reserva.usuario.celular or "" }}</td>
+                                    <td>{{ reserva.cupos or "" }}</td>
+                                    <td>
+                                        <span class="badge {% if reserva.estado_pago == 'aprobado' %}bg-success{% elif reserva.estado_pago == 'pendiente' %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ reserva.estado_pago.title() }}
+                                        </span>
+                                    </td>
+                                    <td>{{ reserva.fecha_creacion.strftime("%d/%m/%Y %H:%M") }}</td>
+                                    <td>
+                                        {% if reserva.estado_pago == 'pendiente' %}
+                                        <form action="/admin/reservas/{{ reserva.id }}/confirmar" method="post" style="display:inline;">
+                                            <button type="submit" class="btn btn-success btn-sm" title="Confirmar reserva">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                        <form action="/admin/reservas/{{ reserva.id }}/eliminar" method="post" style="display:inline;">
+                                            <button type="submit" class="btn btn-danger btn-sm"
+                                                    onclick="return confirm('¿Estás seguro de eliminar esta reserva?');"
+                                                    title="Eliminar">
+                                                    <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No hay reservas para este horario.</p>
+                    {% endif %}
+                </div>
+                <hr>
+                {% endfor %}
+            </div>
         </div>
         {% else %}
-            <p>No hay reservas registradas para este evento.</p>
-        {% endif %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            No hay fechas programadas para este evento.
+        </div>
+        {% endfor %}
 
-        <a href="/admin/eventos" class="btn btn-secondary mt-3">Volver</a>
+        <a href="/admin/eventos" class="btn btn-secondary mt-3">
+            <i class="fas fa-arrow-left"></i> Volver a Eventos
+        </a>
     </div>
+    
     <script src="/static/script.js"></script>
 </body>
 </html>

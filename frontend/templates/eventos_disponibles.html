@@ -132,20 +132,20 @@
         <!-- GRID DE EVENTOS -->
         <div class="products-grid" id="events-container">
             {% for evento in eventos %}
-            <div class="product-card event-card" data-fecha-evento="{{ evento.fecha.strftime('%Y-%m-%d') }}">
+            <div class="product-card event-card">
                 <div class="product-media">
-                    <div class="event-date-badge">
-                        <span class="day">{{ evento.fecha.day }}</span>
-                        <span class="month">{{ evento.fecha.strftime('%b') | capitalize | replace('.', '') }}</span>
-                    </div>
                     <img src="{{ evento.imagen if evento.imagen else '/static/img/default-event.jpg' }}" alt="{{ evento.titulo }}">
                 </div>
                 <div class="product-info">
                     <h4 class="product-title">{{ evento.titulo }}</h4>
                     <p class="product-desc">{{ evento.descripcion or "Sin descripción" }}</p>
                     <div class="event-meta">
-                        <span><i class="fas fa-clock"></i> {{ evento.hora or "Horario a confirmar" }}</span>
                         <span><i class="fas fa-map-marker-alt"></i> {{ evento.ubicacion or "Ubicación a confirmar" }}</span>
+                        {% if evento.fechas_evento %}
+                            <span><i class="fas fa-calendar"></i> {{ evento.fechas_evento|length }} fecha{% if evento.fechas_evento|length != 1 %}s{% endif %} disponible{% if evento.fechas_evento|length != 1 %}s{% endif %}</span>
+                        {% else %}
+                            <span><i class="fas fa-calendar"></i> Fechas a confirmar</span>
+                        {% endif %}
                     </div>
                     <div class="product-bottom">
                         {% if evento.costo %}

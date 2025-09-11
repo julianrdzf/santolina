@@ -13,6 +13,8 @@ from app.models.ordenes import Orden
 from app.models.orden_detalle import OrdenDetalle
 from app.models.direcciones import Direccion
 from app.models.compra_ebooks import CompraEbook
+from app.models.horario_fecha_evento import HorarioFechaEvento
+from app.models.fecha_evento import FechaEvento
 from app.schemas.user import UserCreate
 from app.dependencies.users import get_user_manager
 from app.routers.auth import auth_backend, fastapi_users, cookie_transport, current_active_user
@@ -56,7 +58,11 @@ async def registrar_usuario(
 
         # Crear respuesta con cookie (solo se pasa el token)
         response = await cookie_transport.get_login_response(token)
-        response.headers["Location"] = "/"  # Redirigir al home
+        # Redirigir según el parámetro redirect o al home por defecto
+        redirect_url = request.form.get("redirect")
+        if not redirect_url or redirect_url == "None":
+            redirect_url = "/"
+        response.headers["Location"] = redirect_url
         response.status_code = 302
 
         return response
@@ -64,9 +70,13 @@ async def registrar_usuario(
     except Exception as e:
         return HTMLResponse(content=f"<h3>Error: {e}</h3>", status_code=400)
 
+
 @router.get("/login")
-async def login_form(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+async def login_form(request: Request, redirect: str = None):
+    return templates.TemplateResponse("login.html", {
+        "request": request,
+        "redirect": redirect
+    })
 
 @router.get("/forgot-password")
 async def forgot_password_form(request: Request):
@@ -126,8 +136,10 @@ def perfil_usuario(
         joinedload(Orden.detalle).joinedload(OrdenDetalle.producto)
     ).filter(Orden.usuario_id == usuario.id).order_by(Orden.fecha.desc()).all()
     
-    # Obtener reservas del usuario
-    reservas = db.query(Reserva).filter(Reserva.usuario_id == usuario.id).order_by(Reserva.fecha_creacion.desc()).all()
+    # Obtener reservas del usuario con relaciones necesarias
+    reservas = db.query(Reserva).options(
+        joinedload(Reserva.horario).joinedload(HorarioFechaEvento.fecha_evento).joinedload(FechaEvento.evento)
+    ).filter(Reserva.usuario_id == usuario.id).order_by(Reserva.fecha_creacion.desc()).all()
     
     # Obtener direcciones del usuario
     direcciones = db.query(Direccion).filter(Direccion.usuario_id == usuario.id).all()

@@ -1,46 +1,75 @@
 <!DOCTYPE html>
 <html lang="es">
-
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">    
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <title>Reserva Confirmada - Santolina</title>
     <link rel="stylesheet" href="/static/styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    
-    <title>Reserva confirmada</title>
-    
-    <script src="https://kit.fontawesome.com/YOUR_KIT_CODE.js" crossorigin="anonymous"></script> <!-- solo si usás íconos de Font Awesome -->
 </head>
-
-
 <body>
-    <div class="container-img">
-        <img class="img-reserva-confirmada" src="/static/img/logo.png" alt="Santolina">
+    {% include "partials/header.html" %}
+
+    <div class="container">
+        <div class="payment-success">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            
+            <h1>¡Reserva Confirmada!</h1>
+            <p class="success-message">Gracias {{ reserva.usuario.nombre }}. Tu reserva fue registrada con éxito.</p>
+            
+            <div class="order-details">
+                <h3>Detalles de la Reserva</h3>
+                <div class="order-info">
+                    <p><strong>ID de Reserva:</strong> #{{ reserva.id }}</p>
+                    <p><strong>Estado:</strong> {{ reserva.estado_pago.title() }}</p>
+                    <p><strong>Fecha de Reserva:</strong> {{ reserva.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</p>
+                </div>
+                
+                <h3>Detalles del Evento</h3>
+                <div class="order-info">
+                    <p><strong>Evento:</strong> {{ reserva.horario.fecha_evento.evento.titulo }}</p>
+                    <p><strong>Fecha del Evento:</strong> {{ reserva.horario.fecha_evento.fecha.strftime('%d/%m/%Y') }}</p>
+                    <p><strong>Horario:</strong> {{ reserva.horario.hora_inicio.strftime('%H:%M') }} - {{ reserva.horario.hora_fin.strftime('%H:%M') if reserva.horario.hora_fin else 'N/A' }}</p>
+                    <p><strong>Ubicación:</strong> {{ reserva.horario.fecha_evento.evento.ubicacion or "A confirmar" }}</p>
+                    <p><strong>Dirección:</strong> {{ reserva.horario.fecha_evento.evento.direccion or "A confirmar" }}</p>
+                    <p><strong>Cupos Reservados:</strong> {{ reserva.cupos }}</p>
+                </div>
+                
+                <h3>Información de Contacto</h3>
+                <div class="order-info">
+                    <p><strong>Email:</strong> {{ reserva.usuario.email }}</p>
+                    <p><strong>Celular:</strong> {{ reserva.usuario.celular or "No especificado" }}</p>
+                </div>
+            </div>
+            
+            <div class="next-steps">
+                <h3>¿Qué sigue?</h3>
+                <ul>
+                    <li>Recibirás un email de confirmación en breve</li>
+                    <li>Te contactaremos si hay cambios en el evento</li>
+                    <li>Puedes ver todas tus reservas en tu perfil</li>
+                    
+                </ul>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="/eventos-disponibles" class="btn btn-primary">
+                    <i class="fas fa-calendar"></i>
+                    Ver Más Eventos
+                </a>
+                <a href="/perfil" class="btn btn-secondary">
+                    <i class="fas fa-user"></i>
+                    Ver Mi Perfil
+                </a>
+            </div>
+        </div>
     </div>
-    <div class="container reserva-confirmada">        
-        
-        <h2>¡Reserva confirmada!</h2>
-        <p>Gracias {{ reserva.nombre }}. <br> Tu reserva fue registrada con éxito.</p>
-        <br>
 
-        <p><strong>Evento:</strong> {{ evento.titulo }}</p>
-        <p><strong>Fecha:</strong> {{ evento.fecha.strftime('%d/%m/%Y') }}</p>
-        <p><strong>Hora:</strong> {{evento.hora or "A confirmar"}}</p>
-        <p><strong>Ubicación:</strong> {{ evento.ubicacion or "A confirmar" }}</p>
-        <p><strong>Dirección:</strong> {{ evento.direccion or "A confirmar" }}</p>
+    {% include "partials/footer.html" %}
 
-        <p><strong>ID de reserva:</strong> {{ reserva.id }}</p>
-        <p><strong>Email:</strong> {{ reserva.email }}</p>
-        <p><strong>Celular:</strong> {{ reserva.celular }}</p>
-        <p><strong>Cupos reservados:</strong> {{ reserva.cupos }}</p>
-
-        <br>
-
-        <a href="/eventos-disponibles" class="btn btn-primary">Volver a eventos</a>
-    </div>
+    <script src="/static/script.js"></script>
 </body>
 </html>

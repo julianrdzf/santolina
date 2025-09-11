@@ -8,24 +8,224 @@
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-
+    <style>
+        .admin-panel-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        
+        .panel-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .panel-title {
+            color: #2d3748;
+            font-weight: 700;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .panel-subtitle {
+            color: #718096;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .admin-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            height: 100%;
+        }
+        
+        .admin-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .card-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            margin: 0 auto 2rem;
+        }
+        
+        .card-title {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #2d3748;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .card-description {
+            color: #718096;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-stats {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            padding: 0.8rem 1.5rem;
+            font-size: 0.9rem;
+            color: #667eea;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .icon-eventos { 
+            background: linear-gradient(135deg, #667eea, #764ba2); 
+        }
+        .icon-tienda { 
+            background: linear-gradient(135deg, #f093fb, #f5576c); 
+        }
+        .icon-ebooks { 
+            background: linear-gradient(135deg, #4facfe, #00f2fe); 
+        }
+        .icon-home { 
+            background: linear-gradient(135deg, #43e97b, #38f9d7); 
+        }
+        
+        .welcome-section {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+        
+        .welcome-title {
+            color: #2d3748;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .welcome-text {
+            color: #718096;
+            font-size: 1rem;
+        }
+        
+        .admin-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
 <body>
     {% include "partials/header.html" %}
 
-    <section>
+    <div class="admin-panel-container">
+        <div class="container">
+            <div class="panel-header text-center">
+                <div class="admin-badge">
+                    <i class="fas fa-shield-alt me-2"></i>Panel de Administración
+                </div>
+                <h1 class="panel-title">
+                    <i class="fas fa-cogs me-3"></i>Centro de Control
+                </h1>
+                <p class="panel-subtitle">Gestiona todos los aspectos de tu plataforma desde un solo lugar</p>
+                
+                <div class="welcome-section">
+                    <div class="welcome-title">
+                        <i class="fas fa-user-shield me-2"></i>Bienvenido, Administrador
+                    </div>
+                    <div class="welcome-text">
+                        Accede a las herramientas de gestión para eventos, tienda y biblioteca digital
+                    </div>
+                </div>
+            </div>
 
-        <div class="container text-center mt-5">
-            <h1 class="mb-4">Panel de administración</h1>
-            <div class="d-grid gap-3 col-6 mx-auto">
-                <a href="/admin/eventos-panel" class="btn btn-panel btn-lg">Eventos</a>
-                <a href="/admin/tienda-panel" class="btn btn-panel btn-lg">Tienda</a>
-                <a href="/admin/ebooks-panel" class="btn btn-panel btn-lg">Ebooks</a>                
-                <a href="/" class="btn btn-panel btn-lg">Página principal</a>
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                    <a href="/admin/eventos-panel" class="admin-card">
+                        <div class="card-icon icon-eventos">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <h3 class="card-title">Eventos</h3>
+                        <p class="card-description">Administra eventos, categorías, fechas y reservas</p>
+                        <div class="card-stats">
+                            <i class="fas fa-users me-1"></i>
+                            Gestión completa
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <a href="/admin/tienda-panel" class="admin-card">
+                        <div class="card-icon icon-tienda">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <h3 class="card-title">Tienda</h3>
+                        <p class="card-description">Gestiona productos, categorías, promociones y órdenes</p>
+                        <div class="card-stats">
+                            <i class="fas fa-shopping-cart me-1"></i>
+                            E-commerce
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <a href="/admin/ebooks-panel" class="admin-card">
+                        <div class="card-icon icon-ebooks">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <h3 class="card-title">Ebooks</h3>
+                        <p class="card-description">Administra tu biblioteca digital y ventas de ebooks</p>
+                        <div class="card-stats">
+                            <i class="fas fa-cloud me-1"></i>
+                            Biblioteca digital
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <a href="/" class="admin-card">
+                        <div class="card-icon icon-home">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <h3 class="card-title">Página Principal</h3>
+                        <p class="card-description">Volver al sitio web público y ver como usuario</p>
+                        <div class="card-stats">
+                            <i class="fas fa-external-link-alt me-1"></i>
+                            Vista pública
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
-
-    </section>
+    </div>
 
     <script src="/static/script.js"></script>
 </body>

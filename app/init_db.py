@@ -31,6 +31,8 @@ from app.db import SessionLocal, Base, engine  # tu Base declarative
 # (ajustá nombres/paths si tus modelos están en otro lugar)
 from app.models.user import Usuario
 from app.models.evento import Evento
+from app.models.fecha_evento import FechaEvento
+from app.models.horario_fecha_evento import HorarioFechaEvento
 from app.models.reserva import Reserva
 from app.models.categorias_eventos import CategoriaEvento
 

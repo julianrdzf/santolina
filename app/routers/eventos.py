@@ -1,8 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Query
 from fastapi.responses import FileResponse, HTMLResponse
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func
 from app.db import SessionLocal
 from app.models.evento import Evento
+from app.models.fecha_evento import FechaEvento
+from app.models.horario_fecha_evento import HorarioFechaEvento
+from app.models.reserva import Reserva
 from app.schemas.evento import EventoCreate, EventoOut
 from fastapi.templating import Jinja2Templates
 from typing import List, Optional
@@ -41,8 +45,11 @@ def mostrar_eventos_disponibles(
     q: Optional[str] = Query(None),
     page: int = Query(1, ge=1)
 ):
-    # Consulta base de eventos futuros
-    query = db.query(Evento).filter(Evento.fecha >= date.today())
+    # Consulta base de eventos que tienen fechas futuras con horarios
+    # Solo mostrar eventos que tienen al menos una fecha >= hoy con horarios disponibles
+    query = db.query(Evento).join(FechaEvento).join(HorarioFechaEvento).filter(
+        FechaEvento.fecha >= date.today()
+    ).distinct()
     
     # Filtro por categoría (por ID)
     categoria_actual = None
@@ -76,7 +83,10 @@ def mostrar_eventos_disponibles(
     total_pages = math.ceil(total_eventos / items_per_page)
     
     offset = (page - 1) * items_per_page
-    eventos = query.options(joinedload(Evento.categoria)).offset(offset).limit(items_per_page).all()
+    eventos = query.options(
+        joinedload(Evento.categoria),
+        joinedload(Evento.fechas_evento).joinedload(FechaEvento.horarios)
+    ).offset(offset).limit(items_per_page).all()
     
     # Obtener categorías principales con subcategorías para el sidebar
     categorias_principales = db.query(CategoriaEvento).filter(
@@ -101,19 +111,59 @@ def mostrar_evento_detalle(
     db: Session = Depends(get_db)
 ):
     # Obtener el evento con su categoría
-    evento = db.query(Evento).options(joinedload(Evento.categoria)).filter(Evento.id == evento_id).first()
+    evento = db.query(Evento).options(
+        joinedload(Evento.categoria)
+    ).filter(Evento.id == evento_id).first()
     
     if not evento:
         raise HTTPException(status_code=404, detail="Evento no encontrado")
     
+    # Obtener solo las fechas futuras del evento
+    fechas_futuras = db.query(FechaEvento).filter(
+        FechaEvento.evento_id == evento_id,
+        FechaEvento.fecha >= date.today()
+    ).order_by(FechaEvento.fecha.asc()).all()
+    
+    # Para cada fecha, filtrar solo los horarios con cupos disponibles
+    for fecha in fechas_futuras:
+        horarios_disponibles = []
+        horarios = db.query(HorarioFechaEvento).filter(
+            HorarioFechaEvento.fecha_evento_id == fecha.id
+        ).order_by(HorarioFechaEvento.hora_inicio.asc()).all()
+        
+        for horario in horarios:
+            # Calcular cupos reservados para este horario
+            cupos_reservados = db.query(func.sum(Reserva.cupos)).filter(
+                Reserva.horario_id == horario.id,
+                Reserva.estado_pago == "aprobado"
+            ).scalar() or 0
+            
+            # Solo incluir horarios con cupos disponibles
+            cupos_disponibles = horario.cupos - cupos_reservados
+            if cupos_disponibles > 0:
+                horarios_disponibles.append(horario)
+        
+        # Asignar solo los horarios con cupos disponibles
+        fecha.horarios = horarios_disponibles
+    
+    # Filtrar fechas que tengan al menos un horario disponible
+    fechas_con_horarios = [fecha for fecha in fechas_futuras if fecha.horarios]
+    
+    # Asignar las fechas con horarios disponibles al evento
+    evento.fechas_evento = fechas_con_horarios
+    
     # Obtener eventos relacionados (misma categoría, excluyendo el actual)
+    # Solo eventos que tienen fechas futuras con horarios
     eventos_relacionados = []
     if evento.categoria:
-        eventos_relacionados = db.query(Evento).options(joinedload(Evento.categoria)).filter(
+        eventos_relacionados = db.query(Evento).join(FechaEvento).join(HorarioFechaEvento).options(
+            joinedload(Evento.categoria),
+            joinedload(Evento.fechas_evento).joinedload(FechaEvento.horarios)
+        ).filter(
             Evento.categoria_id == evento.categoria_id,
             Evento.id != evento.id,
-            Evento.fecha >= date.today()
-        ).limit(4).all()
+            FechaEvento.fecha >= date.today()
+        ).distinct().limit(4).all()
     
     return templates.TemplateResponse("evento_detalle.html", {
         "request": request,
