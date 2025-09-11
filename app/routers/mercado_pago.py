@@ -117,6 +117,18 @@ async def webhook_mercado_pago(
                         if compra.estado_pago != "pagado":
                             compra.estado_pago = "pagado"
                             compra.transaction_id = str(payment_id)
+                            
+                            # Capturar la moneda y monto del pago
+                            currency_id = payment.get("currency_id", "USD")
+                            transaction_amount = payment.get("transaction_amount")
+                            
+                            compra.moneda = currency_id
+                            if transaction_amount:
+                                compra.precio_pagado = float(transaction_amount)
+                            
+                            print(f"💰 Moneda del pago: {currency_id}")
+                            print(f"💵 Monto real pagado: {transaction_amount} {currency_id}")
+                            
                             db.commit()
                             print(f"✅ Estado actualizado a 'pagado' para compra #{compra.id}")
                             

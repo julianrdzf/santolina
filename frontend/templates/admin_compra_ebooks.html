@@ -112,7 +112,7 @@
                             <th>Precio</th>
                             <th>Estado</th>
                             <th>Método de Pago</th>
-                            <th>ID Pago MP</th>
+                            <th>payment_id</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -128,14 +128,20 @@
                                     <br><small class="text-muted">{{ compra.ebook.categoria.nombre }}</small>
                                 {% endif %}
                             </td>
-                            <td>${{ "%.2f"|format(compra.precio_pagado) }}</td>
+                            <td>
+                                {% if compra.moneda == "UYU" %}
+                                    $ {{ "%.2f"|format(compra.precio_pagado) }}
+                                {% else %}
+                                    {{ compra.moneda }} {{ "%.2f"|format(compra.precio_pagado) }}
+                                {% endif %}
+                            </td>
                             <td>
                                 <span class="badge {% if compra.estado_pago == 'pagado' %}bg-success{% elif compra.estado_pago == 'pendiente' %}bg-warning{% elif compra.estado_pago == 'fallido' %}bg-danger{% else %}bg-secondary{% endif %}">
                                     {{ compra.estado_pago.title() }}
                                 </span>
                             </td>
                             <td>{{ compra.metodo_pago.title() if compra.metodo_pago else '-' }}</td>
-                            <td>{{ compra.id_pago_mercadopago or '-' }}</td>
+                            <td>{{ compra.transaction_id or '-' }}</td>
                         </tr>
                         {% else %}
                         <tr>
