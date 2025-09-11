@@ -75,10 +75,9 @@ async def webhook_mercado_pago(
                         reserva.transaction_id = str(payment_id)
                         db.commit()
 
-                        # ✅ Enviar mails - acceder al evento a través de la nueva estructura
-                        evento = reserva.horario.fecha_evento.evento
-                        background_tasks.add_task(enviar_confirmacion_reserva, reserva, evento)
-                        background_tasks.add_task(notificar_admin_reserva, reserva, evento)
+                        # ✅ Enviar mails de confirmación
+                        background_tasks.add_task(enviar_confirmacion_reserva, reserva, reserva.usuario)
+                        background_tasks.add_task(notificar_admin_reserva, reserva, reserva.usuario)
 
                         print("🎉 Reserva actualizada y correos enviados")
                         return {"status": "reserva updated and emails sent"}
@@ -97,8 +96,8 @@ async def webhook_mercado_pago(
                         db.commit()
                         
                         # ✅ Enviar mails de confirmación de orden
-                        background_tasks.add_task(enviar_confirmacion_orden, orden, orden.usuario)
-                        background_tasks.add_task(notificar_admin_orden, orden, orden.usuario)
+                        background_tasks.add_task(enviar_confirmacion_orden, orden.id)
+                        background_tasks.add_task(notificar_admin_orden, orden.id)
                         
                         print("🎉 Orden actualizada a pagado y correos enviados")
                         return {"status": "orden updated to paid and emails sent"}
@@ -146,10 +145,9 @@ async def webhook_mercado_pago(
                         reserva.estado_pago = "aprobado"
                         reserva.transaction_id = str(payment_id)
                         db.commit()
-                        # Acceder al evento a través de la nueva estructura
-                        evento = reserva.horario.fecha_evento.evento
-                        background_tasks.add_task(enviar_confirmacion_reserva, reserva, evento)
-                        background_tasks.add_task(notificar_admin_reserva, reserva, evento)
+                        # Enviar emails de confirmación
+                        background_tasks.add_task(enviar_confirmacion_reserva, reserva, reserva.usuario)
+                        background_tasks.add_task(notificar_admin_reserva, reserva, reserva.usuario)
                         print("🎉 Reserva (formato anterior) actualizada y correos enviados")
                         return {"status": "reserva updated and emails sent"}
                     
@@ -163,8 +161,8 @@ async def webhook_mercado_pago(
                         orden.estado = "pagado"
                         orden.transaction_id = str(payment_id)
                         db.commit()
-                        background_tasks.add_task(enviar_confirmacion_orden, orden, orden.usuario)
-                        background_tasks.add_task(notificar_admin_orden, orden, orden.usuario)
+                        background_tasks.add_task(enviar_confirmacion_orden, orden.id)
+                        background_tasks.add_task(notificar_admin_orden, orden.id)
                         print("🎉 Orden (formato anterior) actualizada a pagado y correos enviados")
                         return {"status": "orden updated to paid and emails sent"}
                     

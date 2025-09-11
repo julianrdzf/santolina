@@ -188,10 +188,9 @@ def pago_exitoso(
         db.commit()
         db.refresh(reserva)
 
-        # Acceder al evento a través de la nueva estructura
-        evento = reserva.horario.fecha_evento.evento
-        background_tasks.add_task(enviar_confirmacion_reserva, reserva, evento)
-        background_tasks.add_task(notificar_admin_reserva, reserva, evento)
+        # Enviar emails de confirmación
+        background_tasks.add_task(enviar_confirmacion_reserva, reserva, reserva.usuario)
+        background_tasks.add_task(notificar_admin_reserva, reserva, reserva.usuario)
 
     return RedirectResponse(url=f"/reserva-confirmada/{reserva.id}", status_code=303)
 
