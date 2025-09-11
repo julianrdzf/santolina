@@ -8,28 +8,174 @@
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-
+    <style>
+        .admin-panel-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        
+        .panel-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .panel-title {
+            color: #2d3748;
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .panel-subtitle {
+            color: #718096;
+            font-size: 1.1rem;
+        }
+        
+        .admin-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        
+        .admin-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 1rem;
+        }
+        
+        .card-title {
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+        
+        .card-description {
+            color: #718096;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .icon-products { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .icon-categories { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .icon-promotions { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .icon-coupons { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .icon-orders { background: linear-gradient(135deg, #fa709a, #fee140); }
+        .icon-shipping { background: linear-gradient(135deg, #a8edea, #fed6e3); }
+        .icon-promo-products { background: linear-gradient(135deg, #ff9a9e, #fecfef); }
+    </style>
 </head>
 <body>
     {% include "partials/header.html" %}
 
-    <section>
+    <div class="admin-panel-container">
+        <div class="container">
+            <div class="panel-header text-center">
+                <h1 class="panel-title">
+                    <i class="fas fa-store me-3"></i>Panel de Tienda
+                </h1>
+                <p class="panel-subtitle">Gestiona todos los aspectos de tu tienda online</p>
+            </div>
 
-        <div class="container text-center mt-5">
-            <h1 class="mb-4">Panel de Tienda</h1>
-            <div class="d-grid gap-3 col-6 mx-auto">
-                <a href="/admin/categorias_productos" class="btn btn-panel btn-lg">Categorías de productos</a>
-                <a href="/admin/productos" class="btn btn-panel btn-lg">Productos</a>
-                <a href="/admin/promociones" class="btn btn-panel btn-lg">Promociones</a>
-                <a href="/admin/promociones-productos" class="btn btn-panel btn-lg">Promociones y Productos</a>
-                <a href="/admin/cupones" class="btn btn-panel btn-lg">Cupones</a>
-                <a href="/admin/ordenes" class="btn btn-panel btn-lg">Órdenes</a>
-                <a href="/admin/envios" class="btn btn-panel btn-lg">Costos de Envío</a>
-                
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4">
+                    <a href="/admin/categorias_productos" class="admin-card">
+                        <div class="card-icon icon-categories">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <h3 class="card-title">Categorías de Productos</h3>
+                        <p class="card-description">Organiza y gestiona las categorías de tus productos</p>
+                    </a>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <a href="/admin/productos" class="admin-card">
+                        <div class="card-icon icon-products">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <h3 class="card-title">Productos</h3>
+                        <p class="card-description">Administra tu catálogo de productos y inventario</p>
+                    </a>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <a href="/admin/promociones" class="admin-card">
+                        <div class="card-icon icon-promotions">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <h3 class="card-title">Promociones</h3>
+                        <p class="card-description">Crea y gestiona ofertas especiales y descuentos</p>
+                    </a>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <a href="/admin/promociones-productos" class="admin-card">
+                        <div class="card-icon icon-promo-products">
+                            <i class="fas fa-link"></i>
+                        </div>
+                        <h3 class="card-title">Promociones y Productos</h3>
+                        <p class="card-description">Vincula promociones con productos específicos</p>
+                    </a>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <a href="/admin/cupones" class="admin-card">
+                        <div class="card-icon icon-coupons">
+                            <i class="fas fa-ticket-alt"></i>
+                        </div>
+                        <h3 class="card-title">Cupones</h3>
+                        <p class="card-description">Administra códigos de descuento y cupones</p>
+                    </a>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <a href="/admin/ordenes" class="admin-card">
+                        <div class="card-icon icon-orders">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <h3 class="card-title">Órdenes</h3>
+                        <p class="card-description">Revisa y gestiona todas las órdenes de compra</p>
+                    </a>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <a href="/admin/envios" class="admin-card">
+                        <div class="card-icon icon-shipping">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <h3 class="card-title">Envíos</h3>
+                        <p class="card-description">Configura métodos y costos de envío</p>
+                    </a>
+                </div>
             </div>
         </div>
-
-    </section>
+    </div>
 
     <script src="/static/script.js"></script>
 </body>

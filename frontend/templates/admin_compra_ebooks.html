@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <title>Panel de administración - Compras de Ebooks</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+
+    <section>
+        <div class="container mt-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-book"></i> Gestión de Compras de Ebooks</h2>
+                <a href="/admin/ebooks-panel" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver al Panel
+                </a>
+            </div>
+            
+            <!-- Estadísticas -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4>{{ stats.total }}</h4>
+                                    <p class="mb-0">Total Compras</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-shopping-cart fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4>{{ stats.pagadas }}</h4>
+                                    <p class="mb-0">Pagadas</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-check-circle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4>{{ stats.pendientes }}</h4>
+                                    <p class="mb-0">Pendientes</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-clock fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4>{{ stats.fallidas }}</h4>
+                                    <p class="mb-0">Fallidas</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-times-circle fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Filtros -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <label class="form-label">Estado de Pago</label>
+                    <select class="form-select" id="filtroEstado" onchange="filtrarCompras()">
+                        <option value="">Todos los estados</option>
+                        <option value="pendiente" {% if estado_filtro == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                        <option value="pagado" {% if estado_filtro == 'pagado' %}selected{% endif %}>Pagado</option>
+                        <option value="fallido" {% if estado_filtro == 'fallido' %}selected{% endif %}>Fallido</option>
+                        <option value="cancelado" {% if estado_filtro == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Tabla de compras -->
+            <div class="hscroll">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Usuario</th>
+                            <th>Email</th>
+                            <th>Ebook</th>
+                            <th>Precio</th>
+                            <th>Estado</th>
+                            <th>Método de Pago</th>
+                            <th>ID Pago MP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for compra in compras %}
+                        <tr>
+                            <td>{{ compra.id }}</td>
+                            <td>{{ compra.fecha_compra.strftime('%d/%m/%Y %H:%M') }}</td>
+                            <td>{{ compra.usuario.nombre }} {{ compra.usuario.apellido }}</td>
+                            <td>{{ compra.usuario.email }}</td>
+                            <td>
+                                <strong>{{ compra.ebook.titulo }}</strong>
+                                {% if compra.ebook.categoria %}
+                                    <br><small class="text-muted">{{ compra.ebook.categoria.nombre }}</small>
+                                {% endif %}
+                            </td>
+                            <td>${{ "%.2f"|format(compra.precio_pagado) }}</td>
+                            <td>
+                                <span class="badge {% if compra.estado_pago == 'pagado' %}bg-success{% elif compra.estado_pago == 'pendiente' %}bg-warning{% elif compra.estado_pago == 'fallido' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                    {{ compra.estado_pago.title() }}
+                                </span>
+                            </td>
+                            <td>{{ compra.metodo_pago.title() if compra.metodo_pago else '-' }}</td>
+                            <td>{{ compra.id_pago_mercadopago or '-' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center text-muted">No hay compras registradas</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            {% if total_pages > 1 %}
+            <nav aria-label="Paginación de compras">
+                <ul class="pagination justify-content-center">
+                    {% if page > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page - 1 }}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}">Anterior</a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for p in range(1, total_pages + 1) %}
+                        {% if p == page %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ p }}</span>
+                            </li>
+                        {% elif p <= 3 or p > total_pages - 3 or (p >= page - 2 and p <= page + 2) %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ p }}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}">{{ p }}</a>
+                            </li>
+                        {% elif p == 4 and page > 6 %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% elif p == total_pages - 3 and page < total_pages - 5 %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page < total_pages %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page + 1 }}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}">Siguiente</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            <div class="text-center text-muted mt-3">
+                Mostrando {{ compras|length }} de {{ total_compras }} compras
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function filtrarCompras() {
+            const estado = document.getElementById('filtroEstado').value;
+            const url = new URL(window.location);
+            
+            if (estado) {
+                url.searchParams.set('estado', estado);
+            } else {
+                url.searchParams.delete('estado');
+            }
+            
+            url.searchParams.set('page', '1'); // Reset to first page
+            window.location.href = url.toString();
+        }
+    </script>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

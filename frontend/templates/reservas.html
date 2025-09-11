@@ -19,54 +19,131 @@
 
     {% include "partials/header.html" %}
 
-    <section id="proximos-eventos" class="events">
-        <div class="container reserva">
-        
-
-        
-            <div class="reserva-form">
-                
-                <form action="/reservas" method="post">
-                    <p><strong>Reservar para:</strong> {{ evento.titulo }}</p>
-                    <p><strong>Fecha:</strong> {{ evento.fecha.strftime('%d/%m/%Y') }}</p>
-                    <p><strong>Hora:</strong> {{ evento.hora or "Horario a confirmar" }}</p>
-                    <p><strong>Ubicación:</strong> {{ evento.ubicacion or "A confirmar" }}</p>
-                    <p><strong>Costo:</strong> ${{ evento.costo or "A confirmar" }}</p>
-                    
-                    <br>
-                    <input type="hidden" name="evento_id" value="{{ evento.id }}">
-
-                    <div class="form-group">
-                        <input type="text" placeholder="Nombre completo" name="nombre" value="{{ usuario.nombre if usuario else '' }}" {% if usuario %}readonly{% endif %} required>
-                    </div>
-
-                    <div class="form-group">
-                        <input type="email" placeholder="Email" name="email" value="{{ usuario.email if usuario else '' }}" {% if usuario %}readonly{% endif %} required>
-                    </div>
-
-                    <div class="form-group">                        
-                        <input type="tel" class="form-control" id="celular" name="celular" placeholder="Número de celular" value="{{ usuario.celular if usuario and usuario.celular else '' }}" {% if usuario.celular %}readonly{% endif %} required>
-                    </div>
-
-
-                    <div class="form-group">
-                        <input type="number" id="cantidad-cupos" placeholder="Cantidad de cupos" name="cantidad" min="1" required>
+    <section class="reservation-section">
+        <div class="container">
+            <div class="reservation-container">
+                <!-- Event Summary Card -->
+                <div class="event-summary-card">
+                    <div class="event-header">
+                        <h2 class="event-title">{{ evento.titulo }}</h2>
+                        <div class="event-badge">Reserva tu lugar</div>
                     </div>
                     
-                    <p><strong>Total:</strong> $<span id="total-costo">{{ evento.costo or "A confirmar" }}</span></p>
-                    
-                    Ir a pagar:
-                    <br>
-                    <br>
-                    <button type="submit" class="btn-place-order btn-mercadopago btn-full">
+                    <div class="event-details">
+                        <div class="detail-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <div class="detail-content">
+                                <span class="detail-label">Fecha</span>
+                                {% if fecha_evento %}
+                                    <span class="detail-value">{{ fecha_evento.fecha.strftime('%d/%m/%Y') }}</span>
+                                {% else %}
+                                    <span class="detail-value text-warning">No seleccionada</span>
+                                {% endif %}
+                            </div>
+                        </div>
                         
-                        <img class="logo-img-mercadopago" src="/static/img/mercadopago-logo.svg" alt="Mercado Pago">
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <div class="detail-content">
+                                <span class="detail-label">Horario</span>
+                                {% if horario_evento %}
+                                    <span class="detail-value">{{ horario_evento.hora_inicio.strftime('%H:%M') }} ({{ horario_evento.duracion_minutos }} min)</span>
+                                {% else %}
+                                    <span class="detail-value text-warning">No seleccionado</span>
+                                {% endif %}
+                            </div>
+                        </div>
                         
-                    </button>
-                </form>
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div class="detail-content">
+                                <span class="detail-label">Ubicación</span>
+                                <span class="detail-value">{{ evento.ubicacion or "A confirmar" }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <i class="fas fa-dollar-sign"></i>
+                            <div class="detail-content">
+                                <span class="detail-label">Precio por persona</span>
+                                {% if horario_evento %}
+                                    <span class="detail-value price">${{ evento.costo }}</span>
+                                {% else %}
+                                    <span class="detail-value text-warning">No disponible</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reservation Form -->
+                <div class="reservation-form-card">
+                    <form action="/reservas" method="post" class="reservation-form">
+                        <h3 class="form-title">Datos de la reserva</h3>
+                        
+                        <input type="hidden" name="evento_id" value="{{ evento.id }}">
+                        {% if fecha_evento %}
+                            <input type="hidden" name="fecha_evento_id" value="{{ fecha_evento.id }}">
+                        {% endif %}
+                        {% if horario_evento %}
+                            <input type="hidden" name="horario_id" value="{{ horario_evento.id }}">
+                        {% endif %}
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="nombre">Nombre completo</label>
+                                <input type="text" id="nombre" name="nombre" 
+                                       value="{{ usuario.nombre if usuario else '' }}" 
+                                       {% if usuario %}readonly{% endif %} 
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="email">Correo electrónico</label>
+                                <input type="email" id="email" name="email" 
+                                       value="{{ usuario.email if usuario else '' }}" 
+                                       {% if usuario %}readonly{% endif %} 
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="celular">Número de celular</label>
+                                <input type="tel" id="celular" name="celular" 
+                                       value="{{ usuario.celular if usuario and usuario.celular else '' }}" 
+                                       {% if usuario.celular %}readonly{% endif %} 
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="cantidad-cupos">Cantidad de personas</label>
+                                <input type="number" id="cantidad-cupos" name="cantidad" min="1" max="10" required>
+                            </div>
+                        </div>
+                        
+                        <!-- Total Section -->
+                        <div class="total-section">
+                            <div class="total-row">
+                                <span class="total-label">Total a pagar:</span>
+                                <span class="total-amount">$<span id="total-costo">{{ evento.costo if horario_evento else "A confirmar" }}</span></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Payment Button -->
+                        <div class="payment-section">
+                            <button type="submit" class="btn-place-order btn-mercadopago btn-full">
+                                <img src="/static/img/mercadopago-logo.svg" alt="Mercado Pago" class="logo-img-mercadopago">
+                                
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-
-
         </div>
     </section>
 
@@ -77,9 +154,8 @@
         document.addEventListener("DOMContentLoaded", function () {
             const cantidadInput = document.getElementById("cantidad-cupos");
             const totalSpan = document.getElementById("total-costo");
-            const costoUnitario = {{ evento.costo if evento.costo is not none else 0 }};
+            const costoUnitario = {% if horario_evento and evento.costo is not none %}{{ evento.costo }}{% else %}0{% endif %};
            
-        
             function actualizarTotal() {
                 const cantidad = parseInt(cantidadInput.value) || 0;
                 const total = cantidad * costoUnitario;
@@ -89,5 +165,252 @@
             cantidadInput.addEventListener("input", actualizarTotal);
         });
     </script>
+
+    <!-- Modern Reservation Styles -->
+    <style>
+        .reservation-section {
+            padding: 60px 0;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+        }
+
+        .reservation-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .event-summary-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .event-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+        }
+
+        .event-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .event-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .event-details {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .detail-item:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .detail-item i {
+            width: 20px;
+            height: 20px;
+            color: #667eea;
+            font-size: 18px;
+        }
+
+        .detail-content {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #6c757d;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-value {
+            font-size: 16px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .detail-value.price {
+            color: #28a745;
+            font-size: 18px;
+        }
+
+        .text-warning {
+            color: #ffc107 !important;
+        }
+
+        .reservation-form-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .form-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0 0 30px 0;
+            text-align: center;
+        }
+
+        .form-row {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input:read-only {
+            background: #f8f9fa;
+            color: #6c757d;
+        }
+
+        .total-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            border: 2px solid #dee2e6;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .total-label {
+            font-size: 18px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .total-amount {
+            font-size: 24px;
+            font-weight: 700;
+            color: #28a745;
+        }
+
+        .payment-section {
+            margin-top: 30px;
+        }
+
+        .payment-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #00d4aa 0%, #00a693 100%);
+            color: white;
+            border: none;
+            padding: 18px 30px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .payment-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 212, 170, 0.3);
+        }
+
+        .payment-logo {
+            height: 24px;
+            width: auto;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .reservation-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 0 20px;
+            }
+
+            .event-summary-card,
+            .reservation-form-card {
+                padding: 20px;
+            }
+
+            .event-title {
+                font-size: 22px;
+            }
+
+            .event-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .event-badge {
+                align-self: flex-start;
+            }
+        }
+    </style>
 </body>
 </html>

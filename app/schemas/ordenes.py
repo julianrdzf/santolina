@@ -14,7 +14,8 @@ class OrdenDetalleOut(BaseModel):
 
 class OrdenCreate(BaseModel):
     usuario_id: str  # UUID como string
-    direccion_envio_id: int
+    direccion_envio_id: Optional[int] = None
+    metodo_envio_id: int
     metodo_pago: Optional[str] = None
     total: float
     descuento_total: Optional[float] = 0
@@ -26,7 +27,8 @@ class OrdenOut(BaseModel):
     fecha: datetime
     total: float
     estado: str
-    direccion_envio_id: int
+    direccion_envio_id: Optional[int] = None
+    metodo_envio_id: int
     metodo_pago: Optional[str] = None
     descuento_total: float
     total_final: float

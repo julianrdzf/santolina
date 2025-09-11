@@ -453,6 +453,9 @@ def pago(request: Request, db: Session = Depends(get_db), usuario: Usuario = Dep
     # Obtener direcciones del usuario
     direcciones = db.query(Direccion).filter(Direccion.usuario_id == usuario.id).all()
     
+    # Obtener métodos de envío activos
+    metodos_envio = db.query(CostoEnvio).filter(CostoEnvio.activo == True).all()
+    
     # Asignar los detalles al carrito
     carrito.detalle = detalles
     
@@ -464,7 +467,8 @@ def pago(request: Request, db: Session = Depends(get_db), usuario: Usuario = Dep
         "total_original": total_original,
         "total_descuentos": total_descuentos,
         "cantidad_total_productos": cantidad_total_productos,
-        "direcciones": direcciones
+        "direcciones": direcciones,
+        "metodos_envio": metodos_envio
     })
 
 
@@ -501,6 +505,7 @@ def guardar_direccion(
 @router.post("/tienda/pago/procesar")
 def procesar_pago(
     request: Request,
+    metodo_envio_id: int = Form(...),
     direccion_id: Optional[int] = Form(None),
     direccion: Optional[str] = Form(None),
     detalle: Optional[str] = Form(None),
@@ -581,54 +586,55 @@ def procesar_pago(
     
     total_final = total_productos - descuento_cupon
     
-    # Obtener o crear dirección de envío
-    direccion_envio = None
-    costo_envio = 0
-    
-    if direccion_id:
-        # Usar dirección existente
-        direccion_envio = db.query(Direccion).filter(
-            Direccion.id == direccion_id, 
-            Direccion.usuario_id == usuario.id
-        ).first()
-    elif direccion and ciudad and departamento:
-        # Crear nueva dirección
-        direccion_envio = Direccion(
-            usuario_id=usuario.id,
-            direccion=direccion,
-            detalle=detalle,
-            ciudad=ciudad,
-            departamento=departamento,
-            codigo_postal=codigo_postal if codigo_postal else None,
-            pais="Uruguay",
-            tipo=tipo
-        )
-        db.add(direccion_envio)
-        db.commit()
-        db.refresh(direccion_envio)
-    
-    # Validar que tenemos una dirección
-    if not direccion_envio:
-        return RedirectResponse(url="/tienda/pago?error=direccion_requerida", status_code=303)
-    
-    # Calcular costo de envío desde la base de datos
-    from app.models.costos_envio import CostoEnvio
-    costo_envio_db = db.query(CostoEnvio).filter(
-        CostoEnvio.departamento == direccion_envio.departamento,
+    # Obtener método de envío seleccionado
+    metodo_envio = db.query(CostoEnvio).filter(
+        CostoEnvio.id == metodo_envio_id,
         CostoEnvio.activo == True
     ).first()
     
-    if costo_envio_db:
-        costo_envio = costo_envio_db.costo
-    else:
-        costo_envio = 0
+    if not metodo_envio:
+        return RedirectResponse(url="/tienda/pago?error=metodo_envio_invalido", status_code=303)
+    
+    # Obtener o crear dirección de envío (solo si el método lo requiere)
+    direccion_envio = None
+    
+    if metodo_envio.requiere_direccion:
+        if direccion_id:
+            # Usar dirección existente
+            direccion_envio = db.query(Direccion).filter(
+                Direccion.id == direccion_id, 
+                Direccion.usuario_id == usuario.id
+            ).first()
+        elif direccion and ciudad and departamento:
+            # Crear nueva dirección
+            direccion_envio = Direccion(
+                usuario_id=usuario.id,
+                direccion=direccion,
+                detalle=detalle,
+                ciudad=ciudad,
+                departamento=departamento,
+                codigo_postal=codigo_postal if codigo_postal else None,
+                pais="Uruguay",
+                tipo=tipo
+            )
+            db.add(direccion_envio)
+            db.commit()
+            db.refresh(direccion_envio)
+        
+        # Validar que tenemos una dirección si se requiere
+        if not direccion_envio:
+            return RedirectResponse(url="/tienda/pago?error=direccion_requerida", status_code=303)
+    
+    # Usar el costo del método de envío seleccionado
+    costo_envio = metodo_envio.costo
     
     total_con_envio = total_final + costo_envio
     
     # Crear la orden
     nueva_orden = Orden(
         usuario_id=usuario.id,
-        direccion_envio_id=direccion_envio.id,
+        direccion_envio_id=direccion_envio.id if direccion_envio else None,
+        metodo_envio_id=metodo_envio_id,
         total=total_productos,
         estado="pendiente",
         metodo_pago='mercadopago',

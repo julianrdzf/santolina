@@ -1,10 +1,8 @@
-from fastapi import APIRouter, Request, Depends, UploadFile, File, HTTPException
+from fastapi import APIRouter, Request, Depends, UploadFile, File, HTTPException, Form
+from typing import List
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from app.db import SessionLocal
-from app.models.evento import Evento
-from app.models.categorias_eventos import CategoriaEvento
-from app.models.reserva import Reserva
 from app.models.categorias_productos import CategoriaProducto
 from app.models.productos import Producto
 from app.models.imagenes_productos import ImagenProducto
@@ -14,11 +12,8 @@ from app.models.cupones import Cupon
 from app.models.cupones_uso import CuponUso
 from app.models.ordenes import Orden
 from app.models.orden_detalle import OrdenDetalle
-from app.models.productos import Producto
 from app.models.user import Usuario
 from app.models.direcciones import Direccion
-from app.models.promociones import Promocion
-from app.models.promocion_productos import PromocionProducto
 from app.models.costos_envio import CostoEnvio
 from app.models.categorias_ebooks import CategoriaEbook
 from app.models.ebooks import Ebook
@@ -51,366 +46,9 @@ def get_db():
 def admin_home(request: Request):
     return templates.TemplateResponse("admin_panel.html", {"request": request})
 
-@router.get("/admin/eventos-panel", dependencies=[Depends(current_superuser)])
-def admin_eventos_panel(request: Request):
-    return templates.TemplateResponse("admin_panel_eventos.html", {"request": request})
-
-@router.get("/admin/eventos", dependencies=[Depends(current_superuser)])
-def listar_eventos_admin(request: Request, db: Session = Depends(get_db)):
-    eventos = db.query(Evento).all()
-    return templates.TemplateResponse("admin_eventos.html", {
-        "request": request,
-        "eventos": eventos
-    })
-
-@router.get("/admin/eventos/crear", dependencies=[Depends(current_superuser)])
-def mostrar_formulario_crear_evento(request: Request, db: Session = Depends(get_db)):
-    categorias = db.query(CategoriaEvento).all()
-    return templates.TemplateResponse("admin_evento_form.html", {
-        "request": request,
-        "categorias": categorias,
-        "modo": "crear"
-    })
-
-@router.post("/admin/eventos/crear", dependencies=[Depends(current_superuser)])
-def crear_evento(
-    titulo: str = Form(...),
-    descripcion: str = Form(...),
-    fecha: str = Form(...),
-    cupos: int = Form(...),
-    categoria_id: Optional[str] = Form(None),
-    horario: str = Form(None),
-    ubicacion: str = Form(None),
-    direccion: str = Form(None),
-    costo: float = Form(...),
-    imagen: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db)
-):
-    
-    # Si vino vacío, lo convierto a None
-    categoria_id_int = int(categoria_id) if categoria_id else None
-    
-    # Subir imagen a Cloudinary si se proporciona
-    imagen_url = None
-    if imagen and imagen.filename:
-        try:
-            result = cloudinary.uploader.upload(
-                imagen.file,
-                folder="eventos",
-                public_id=f"evento_{titulo.replace(' ', '_')}",
-                transformation=[
-                    {"width": 800, "height": 600, "crop": "limit"},
-                    {"quality": "auto"}
-                ]
-            )
-            imagen_url = result["secure_url"]
-        except Exception as e:
-            print(f"Error subiendo imagen: {e}")
-
-    nuevo_evento = Evento(
-        titulo=titulo,
-        descripcion=descripcion,
-        fecha=fecha,
-        cupos_totales=cupos,
-        categoria_id=categoria_id_int,
-        hora=horario,
-        ubicacion=ubicacion,
-        direccion=direccion,
-        costo=costo,
-        imagen=imagen_url
-    )
-    db.add(nuevo_evento)
-    db.commit()
-    return RedirectResponse(url="/admin/eventos", status_code=303)
-
-@router.get("/admin/eventos/{evento_id}/editar", dependencies=[Depends(current_superuser)])
-def mostrar_formulario_editar_evento(evento_id: int, request: Request, db: Session = Depends(get_db)):
-    evento = db.query(Evento).get(evento_id)
-    categorias = db.query(CategoriaEvento).all()
-    if not evento:
-        return templates.TemplateResponse("404.html", {"request": request})
-    
-    return templates.TemplateResponse("admin_evento_form.html", {
-        "request": request,
-        "evento": evento,
-        "categorias": categorias,
-        "modo": "editar"
-    })
-
-@router.post("/admin/eventos/{evento_id}/editar", dependencies=[Depends(current_superuser)])
-def actualizar_evento(
-    evento_id: int,
-    titulo: str = Form(...),
-    descripcion: str = Form(...),
-    fecha: str = Form(...),
-    cupos: int = Form(...),
-    categoria_id: Optional[str] = Form(None),
-    horario: str = Form(None),
-    ubicacion: str = Form(None),
-    costo: float = Form(...),
-    imagen: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db)
-):
-    # Si vino vacío, lo convierto a None
-    categoria_id_int = int(categoria_id) if categoria_id else None
-
-    evento = db.query(Evento).get(evento_id)
-    if not evento:
-        return RedirectResponse(url="/admin/eventos", status_code=303)
-
-    # Subir nueva imagen a Cloudinary si se proporciona
-    if imagen and imagen.filename:
-        try:
-            result = cloudinary.uploader.upload(
-                imagen.file,
-                folder="eventos",
-                public_id=f"evento_{titulo.replace(' ', '_')}",
-                transformation=[
-                    {"width": 800, "height": 600, "crop": "limit"},
-                    {"quality": "auto"}
-                ]
-            )
-            evento.imagen = result["secure_url"]
-        except Exception as e:
-            print(f"Error subiendo imagen: {e}")
-
-    evento.titulo = titulo
-    evento.descripcion = descripcion
-    evento.fecha = fecha
-    evento.cupos_totales = cupos
-    evento.categoria_id = categoria_id_int
-    evento.hora = horario
-    evento.ubicacion = ubicacion
-    evento.costo = costo
-
-    db.commit()
-    return RedirectResponse(url="/admin/eventos", status_code=303)
-
-@router.get("/admin/eventos/{evento_id}/clonar", dependencies=[Depends(current_superuser)])
-def mostrar_formulario_clonar_evento(evento_id: int, request: Request, db: Session = Depends(get_db)):
-    evento = db.query(Evento).get(evento_id)
-    categorias = db.query(CategoriaEvento).all()
-    if not evento:
-        return templates.TemplateResponse("404.html", {"request": request})
-    
-    return templates.TemplateResponse("admin_evento_form.html", {
-        "request": request,
-        "evento": evento,
-        "categorias": categorias,
-        "modo": "clonar"
-    })
-
-@router.post("/admin/eventos/{evento_id}/eliminar", dependencies=[Depends(current_superuser)])
-def eliminar_evento(evento_id: int, db: Session = Depends(get_db)):
-    evento = db.query(Evento).get(evento_id)
-    if evento:
-        if evento.reservas:
-            return templates.TemplateResponse("error_admin.html", {
-                "request": {},  # o pasá request si usás plantilla con jinja
-                "mensaje": "No se puede eliminar el evento porque tiene reservas registradas.",
-                "url_volver": "/admin/eventos"
-            })
-        db.delete(evento)
-        db.commit()
-    return RedirectResponse(url="/admin/eventos", status_code=303)
-
-@router.get("/admin/eventos/{evento_id}/reservas", dependencies=[Depends(current_superuser)])
-def ver_reservas_evento(evento_id: int, request: Request, db: Session = Depends(get_db)):
-    evento = db.query(Evento).get(evento_id)
-    if not evento:
-        return RedirectResponse(url="/admin/eventos", status_code=303)
-    
-    reservas = evento.reservas  # gracias a la relación ya definida
-    return templates.TemplateResponse("admin_reservas_evento.html", {
-        "request": request,
-        "evento": evento,
-        "reservas": reservas
-    })
-
-@router.post("/admin/reservas/{reserva_id}/eliminar", dependencies=[Depends(current_superuser)])
-def eliminar_reserva(reserva_id: int, db: Session = Depends(get_db)):
-    reserva = db.query(Reserva).get(reserva_id)
-    if reserva:
-        evento_id = reserva.evento_id  # para redirigir luego
-        db.delete(reserva)
-        db.commit()
-        return RedirectResponse(f"/admin/eventos/{evento_id}/reservas", status_code=303)
-    return RedirectResponse("/admin/eventos", status_code=303)
-
-
-
 #################################
 # Tienda
 #####################
-
-#############################
-# Categorias Eventos
-
-# Listar categorías de eventos
-@router.get("/admin/categorias_eventos", dependencies=[Depends(current_superuser)])
-def listar_categorias_eventos(request: Request, db: Session = Depends(get_db)):
-    categorias = db.query(CategoriaEvento).options(
-        joinedload(CategoriaEvento.categoria_padre),
-        joinedload(CategoriaEvento.subcategorias),
-        joinedload(CategoriaEvento.eventos)
-    ).all()
-    return templates.TemplateResponse("admin_categorias_eventos.html", {
-        "request": request,
-        "categorias": categorias
-    })
-
-@router.get("/admin/categorias_eventos/padres", dependencies=[Depends(current_superuser)])
-def listar_categorias_eventos_padres(request: Request, db: Session = Depends(get_db)):
-    # Filtramos solo las categorías que no tienen padre
-    categorias_padres = db.query(CategoriaEvento).filter(
-        CategoriaEvento.id_categoria_padre == None
-    ).options(
-        joinedload(CategoriaEvento.subcategorias),
-        joinedload(CategoriaEvento.eventos)
-    ).all()
-
-    return templates.TemplateResponse("admin_categorias_eventos.html", {
-        "request": request,
-        "categorias": categorias_padres,
-        "titulo": "Categorías principales de eventos"
-    })
-
-@router.get("/admin/categorias_eventos/{categoria_id}/hijos", dependencies=[Depends(current_superuser)])
-def listar_hijos_categoria_evento(categoria_id: int, request: Request, db: Session = Depends(get_db)):
-    # Buscamos la categoría padre
-    categoria_padre = db.query(CategoriaEvento).options(
-        joinedload(CategoriaEvento.subcategorias)
-    ).get(categoria_id)
-    if not categoria_padre:
-        return templates.TemplateResponse("404.html", {"request": request})
-
-    # Tomamos solo las subcategorías
-    subcategorias = categoria_padre.subcategorias
-
-    return templates.TemplateResponse("admin_categorias_eventos.html", {
-        "request": request,
-        "categorias": subcategorias,
-        "categoria_padre": categoria_padre
-    })
-
-# Mostrar formulario crear categoría de evento
-@router.get("/admin/categorias_eventos/crear", dependencies=[Depends(current_superuser)])
-def mostrar_formulario_crear_categoria_evento(request: Request, db: Session = Depends(get_db)):
-    categorias = db.query(CategoriaEvento).options(
-        joinedload(CategoriaEvento.subcategorias)
-    ).all()  # para seleccionar padre opcional
-    return templates.TemplateResponse("admin_categoria_evento_form.html", {
-        "request": request,
-        "categorias": categorias,
-        "modo": "crear"
-    })
-
-# Crear categoría de evento
-@router.post("/admin/categorias_eventos/crear", dependencies=[Depends(current_superuser)])
-def crear_categoria_evento(
-    nombre: str = Form(...), 
-    id_categoria_padre: Optional[str] = Form(None), 
-    db: Session = Depends(get_db)
-):
-    # Si vino vacío, lo convierto a None
-    id_categoria_padre = int(id_categoria_padre) if id_categoria_padre else None
-
-    if id_categoria_padre is not None:
-        padre = db.query(CategoriaEvento).get(id_categoria_padre)
-        if not padre:
-            return templates.TemplateResponse("error_admin.html", {
-                "request": {},
-                "mensaje": "La categoría padre seleccionada no existe.",
-                "url_volver": "/admin/categorias_eventos"
-            })
-    
-    nueva_categoria = CategoriaEvento(
-        nombre=nombre,
-        id_categoria_padre=id_categoria_padre
-    )
-    db.add(nueva_categoria)
-    db.commit()
-    return RedirectResponse(url="/admin/categorias_eventos", status_code=303)
-
-# Mostrar formulario editar categoría de evento
-@router.get("/admin/categorias_eventos/{categoria_id}/editar", dependencies=[Depends(current_superuser)])
-def mostrar_formulario_editar_categoria_evento(categoria_id: int, request: Request, db: Session = Depends(get_db)):
-    categoria = db.query(CategoriaEvento).get(categoria_id)
-    if not categoria:
-        return templates.TemplateResponse("404.html", {"request": request})
-    categorias = db.query(CategoriaEvento).filter(
-        CategoriaEvento.id != categoria_id
-    ).options(joinedload(CategoriaEvento.subcategorias)).all()
-    return templates.TemplateResponse("admin_categoria_evento_form.html", {
-        "request": request,
-        "categoria": categoria,
-        "categorias": categorias,
-        "modo": "editar"
-    })
-
-# Actualizar categoría de evento
-@router.post("/admin/categorias_eventos/{categoria_id}/editar", dependencies=[Depends(current_superuser)])
-def actualizar_categoria_evento(
-    categoria_id: int, 
-    nombre: str = Form(...), 
-    id_categoria_padre: Optional[str] = Form(None), 
-    db: Session = Depends(get_db)
-):
-    # Si vino vacío, lo convierto a None
-    id_categoria_padre = int(id_categoria_padre) if id_categoria_padre else None
-
-    categoria = db.query(CategoriaEvento).get(categoria_id)
-    if not categoria:
-        return RedirectResponse(url="/admin/categorias_eventos", status_code=303)
-
-    if id_categoria_padre == categoria.id:
-        return templates.TemplateResponse("error_admin.html", {
-            "request": {},
-            "mensaje": "Una categoría no puede ser padre de sí misma."
-        })
-
-    # Validar que no haya ciclo en ancestros
-    ancestro_id = id_categoria_padre
-    while ancestro_id:
-        if ancestro_id == categoria.id:
-            return templates.TemplateResponse("error_admin.html", {
-                "request": {},
-                "mensaje": "No se puede crear un ciclo en la jerarquía de categorías.",
-                "url_volver": "/admin/categorias_eventos"
-            })
-        ancestro = db.query(CategoriaEvento).get(ancestro_id)
-        ancestro_id = ancestro.id_categoria_padre if ancestro else None
-
-    categoria.nombre = nombre
-    categoria.id_categoria_padre = id_categoria_padre
-    db.commit()
-    return RedirectResponse(url="/admin/categorias_eventos", status_code=303)
-
-@router.post("/admin/categorias_eventos/{categoria_id}/eliminar", dependencies=[Depends(current_superuser)])
-def eliminar_categoria_evento(categoria_id: int, db: Session = Depends(get_db)):
-    categoria = db.query(CategoriaEvento).get(categoria_id)
-    if categoria:
-        # Verificar si tiene subcategorías
-        hijos = db.query(CategoriaEvento).filter(CategoriaEvento.id_categoria_padre == categoria_id).all()
-        if hijos:
-            return templates.TemplateResponse("error_admin.html", {
-                "request": {},
-                "mensaje": "No se puede eliminar la categoría porque tiene subcategorías asociadas.",
-                "url_volver": "/admin/categorias_eventos"
-            })
-
-        # Verificar si tiene eventos asociados
-        eventos = db.query(Evento).filter(Evento.id_categoria == categoria_id).all()
-        if eventos:
-            return templates.TemplateResponse("error_admin.html", {
-                "request": {},
-                "mensaje": "No se puede eliminar la categoría porque tiene eventos asociados.",
-                "url_volver": "/admin/categorias_eventos"
-            })
-
-        db.delete(categoria)
-        db.commit()
-    return RedirectResponse(url="/admin/categorias_eventos", status_code=303)
 
 #############################
 # Categorias Productos
@@ -1042,349 +680,6 @@ def detalle_orden(orden_id: int, request: Request, db: Session = Depends(get_db)
         "orden": orden
     })
 
-#############################
-# Categorias Ebooks
-
-# Listar categorías de ebooks
-@router.get("/admin/categorias_ebooks", dependencies=[Depends(current_superuser)])
-def listar_categorias_ebooks(request: Request, db: Session = Depends(get_db)):
-    categorias = db.query(CategoriaEbook).all()
-    return templates.TemplateResponse("admin_categorias_ebooks.html", {
-        "request": request,
-        "categorias": categorias
-    })
-
-@router.get("/admin/categorias_ebooks/padres", dependencies=[Depends(current_superuser)])
-def listar_categorias_ebooks_padres(request: Request, db: Session = Depends(get_db)):
-    # Filtramos solo las categorías que no tienen padre
-    categorias_padres = db.query(CategoriaEbook).filter(CategoriaEbook.id_categoria_padre == None).all()
-
-    return templates.TemplateResponse("admin_categorias_ebooks.html", {
-        "request": request,
-        "categorias": categorias_padres,
-        "titulo": "Categorías principales de ebooks"
-    })
-
-@router.get("/admin/categorias_ebooks/{categoria_id}/hijos", dependencies=[Depends(current_superuser)])
-def listar_hijos_categoria_ebook(categoria_id: int, request: Request, db: Session = Depends(get_db)):
-    # Buscamos la categoría padre
-    categoria_padre = db.query(CategoriaEbook).get(categoria_id)
-    if not categoria_padre:
-        return templates.TemplateResponse("404.html", {"request": request})
-
-    # Tomamos solo las subcategorías
-    subcategorias = categoria_padre.subcategorias
-
-    return templates.TemplateResponse("admin_categorias_ebooks.html", {
-        "request": request,
-        "categorias": subcategorias,
-        "categoria_padre": categoria_padre
-    })
-
-# Mostrar formulario crear categoría ebook
-@router.get("/admin/categorias_ebooks/crear", dependencies=[Depends(current_superuser)])
-def mostrar_formulario_crear_categoria_ebook(request: Request, db: Session = Depends(get_db)):
-    categorias = db.query(CategoriaEbook).all()  # para seleccionar padre opcional
-    return templates.TemplateResponse("admin_categoria_ebook_form.html", {
-        "request": request,
-        "categorias": categorias,
-        "modo": "crear"
-    })
-
-# Crear categoría ebook
-@router.post("/admin/categorias_ebooks/crear", dependencies=[Depends(current_superuser)])
-def crear_categoria_ebook(
-    nombre: str = Form(...), 
-    id_categoria_padre: Optional[str] = Form(None), 
-    db: Session = Depends(get_db)
-):
-    # Si vino vacío, lo convierto a None
-    id_categoria_padre = int(id_categoria_padre) if id_categoria_padre else None
-
-    if id_categoria_padre is not None:
-        padre = db.query(CategoriaEbook).get(id_categoria_padre)
-        if not padre:
-            return templates.TemplateResponse("error_admin.html", {
-                "request": {},
-                "mensaje": "La categoría padre seleccionada no existe.",
-                "url_volver": "/admin/categorias_ebooks"
-            })
-    
-    nueva_categoria = CategoriaEbook(
-        nombre=nombre,
-        id_categoria_padre=id_categoria_padre
-    )
-    db.add(nueva_categoria)
-    db.commit()
-    return RedirectResponse(url="/admin/categorias_ebooks", status_code=303)
-
-# Mostrar formulario editar categoría ebook
-@router.get("/admin/categorias_ebooks/{categoria_id}/editar", dependencies=[Depends(current_superuser)])
-def mostrar_formulario_editar_categoria_ebook(categoria_id: int, request: Request, db: Session = Depends(get_db)):
-    categoria = db.query(CategoriaEbook).get(categoria_id)
-    if not categoria:
-        return templates.TemplateResponse("404.html", {"request": request})
-    categorias = db.query(CategoriaEbook).filter(CategoriaEbook.id != categoria_id).all()
-    return templates.TemplateResponse("admin_categoria_ebook_form.html", {
-        "request": request,
-        "categoria": categoria,
-        "categorias": categorias,
-        "modo": "editar"
-    })
-
-# Actualizar categoría ebook
-@router.post("/admin/categorias_ebooks/{categoria_id}/editar", dependencies=[Depends(current_superuser)])
-def actualizar_categoria_ebook(
-    categoria_id: int, 
-    nombre: str = Form(...), 
-    id_categoria_padre: Optional[str] = Form(None), 
-    db: Session = Depends(get_db)
-):
-    # Si vino vacío, lo convierto a None
-    id_categoria_padre = int(id_categoria_padre) if id_categoria_padre else None
-
-    categoria = db.query(CategoriaEbook).get(categoria_id)
-    if not categoria:
-        return RedirectResponse(url="/admin/categorias_ebooks", status_code=303)
-
-    if id_categoria_padre == categoria.id:
-        return templates.TemplateResponse("error_admin.html", {
-            "request": {},
-            "mensaje": "Una categoría no puede ser padre de sí misma."
-        })
-
-    # Validar que no haya ciclo en ancestros
-    ancestro_id = id_categoria_padre
-    while ancestro_id:
-        if ancestro_id == categoria.id:
-            return templates.TemplateResponse("error_admin.html", {
-                "request": {},
-                "mensaje": "No se puede crear un ciclo en la jerarquía de categorías.",
-                "url_volver": "/admin/categorias_ebooks"
-            })
-        ancestro = db.query(CategoriaEbook).get(ancestro_id)
-        ancestro_id = ancestro.id_categoria_padre if ancestro else None
-
-    categoria.nombre = nombre
-    categoria.id_categoria_padre = id_categoria_padre
-    db.commit()
-    return RedirectResponse(url="/admin/categorias_ebooks", status_code=303)
-
-@router.post("/admin/categorias_ebooks/{categoria_id}/eliminar", dependencies=[Depends(current_superuser)])
-def eliminar_categoria_ebook(categoria_id: int, db: Session = Depends(get_db)):
-    categoria = db.query(CategoriaEbook).get(categoria_id)
-    if categoria:
-        # Verificar si tiene subcategorías
-        hijos = db.query(CategoriaEbook).filter(CategoriaEbook.id_categoria_padre == categoria_id).all()
-        if hijos:
-            return templates.TemplateResponse("error_admin.html", {
-                "request": {},
-                "mensaje": "No se puede eliminar la categoría porque tiene subcategorías asociadas.",
-                "url_volver": "/admin/categorias_ebooks"
-            })
-
-        # TODO: Verificar si tiene ebooks asociados cuando se implemente el modelo Ebook
-        # ebooks = db.query(Ebook).filter(Ebook.id_categoria == categoria_id).all()
-        # if ebooks:
-        #     return templates.TemplateResponse("error_admin.html", {
-        #         "request": {},
-        #         "mensaje": "No se puede eliminar la categoría porque tiene ebooks asociados.",
-        #         "url_volver": "/admin/categorias_ebooks"
-        #     })
-
-        db.delete(categoria)
-        db.commit()
-    return RedirectResponse(url="/admin/categorias_ebooks", status_code=303)
-
-
-###########################
-# Ebooks
-
-@router.get("/admin/ebooks", dependencies=[Depends(current_superuser)])
-def listar_ebooks(request: Request, db: Session = Depends(get_db)):
-    ebooks = db.query(Ebook).all()
-    return templates.TemplateResponse("admin_ebooks.html", {
-        "request": request,
-        "ebooks": ebooks
-    })
-
-@router.get("/admin/ebooks/crear", dependencies=[Depends(current_superuser)])
-def mostrar_formulario_crear_ebook(request: Request, db: Session = Depends(get_db)):
-    categorias = db.query(CategoriaEbook).all()
-    return templates.TemplateResponse("admin_ebook_form.html", {
-        "request": request,
-        "categorias": categorias,
-        "modo": "crear"
-    })
-
-@router.post("/admin/ebooks/crear")
-async def crear_ebook(
-    request: Request,
-    titulo: str = Form(...),
-    descripcion: str = Form(""),
-    precio: float = Form(...),
-    id_categoria: int = Form(None),
-    activo: bool = Form(True),
-    imagen_portada: UploadFile = File(None),
-    url_archivo: UploadFile = File(...),
-    current_user: dict = Depends(current_superuser),
-    db: Session = Depends(get_db)
-):
-    id_categoria = int(id_categoria) if id_categoria else None
-    
-    try:
-        # Subir PDF a Cloudinary
-        pdf_result = cloudinary.uploader.upload(
-            url_archivo.file,
-            resource_type="raw",
-            folder="ebooks/pdfs",
-            public_id=f"ebook_{titulo.replace(' ', '_')}.pdf",
-            access_mode="public"
-        )
-        
-        # Subir portada si se proporciona
-        imagen_portada_url = None
-        if imagen_portada and imagen_portada.filename:
-            portada_result = cloudinary.uploader.upload(
-                imagen_portada.file,
-                folder="ebooks/portadas",
-                public_id=f"portada_{titulo.replace(' ', '_')}",
-                transformation=[
-                    {'width': 400, 'height': 600, 'crop': 'fill'},
-                    {'quality': 'auto'}
-                ]
-            )
-            imagen_portada_url = portada_result['secure_url']
-        
-        # Crear ebook en la base de datos
-        nuevo_ebook = Ebook(
-            titulo=titulo,
-            descripcion=descripcion,
-            precio=precio,
-            id_categoria=id_categoria if id_categoria else None,
-            activo=activo,
-            url_archivo=pdf_result['secure_url'],
-            imagen_portada=imagen_portada_url
-        )
-        db.add(nuevo_ebook)
-        db.commit()
-        return RedirectResponse(url="/admin/ebooks", status_code=303)
-    except Exception as e:
-        db.rollback()
-        return JSONResponse(
-            status_code=500,
-            content={"success": False, "message": f"Error interno: {str(e)}"}
-        )
-
-@router.get("/admin/ebooks/{ebook_id}/editar", dependencies=[Depends(current_superuser)])
-def mostrar_formulario_editar_ebook(ebook_id: int, request: Request, db: Session = Depends(get_db)):
-    ebook = db.query(Ebook).get(ebook_id)
-    if not ebook:
-        return templates.TemplateResponse("404.html", {"request": request})
-    categorias = db.query(CategoriaEbook).all()
-    return templates.TemplateResponse("admin_ebook_form.html", {
-        "request": request,
-        "ebook": ebook,
-        "categorias": categorias,
-        "modo": "editar"
-    })
-
-@router.post("/admin/ebooks/{ebook_id}/editar")
-async def actualizar_ebook(
-    ebook_id: int,
-    request: Request,
-    titulo: str = Form(...),
-    descripcion: str = Form(""),
-    precio: float = Form(...),
-    id_categoria: int = Form(None),
-    activo: bool = Form(True),
-    imagen_portada: UploadFile = File(None),
-    url_archivo: UploadFile = File(None),
-    current_user: dict = Depends(current_superuser),
-    db: Session = Depends(get_db)
-):
-    id_categoria = int(id_categoria) if id_categoria else None
-    
-    ebook = db.query(Ebook).get(ebook_id)
-    if not ebook:
-        return RedirectResponse(url="/admin/ebooks", status_code=303)
-    try:
-        # Actualizar campos básicos
-        ebook.titulo = titulo
-        ebook.descripcion = descripcion
-        ebook.precio = precio
-        ebook.id_categoria = id_categoria if id_categoria else None
-        ebook.activo = activo
-        
-        # Actualizar PDF si se proporciona uno nuevo
-        if url_archivo and url_archivo.filename:
-            # Subir nuevo PDF
-            pdf_result = cloudinary.uploader.upload(
-                url_archivo.file,
-                resource_type="raw",
-                folder="ebooks/pdfs",
-                public_id=f"ebook_{titulo.replace(' ', '_')}.pdf",
-                access_mode="public"
-            )
-            ebook.url_archivo = pdf_result['secure_url']
-        
-        # Actualizar portada si se proporciona una nueva
-        if imagen_portada and imagen_portada.filename:
-            # Subir nueva portada
-            portada_result = cloudinary.uploader.upload(
-                imagen_portada.file,
-                folder="ebooks/portadas",
-                public_id=f"portada_{titulo.replace(' ', '_')}",
-                transformation=[
-                    {'width': 400, 'height': 600, 'crop': 'fill'},
-                    {'quality': 'auto'}
-                ]
-            )
-            ebook.imagen_portada = portada_result['secure_url']
-    
-        db.commit()
-        return RedirectResponse(url="/admin/ebooks", status_code=303)
-    except Exception as e:
-        db.rollback()
-        return JSONResponse(
-            status_code=500,
-            content={"success": False, "message": f"Error interno: {str(e)}"}
-        )
-
-@router.post("/admin/ebooks/{ebook_id}/eliminar", dependencies=[Depends(current_superuser)])
-def eliminar_ebook(ebook_id: int, db: Session = Depends(get_db)):
-    ebook = db.query(Ebook).get(ebook_id)
-    if ebook:
-        try:
-            # TODO: Verificar si tiene compras asociadas antes de eliminar
-            # compras = db.query(CompraEbook).filter(CompraEbook.id_ebook == ebook_id).all()
-            # if compras:
-            #     return templates.TemplateResponse("error_admin.html", {
-            #         "request": {},
-            #         "mensaje": "No se puede eliminar el ebook porque tiene compras asociadas.",
-            #         "url_volver": "/admin/ebooks"
-            #     })
-        
-            db.delete(ebook)
-            db.commit()
-        except Exception as e:
-            db.rollback()
-            return JSONResponse(
-                status_code=500,
-                content={"success": False, "message": f"Error interno: {str(e)}"}
-            )
-    return RedirectResponse(url="/admin/ebooks", status_code=303)
-
-@router.get("/admin/ebooks/{ebook_id}/pdf", dependencies=[Depends(current_superuser)])
-def ver_pdf_ebook(ebook_id: int, db: Session = Depends(get_db)):
-    """Endpoint para ver el PDF del ebook"""
-    ebook = db.query(Ebook).get(ebook_id)
-    if not ebook or not ebook.url_archivo:
-        raise HTTPException(status_code=404, detail="PDF no encontrado")
-    
-    # Redirigir directamente a la URL de Cloudinary
-    return RedirectResponse(url=ebook.url_archivo, status_code=302)
-
 
 # Promociones y Productos
 @router.get("/admin/promociones-productos", dependencies=[Depends(current_superuser)])
@@ -1573,23 +868,48 @@ def admin_envios(request: Request, db: Session = Depends(get_db)):
 @router.post("/admin/envios/agregar", dependencies=[Depends(current_superuser)])
 def agregar_costo_envio(
     request: Request,
-    departamento: str = Form(...),
+    nombre: str = Form(...),
+    descripcion: str = Form(""),
     costo: float = Form(...),
-    activo: Optional[str] = Form(None),
+    url_imagen: str = Form(""),
+    imagen_file: UploadFile = File(None),
+    activo: List[str] = Form(...),
+    requiere_direccion: List[str] = Form(...),
     db: Session = Depends(get_db)
 ):
     """Agregar nuevo costo de envío"""
     try:
-        # Verificar si ya existe el departamento
-        existe = db.query(CostoEnvio).filter(CostoEnvio.departamento == departamento).first()
-        if existe:
-            return RedirectResponse(url="/admin/envios?error=departamento_existe", status_code=303)
+        # Procesar valores booleanos de checkboxes
+        # Si el checkbox está marcado, se envía ["false", "true"], si no está marcado solo ["false"]
+        activo_value = "true" in activo
+        requiere_direccion_value = "true" in requiere_direccion
+        
+        # Subir imagen a Cloudinary si se proporciona
+        imagen_url_final = url_imagen if url_imagen else None
+        if imagen_file and imagen_file.filename:
+            try:
+                result = cloudinary.uploader.upload(
+                    imagen_file.file,
+                    folder="envios",
+                    public_id=f"envio_{nombre.replace(' ', '_')}",
+                    transformation=[
+                        {"width": 800, "height": 600, "crop": "limit"},
+                        {"quality": "auto"}
+                    ]
+                )
+                imagen_url_final = result["secure_url"]
+            except Exception as e:
+                print(f"Error subiendo imagen a Cloudinary: {e}")
+                # Continuar sin imagen si falla la subida
         
         # Crear nuevo costo de envío
         nuevo_costo = CostoEnvio(
-            departamento=departamento,
+            nombre=nombre,
+            descripcion=descripcion if descripcion else None,
             costo=costo,
-            activo=bool(activo)
+            url_imagen=imagen_url_final,
+            activo=activo_value,
+            requiere_direccion=requiere_direccion_value
         )
         
         db.add(nuevo_costo)
@@ -1605,9 +925,13 @@ def agregar_costo_envio(
 def editar_costo_envio(
     costo_id: int,
     request: Request,
-    departamento: str = Form(...),
+    nombre: str = Form(...),
+    descripcion: str = Form(""),
     costo: float = Form(...),
-    activo: Optional[str] = Form(None),
+    url_imagen: str = Form(""),
+    imagen_file: UploadFile = File(None),
+    activo: List[str] = Form([]),
+    requiere_direccion: List[str] = Form([]),
     db: Session = Depends(get_db)
 ):
     """Editar costo de envío existente"""
@@ -1616,18 +940,36 @@ def editar_costo_envio(
         if not costo_envio:
             return RedirectResponse(url="/admin/envios?error=no_encontrado", status_code=303)
         
-        # Verificar si el departamento ya existe (excepto el actual)
-        existe = db.query(CostoEnvio).filter(
-            CostoEnvio.departamento == departamento,
-            CostoEnvio.id != costo_id
-        ).first()
-        if existe:
-            return RedirectResponse(url="/admin/envios?error=departamento_existe", status_code=303)
+        # Procesar valores booleanos de checkboxes
+        # Si el checkbox está marcado, se envía ["false", "true"], si no está marcado solo ["false"]
+        activo_value = "true" in activo
+        requiere_direccion_value = "true" in requiere_direccion
+        
+        # Subir nueva imagen a Cloudinary si se proporciona
+        imagen_url_final = url_imagen if url_imagen else costo_envio.url_imagen
+        if imagen_file and imagen_file.filename:
+            try:
+                result = cloudinary.uploader.upload(
+                    imagen_file.file,
+                    folder="envios",
+                    public_id=f"envio_{nombre.replace(' ', '_')}",
+                    transformation=[
+                        {"width": 800, "height": 600, "crop": "limit"},
+                        {"quality": "auto"}
+                    ]
+                )
+                imagen_url_final = result["secure_url"]
+            except Exception as e:
+                print(f"Error subiendo imagen a Cloudinary: {e}")
+                # Mantener imagen anterior si falla la subida
         
         # Actualizar datos
-        costo_envio.departamento = departamento
+        costo_envio.nombre = nombre
+        costo_envio.descripcion = descripcion if descripcion else None
         costo_envio.costo = costo
-        costo_envio.activo = bool(activo)
+        costo_envio.url_imagen = imagen_url_final
+        costo_envio.activo = activo_value
+        costo_envio.requiere_direccion = requiere_direccion_value
         
         db.commit()
         

@@ -39,11 +39,10 @@
                         <tr>
                             <th>ID</th>
                             <th>Título</th>
-                            <th>Fecha</th>
-                            <th>Hora</th>
+                            <th>Próximas fechas</th>
                             <th>Categoría</th>
-                            <th>Cupos totales</th>
                             <th>Costo</th>
+                            <th>Total cupos</th>
                             <th>Reservas</th>
                             <th>Acciones</th>
                         </tr>
@@ -53,30 +52,70 @@
                         <tr>
                             <td>{{ evento.id }}</td>
                             <td>{{ evento.titulo }}</td>
-                            <td>{{ evento.fecha.strftime('%d/%m/%Y') }}</td>
-                            <td>{{ evento.hora }}</td>
+                            <td>
+                                {% if evento.fechas_evento %}
+                                    {% for fecha_evento in evento.fechas_evento %}
+                                        <div class="mb-1">
+                                            <strong>{{ fecha_evento.fecha.strftime('%d/%m/%Y') }}</strong>
+                                            {% if fecha_evento.horarios %}
+                                                <br>
+                                                {% for horario in fecha_evento.horarios %}
+                                                    <small class="text-muted">
+                                                        {{ horario.hora_inicio.strftime('%H:%M') }} 
+                                                        ({{ horario.cupos }} cupos)
+                                                    </small>
+                                                    {% if not loop.last %} | {% endif %}
+                                                {% endfor %}
+                                            {% else %}
+                                                <small class="text-warning">Sin horarios</small>
+                                            {% endif %}
+                                        </div>
+                                        {% if not loop.last %}<hr class="my-1">{% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
                             <td>{{ evento.categoria.nombre if evento.categoria else 'Sin categoría' }}</td>
-                            <td>{{ evento.cupos_totales }}</td>
-                            <td>{{ evento.costo }}</td>
-                            <td>{{ evento.reservas | sum(attribute='cupos') }}</td>
+                            <td>${{ "%.2f"|format(evento.costo) }}</td>
+                            <td>
+                                {% set total_cupos = 0 %}
+                                {% for fecha_evento in evento.fechas_evento %}
+                                    {% for horario in fecha_evento.horarios %}
+                                        {% set total_cupos = total_cupos + horario.cupos %}
+                                    {% endfor %}
+                                {% endfor %}
+                                {{ total_cupos }}
+                            </td>
+                            <td>
+                                {% set total_reservas = 0 %}
+                                {% for fecha_evento in evento.fechas_evento %}
+                                    {% for horario in fecha_evento.horarios %}
+                                        {% set total_reservas = total_reservas + (horario.reservas | sum(attribute='cupos')) %}
+                                    {% endfor %}
+                                {% endfor %}
+                                {{ total_reservas }}
+                            </td>
                             <td class="acciones-evento">
-                                <!-- Editar (ícono de lápiz) -->
-                                <a href="/admin/eventos/{{ evento.id }}/editar" class="btn-editar" title="Editar">
+                                <!-- Editar evento básico -->
+                                <a href="/admin/eventos/{{ evento.id }}/editar" class="btn-editar" title="Editar evento">
                                     <i class="fas fa-edit"></i>
                                 </a>
 
-                                <a href="/admin/eventos/{{ evento.id }}/clonar" class="btn-clonar" title="Clonar">
-                                    <i class="fa-solid fa-clone"></i>
+                                <!-- Gestionar fechas y horarios -->
+                                <a href="/admin/eventos/{{ evento.id }}/fechas" class="btn btn-sm btn-primary" title="Gestionar fechas y horarios">
+                                    <i class="fas fa-calendar-alt"></i>
                                 </a>
+
                             
-                                <!-- Ver reservas (ícono de ojo) -->
+                                <!-- Ver reservas -->
                                 <a href="/admin/eventos/{{ evento.id }}/reservas" class="btn-ver-reservas" title="Ver reservas">
                                     <i class="fas fa-eye"></i>
                                 </a>
                             
-                                <!-- Eliminar (ícono de basura) -->
+                                <!-- Eliminar evento -->
                                 <form action="/admin/eventos/{{ evento.id }}/eliminar" method="post" style="display:inline;">
-                                    <button type="submit" class="btn-eliminar" onclick="return confirm('¿Estás seguro de eliminar este evento?');" title="Eliminar">
+                                    <button type="submit" class="btn-eliminar" onclick="return confirm('¿Estás seguro de eliminar este evento?');" title="Eliminar evento">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </form>

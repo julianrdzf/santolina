@@ -55,10 +55,10 @@
 
                             <div class="mb-3">
                                 <label for="id_categoria_padre" class="form-label">
-                                    <i class="fas fa-sitemap"></i> Categoría Padre
+                                    <i class="fas fa-sitemap"></i> Categoría Madre
                                 </label>
                                 <select id="id_categoria_padre" name="id_categoria_padre" class="form-select">
-                                    <option value="">Sin categoría padre (Categoría principal)</option>
+                                    <option value="">Sin categoría (Categoría principal)</option>
                                     {% for cat in categorias %}
                                         {% if cat.id_categoria_padre is none %}
                                             <option value="{{ cat.id }}" {% if modo != 'crear' and categoria.id_categoria_padre == cat.id %}selected{% endif %}>

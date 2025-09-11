@@ -10,6 +10,34 @@
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .form-switch .form-check-input {
+            width: 2.5em;
+            height: 1.25em;
+            background-color: #dee2e6;
+            border: none;
+            border-radius: 2em;
+            transition: all 0.3s ease;
+        }
+        
+        .form-switch .form-check-input:checked {
+            background-color: #198754;
+            border-color: #198754;
+        }
+        
+        .form-switch .form-check-input:focus {
+            box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+        }
+        
+        .toggle-text {
+            font-weight: 500;
+            margin-left: 0.5rem;
+        }
+        
+        .form-switch .form-check-input:checked + .form-check-label .toggle-text {
+            color: #198754;
+        }
+    </style>
     
 </head>
 <body>
@@ -64,12 +92,16 @@
                     </div>
 
                     <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="activo" id="activo" 
-                                   {% if modo == 'crear' or (modo != 'crear' and ebook.activo) %}checked{% endif %}>
-                            <label class="form-check-label" for="activo">
-                                Ebook activo
-                            </label>
+                        <div class="form-group">
+                            <label class="form-label">Estado</label>
+                            <div class="form-check form-switch">
+                                <input type="hidden" name="activo" value="false">
+                                <input class="form-check-input" type="checkbox" name="activo" id="activo" value="true"
+                                       {% if modo == 'crear' or (modo != 'crear' and ebook.activo) %}checked{% endif %}>
+                                <label class="form-check-label" for="activo">
+                                    <span class="toggle-text">Ebook activo</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>

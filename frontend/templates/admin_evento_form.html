@@ -47,18 +47,6 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Fecha *</label>
-                        <input type="date" name="fecha" class="form-control" required
-                               value="{{ '' if modo == 'crear' else evento.fecha }}">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Horario (opcional)</label>
-                        <input type="text" name="horario" class="form-control"
-                               value="{{ '' if modo == 'crear' else evento.hora }}">
-                    </div>
-
-                    <div class="mb-3">
                         <label class="form-label">Ubicación (opcional)</label>
                         <input type="text" name="ubicacion" class="form-control"
                                value="{{ '' if modo == 'crear' else evento.ubicacion }}">
@@ -68,12 +56,6 @@
                         <label class="form-label">Dirección (opcional)</label>
                         <input type="text" name="direccion" class="form-control"
                                value="{{ '' if modo == 'crear' else evento.direccion }}">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Cupos *</label>
-                        <input type="number" name="cupos" class="form-control" min="1" required
-                               value="{{ '' if modo == 'crear' else evento.cupos_totales }}">
                     </div>
 
                     <div class="mb-3">

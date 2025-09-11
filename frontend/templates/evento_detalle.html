@@ -57,27 +57,68 @@
 
                 <div class="ebook-features">
                     <div class="feature-item">
-                        <i class="fas fa-calendar"></i>
-                        <span>{{ evento.fecha.strftime('%d/%m/%Y') }}</span>
-                    </div>
-                    
-                    <div class="feature-item">
-                        <i class="fas fa-clock"></i>
-                        <span>{{ evento.hora or "Horario a confirmar" }}</span>
-                    </div>
-
-                    <div class="feature-item">
                         <i class="fas fa-map-marker-alt"></i>
                         <span>{{ evento.ubicacion or "Ubicación a confirmar" }}</span>
                     </div>
 
-                    {% if evento.cupos_totales %}
+                    {% if evento.fechas_evento %}
                     <div class="feature-item">
-                        <i class="fas fa-users"></i>
-                        <span>{{ evento.cupos_totales }} cupos disponibles</span>
+                        <i class="fas fa-calendar"></i>
+                        <span>{{ evento.fechas_evento|length }} fecha{% if evento.fechas_evento|length != 1 %}s{% endif %} disponible{% if evento.fechas_evento|length != 1 %}s{% endif %}</span>
                     </div>
                     {% endif %}
                 </div>
+
+                <!-- Date and Time Selection -->
+                {% if evento.fechas_evento %}
+                <div class="event-scheduling">
+                    <h3 class="scheduling-title">
+                        <i class="fas fa-calendar-alt"></i>
+                        Selecciona fecha y horario
+                    </h3>
+                    
+                    <!-- Date Selector -->
+                    <div class="date-selector">
+                        <h4>Fechas disponibles:</h4>
+                        <div class="date-options">
+                            {% for fecha in evento.fechas_evento %}
+                            <div class="date-option" data-fecha-id="{{ fecha.id }}" onclick="seleccionarFecha({{ fecha.id }})">
+                                <div class="date-card">
+                                    <div class="date-day">{{ fecha.fecha.day }}</div>
+                                    <div class="date-month">{{ fecha.fecha.strftime('%b') | capitalize }}</div>
+                                    <div class="date-year">{{ fecha.fecha.year }}</div>
+                                    <div class="date-weekday" data-fecha="{{ fecha.fecha.isoformat() }}"></div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Time Slots Display -->
+                    <div class="time-slots-container" id="time-slots-container" style="display: none;">
+                        <h4>Horarios disponibles:</h4>
+                        <div class="time-slots" id="time-slots">
+                            <!-- Time slots will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Selected Date/Time Info -->
+                    <div class="selection-summary" id="selection-summary" style="display: none;">
+                        <div class="summary-card">
+                            <h5><i class="fas fa-check-circle"></i> Selección actual:</h5>
+                            <div class="selected-info">
+                                <span id="selected-date-text"></span>
+                                <span id="selected-time-text"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="no-dates-available">
+                    <i class="fas fa-calendar-times"></i>
+                    <p>No hay fechas programadas o ya no quedan cupos para este evento</p>
+                </div>
+                {% endif %}
 
                 <div class="product-price">
                     <div class="price-section">
@@ -90,33 +131,23 @@
                 </div>
 
                 <div class="ebook-actions">
-                    <a href="/reservas/{{ evento.id }}" class="btn-checkout">
+                    <button id="btn-reservar" class="btn-checkout" disabled>
                         <i class="fas fa-calendar-check"></i>
-                        <span>Reservar ahora</span>
-                    </a>
+                        <span>Selecciona fecha y horario</span>
+                    </button>
                 </div>
 
                 <div class="ebook-info-details">
-                    <div class="info-item">
-                        <strong>Fecha del evento:</strong>
-                        <span>{{ evento.fecha.strftime('%d/%m/%Y') }}</span>
-                    </div>
-                    {% if evento.hora %}
-                    <div class="info-item">
-                        <strong>Horario:</strong>
-                        <span>{{ evento.hora }}</span>
-                    </div>
-                    {% endif %}
                     {% if evento.ubicacion %}
                     <div class="info-item">
                         <strong>Ubicación:</strong>
                         <span>{{ evento.ubicacion }}</span>
                     </div>
                     {% endif %}
-                    {% if evento.cupos_totales %}
+                    {% if evento.direccion %}
                     <div class="info-item">
-                        <strong>Cupos totales:</strong>
-                        <span>{{ evento.cupos_totales }}</span>
+                        <strong>Dirección:</strong>
+                        <span>{{ evento.direccion }}</span>
                     </div>
                     {% endif %}
                 </div>
@@ -164,8 +195,12 @@
                         <h4 class="ebook-title">{{ related_evento.titulo }}</h4>
                         <p class="ebook-desc">{{ related_evento.descripcion[:100] }}{% if related_evento.descripcion|length > 100 %}...{% endif %}</p>
                         <div class="event-meta">
-                            <span><i class="fas fa-calendar"></i> {{ related_evento.fecha.strftime('%d/%m/%Y') }}</span>
-                            <span><i class="fas fa-clock"></i> {{ related_evento.hora or "A confirmar" }}</span>
+                            {% if related_evento.fechas_evento %}
+                                <span><i class="fas fa-calendar"></i> {{ related_evento.fechas_evento|length }} fecha{% if related_evento.fechas_evento|length != 1 %}s{% endif %}</span>
+                            {% else %}
+                                <span><i class="fas fa-calendar"></i> Fechas a confirmar</span>
+                            {% endif %}
+                            <span><i class="fas fa-map-marker-alt"></i> {{ related_evento.ubicacion or "Ubicación a confirmar" }}</span>
                         </div>
                         <div class="ebook-bottom">
                             {% if related_evento.costo %}
@@ -183,6 +218,356 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Event Scheduling JavaScript and Styles -->
+<script>
+    let fechaSeleccionada = null;
+    let horarioSeleccionado = null;
+    
+    // Datos de fechas y horarios (generados desde el servidor)
+    const fechasData = {
+        {% for fecha in evento.fechas_evento %}
+        {{ fecha.id }}: {
+            fecha: "{{ fecha.fecha.strftime('%d/%m/%Y') }}",
+            fechaCompleta: "{{ fecha.fecha.strftime('%A, %d de %B de %Y') | capitalize }}",
+            horarios: [
+                {% for horario in fecha.horarios %}
+                {
+                    id: {{ horario.id }},
+                    hora_inicio: "{{ horario.hora_inicio.strftime('%H:%M') }}",
+                    duracion_minutos: {{ horario.duracion_minutos }},
+                    cupos: {{ horario.cupos }}
+                }{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ]
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    };
+
+    // Función para obtener el nombre del día en español
+    function obtenerNombreDia(fecha) {
+        const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        const fechaObj = new Date(fecha);
+        return diasSemana[fechaObj.getDay()];
+    }
+
+    // Inicializar nombres de días cuando se carga la página
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.date-weekday').forEach(function(element) {
+            const fechaISO = element.getAttribute('data-fecha');
+            if (fechaISO) {
+                element.textContent = obtenerNombreDia(fechaISO);
+            }
+        });
+    });
+
+    function seleccionarFecha(fechaId) {
+        fechaSeleccionada = fechaId;
+        horarioSeleccionado = null;
+        
+        // Actualizar estilos de selección de fechas
+        document.querySelectorAll('.date-option').forEach(option => {
+            option.classList.remove('selected');
+        });
+        document.querySelector(`[data-fecha-id="${fechaId}"]`).classList.add('selected');
+        
+        // Mostrar horarios de la fecha seleccionada
+        mostrarHorarios(fechaId);
+        
+        // Ocultar resumen de selección
+        document.getElementById('selection-summary').style.display = 'none';
+        
+        // Actualizar botón de reserva
+        actualizarBotonReserva();
+    }
+
+    function mostrarHorarios(fechaId) {
+        const container = document.getElementById('time-slots-container');
+        const slotsContainer = document.getElementById('time-slots');
+        
+        container.style.display = 'block';
+        
+        const fecha = fechasData[fechaId];
+        if (!fecha) return;
+        
+        let html = '';
+        if (fecha.horarios.length === 0) {
+            html = `
+                <div class="no-time-slots">
+                    <i class="fas fa-clock"></i>
+                    <p>No hay horarios disponibles para esta fecha</p>
+                </div>
+            `;
+        } else {
+            fecha.horarios.forEach(horario => {
+                const horaFin = calcularHoraFin(horario.hora_inicio, horario.duracion_minutos);
+                html += `
+                    <div class="time-slot" data-horario-id="${horario.id}" onclick="seleccionarHorario(${horario.id})">
+                        <div class="time-info">
+                            <div class="time-range">${horario.hora_inicio} - ${horaFin}</div>
+                            <div class="duration">${horario.duracion_minutos} minutos</div>
+                        </div>                        
+                    </div>
+                `;
+            });
+        }
+        
+        slotsContainer.innerHTML = html;
+    }
+
+    function seleccionarHorario(horarioId) {
+        horarioSeleccionado = horarioId;
+        
+        // Actualizar estilos de selección de horarios
+        document.querySelectorAll('.time-slot').forEach(slot => {
+            slot.classList.remove('selected');
+        });
+        document.querySelector(`[data-horario-id="${horarioId}"]`).classList.add('selected');
+        
+        // Mostrar resumen de selección
+        mostrarResumenSeleccion();
+        
+        // Actualizar botón de reserva
+        actualizarBotonReserva();
+    }
+
+    function mostrarResumenSeleccion() {
+        const summaryContainer = document.getElementById('selection-summary');
+        const dateText = document.getElementById('selected-date-text');
+        const timeText = document.getElementById('selected-time-text');
+        
+        const fecha = fechasData[fechaSeleccionada];
+        const horario = fecha.horarios.find(h => h.id === horarioSeleccionado);
+        
+        if (fecha && horario) {
+            const horaFin = calcularHoraFin(horario.hora_inicio, horario.duracion_minutos);
+            dateText.textContent = fecha.fechaCompleta;
+            timeText.textContent = `${horario.hora_inicio} - ${horaFin} (${horario.duracion_minutos} min)`;
+            summaryContainer.style.display = 'block';
+        }
+    }
+
+    function actualizarBotonReserva() {
+        const btnReservar = document.getElementById('btn-reservar');
+        const btnText = btnReservar.querySelector('span');
+        
+        if (fechaSeleccionada && horarioSeleccionado) {
+            btnReservar.disabled = false;
+            btnReservar.classList.remove('disabled');
+            btnText.textContent = 'Reservar ahora';
+            btnReservar.onclick = () => {
+                window.location.href = `/reservas/{{ evento.id }}?fecha=${fechaSeleccionada}&horario=${horarioSeleccionado}`;
+            };
+        } else {
+            btnReservar.disabled = true;
+            btnReservar.classList.add('disabled');
+            btnText.textContent = 'Selecciona fecha y horario';
+            btnReservar.onclick = null;
+        }
+    }
+
+    function calcularHoraFin(horaInicio, duracionMinutos) {
+        const [horas, minutos] = horaInicio.split(':').map(Number);
+        const fecha = new Date();
+        fecha.setHours(horas, minutos, 0, 0);
+        fecha.setMinutes(fecha.getMinutes() + duracionMinutos);
+        return fecha.toTimeString().slice(0, 5);
+    }
+</script>
+
+<style>
+/* Event Scheduling Styles */
+.event-scheduling {
+    margin: 20px 0;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #fafafa;
+}
+
+.scheduling-title {
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 1.2em;
+}
+
+.date-selector h4, .time-slots-container h4 {
+    margin-bottom: 15px;
+    color: #555;
+    font-size: 1em;
+}
+
+.date-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.date-option {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.date-option:hover {
+    transform: translateY(-2px);
+}
+
+.date-option.selected .date-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.date-card {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    min-width: 100px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.date-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.date-day {
+    font-size: 2em;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.date-month {
+    font-size: 0.9em;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin: 5px 0;
+}
+
+.date-year {
+    font-size: 0.8em;
+    opacity: 0.8;
+}
+
+.date-weekday {
+    font-size: 0.75em;
+    opacity: 0.7;
+    margin-top: 5px;
+}
+
+.time-slots-container {
+    margin-top: 20px;
+}
+
+.time-slots {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.time-slot {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.time-slot:hover {
+    border-color: #667eea;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+.time-slot.selected {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.time-info .time-range {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.time-info .duration {
+    font-size: 0.9em;
+    opacity: 0.8;
+    margin-top: 2px;
+}
+
+.capacity {
+    text-align: right;
+    font-size: 0.9em;
+}
+
+.capacity i {
+    margin-right: 5px;
+}
+
+.selection-summary {
+    margin-top: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+    border-radius: 8px;
+}
+
+.summary-card h5 {
+    margin-bottom: 10px;
+    font-size: 1em;
+}
+
+.selected-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.selected-info span {
+    font-size: 0.95em;
+}
+
+.no-dates-available, .no-time-slots {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+}
+
+.no-dates-available i, .no-time-slots i {
+    font-size: 3em;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.btn-checkout.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .date-options {
+        justify-content: center;
+    }
+    
+    .time-slots {
+        grid-template-columns: 1fr;
+    }
+    
+    .selected-info {
+        text-align: center;
+    }
+}
+</style>
 
 <script src="/static/script.js"></script>
 

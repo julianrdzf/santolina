@@ -8,6 +8,81 @@
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .form-switch .form-check-input {
+            width: 2.5em;
+            height: 1.25em;
+            background-color: #dee2e6;
+            border: none;
+            border-radius: 2em;
+            transition: all 0.3s ease;
+        }
+        
+        .form-switch .form-check-input:checked {
+            background-color: #198754;
+            border-color: #198754;
+        }
+        
+        .form-switch .form-check-input:focus {
+            box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+        }
+        
+        .toggle-text {
+            font-weight: 500;
+            margin-left: 0.5rem;
+        }
+        
+        .form-switch .form-check-input:checked + .form-check-label .toggle-text {
+            color: #198754;
+        }
+        
+        /* Estilos para carga de imágenes */
+        .image-upload-container {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+        
+        .image-upload-container:hover {
+            border-color: #007bff;
+            background-color: #f0f8ff;
+        }
+        
+        .image-preview {
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+        
+        .upload-text {
+            color: #6c757d;
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        .image-preview img {
+            max-width: 100%;
+            max-height: 120px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .image-preview.has-image {
+            padding: 10px;
+        }
+    </style>
 </head>
 <body>
     {% include "partials/header.html" %}
@@ -17,16 +92,16 @@
             <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h2><i class="fas fa-truck"></i> Gestión de Costos de Envío</h2>
+                    <h2><i class="fas fa-truck"></i> Gestión de Métodos de Envío</h2>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="/admin/tienda-panel">Panel Tienda</a></li>
-                            <li class="breadcrumb-item active">Costos de Envío</li>
+                            <li class="breadcrumb-item active">Métodos de Envío</li>
                         </ol>
                     </nav>
                 </div>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarEnvio">
-                    <i class="fas fa-plus"></i> Agregar Departamento
+                    <i class="fas fa-plus"></i> Agregar Método de Envío
                 </button>
             </div>
 
@@ -35,7 +110,7 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h5><i class="fas fa-list"></i> Costos por Departamento</h5>
+                            <h5><i class="fas fa-list"></i> Métodos de Envío Disponibles</h5>
                         </div>
                         <div class="card-body">
                             {% if costos_envio %}
@@ -44,8 +119,10 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th>ID</th>
-                                            <th>Departamento</th>
+                                            <th>Nombre</th>
+                                            <th>Descripción</th>
                                             <th>Costo</th>
+                                            <th>Requiere Dirección</th>
                                             <th>Estado</th>
                                             <th class="text-center">Acciones</th>
                                         </tr>
@@ -55,10 +132,24 @@
                                         <tr>
                                             <td>{{ costo.id }}</td>
                                             <td>
-                                                <strong>{{ costo.departamento }}</strong>
+                                                <strong>{{ costo.nombre }}</strong>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">{{ costo.descripcion or "Sin descripción" }}</small>
                                             </td>
                                             <td>
                                                 <span class="h6 text-success">${{ "%.2f"|format(costo.costo) }}</span>
+                                            </td>
+                                            <td>
+                                                {% if costo.requiere_direccion %}
+                                                    <span class="badge bg-info">
+                                                        <i class="fas fa-map-marker-alt"></i> Sí
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">
+                                                        <i class="fas fa-store"></i> Retiro
+                                                    </span>
+                                                {% endif %}
                                             </td>
                                             <td>
                                                 {% if costo.activo %}
@@ -73,13 +164,20 @@
                                             </td>
                                             <td class="text-center">
                                                 <div class="btn-group" role="group">
-                                                    <button class="btn btn-sm btn-outline-primary" 
-                                                            onclick="editarCosto({{ costo.id }}, '{{ costo.departamento }}', {{ costo.costo }}, {{ costo.activo|lower }})"
+                                                    <button class="btn btn-sm btn-outline-primary btn-editar-costo" 
+                                                            data-id="{{ costo.id }}"
+                                                            data-nombre="{{ costo.nombre }}"
+                                                            data-descripcion="{{ costo.descripcion or '' }}"
+                                                            data-costo="{{ costo.costo }}"
+                                                            data-url-imagen="{{ costo.url_imagen or '' }}"
+                                                            data-activo="{{ costo.activo|lower }}"
+                                                            data-requiere-direccion="{{ costo.requiere_direccion|lower }}"
                                                             data-bs-toggle="modal" data-bs-target="#modalEditarEnvio">
                                                         <i class="fas fa-edit"></i>
                                                     </button>
-                                                    <button class="btn btn-sm btn-outline-danger" 
-                                                            onclick="eliminarCosto({{ costo.id }}, '{{ costo.departamento }}')">
+                                                    <button class="btn btn-sm btn-outline-danger btn-eliminar-costo" 
+                                                            data-id="{{ costo.id }}"
+                                                            data-nombre="{{ costo.nombre }}">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </div>
@@ -92,10 +190,10 @@
                             {% else %}
                             <div class="text-center py-5">
                                 <i class="fas fa-truck fa-3x text-muted mb-3"></i>
-                                <h5 class="text-muted">No hay costos de envío configurados</h5>
-                                <p class="text-muted">Agrega el primer departamento para comenzar a gestionar los costos de envío.</p>
+                                <h5 class="text-muted">No hay métodos de envío configurados</h5>
+                                <p class="text-muted">Agrega el primer método de envío para comenzar a gestionar las opciones de entrega.</p>
                                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarEnvio">
-                                    <i class="fas fa-plus"></i> Agregar Primer Departamento
+                                    <i class="fas fa-plus"></i> Agregar Primer Método
                                 </button>
                             </div>
                             {% endif %}
@@ -108,52 +206,78 @@
 
     <!-- Modal Agregar -->
     <div class="modal fade" id="modalAgregarEnvio" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">
-                        <i class="fas fa-plus"></i> Agregar Costo de Envío
+                        <i class="fas fa-plus"></i> Agregar Método de Envío
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form method="post" action="/admin/envios/agregar">
+                <form method="post" action="/admin/envios/agregar" enctype="multipart/form-data">
                     <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="departamento" class="form-label">Departamento</label>
-                            <select class="form-select" id="departamento" name="departamento" required>
-                                <option value="">Seleccionar departamento</option>
-                                <option value="Artigas">Artigas</option>
-                                <option value="Canelones">Canelones</option>
-                                <option value="Cerro Largo">Cerro Largo</option>
-                                <option value="Colonia">Colonia</option>
-                                <option value="Durazno">Durazno</option>
-                                <option value="Flores">Flores</option>
-                                <option value="Florida">Florida</option>
-                                <option value="Lavalleja">Lavalleja</option>
-                                <option value="Maldonado">Maldonado</option>
-                                <option value="Montevideo">Montevideo</option>
-                                <option value="Paysandú">Paysandú</option>
-                                <option value="Río Negro">Río Negro</option>
-                                <option value="Rivera">Rivera</option>
-                                <option value="Rocha">Rocha</option>
-                                <option value="Salto">Salto</option>
-                                <option value="San José">San José</option>
-                                <option value="Soriano">Soriano</option>
-                                <option value="Tacuarembó">Tacuarembó</option>
-                                <option value="Treinta y Tres">Treinta y Tres</option>
-                            </select>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="nombre" class="form-label">Nombre del Método</label>
+                                    <input type="text" class="form-control" id="nombre" name="nombre" 
+                                           placeholder="Ej: Envío a domicilio, Retiro en tienda" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="costo" class="form-label">Costo ($)</label>
+                                    <input type="number" class="form-control" id="costo" name="costo" 
+                                           step="0.01" min="0" required>
+                                </div>
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label for="costo" class="form-label">Costo de Envío ($)</label>
-                            <input type="number" class="form-control" id="costo" name="costo" 
-                                   step="0.01" min="0" required>
+                            <label for="descripcion" class="form-label">Descripción (Opcional)</label>
+                            <textarea class="form-control" id="descripcion" name="descripcion" rows="2" 
+                                      placeholder="Descripción del método de envío"></textarea>
                         </div>
                         <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="activo" name="activo" checked>
-                                <label class="form-check-label" for="activo">
-                                    Activo
-                                </label>
+                            <label for="url_imagen" class="form-label">Imagen del Método de Envío</label>
+                            <div class="image-upload-container">
+                                <div class="image-preview" id="imagePreview">
+                                    <i class="fas fa-image upload-icon"></i>
+                                    <p class="upload-text">Seleccionar imagen</p>
+                                </div>
+                                <input type="file" class="form-control d-none" id="imageFile" name="imagen_file" 
+                                       accept="image/*" onchange="previewImage(event)">
+                                <input type="hidden" id="url_imagen" name="url_imagen">
+                                <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="document.getElementById('imageFile').click()">
+                                    <i class="fas fa-upload"></i> Subir Imagen
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm mt-2 d-none" id="removeImageBtn" onclick="removeImage()">
+                                    <i class="fas fa-trash"></i> Quitar
+                                </button>
+                            </div>
+                            <div class="form-text">Imagen para mapas de zona o iconos del método de envío</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Estado</label>
+                                    <div class="form-check form-switch">
+                                        <input type="hidden" name="activo" value="false">
+                                        <input class="form-check-input" type="checkbox" id="activo" name="activo" value="true" checked>
+                                        <label class="form-check-label" for="activo">
+                                            <span class="toggle-text">Activo</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input type="hidden" name="requiere_direccion" value="false">
+                                    <input class="form-check-input" type="checkbox" id="requiere_direccion" name="requiere_direccion" value="true" checked>
+                                    <label class="form-check-label" for="requiere_direccion">
+                                        <i class="fas fa-map-marker-alt text-info"></i> Requiere dirección
+                                    </label>
+                                    <div class="form-text">Desmarcar para opciones de retiro</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -170,51 +294,78 @@
 
     <!-- Modal Editar -->
     <div class="modal fade" id="modalEditarEnvio" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">
-                        <i class="fas fa-edit"></i> Editar Costo de Envío
+                        <i class="fas fa-edit"></i> Editar Método de Envío
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form method="post" id="formEditar">
+                <form method="post" id="formEditarEnvio" enctype="multipart/form-data">
                     <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="editDepartamento" class="form-label">Departamento</label>
-                            <select class="form-select" id="editDepartamento" name="departamento" required>
-                                <option value="Artigas">Artigas</option>
-                                <option value="Canelones">Canelones</option>
-                                <option value="Cerro Largo">Cerro Largo</option>
-                                <option value="Colonia">Colonia</option>
-                                <option value="Durazno">Durazno</option>
-                                <option value="Flores">Flores</option>
-                                <option value="Florida">Florida</option>
-                                <option value="Lavalleja">Lavalleja</option>
-                                <option value="Maldonado">Maldonado</option>
-                                <option value="Montevideo">Montevideo</option>
-                                <option value="Paysandú">Paysandú</option>
-                                <option value="Río Negro">Río Negro</option>
-                                <option value="Rivera">Rivera</option>
-                                <option value="Rocha">Rocha</option>
-                                <option value="Salto">Salto</option>
-                                <option value="San José">San José</option>
-                                <option value="Soriano">Soriano</option>
-                                <option value="Tacuarembó">Tacuarembó</option>
-                                <option value="Treinta y Tres">Treinta y Tres</option>
-                            </select>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editNombre" class="form-label">Nombre del Método</label>
+                                    <input type="text" class="form-control" id="editNombre" name="nombre" 
+                                           placeholder="Ej: Envío a domicilio, Retiro en tienda" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editCosto" class="form-label">Costo ($)</label>
+                                    <input type="number" class="form-control" id="editCosto" name="costo" 
+                                           step="0.01" min="0" required>
+                                </div>
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label for="editCosto" class="form-label">Costo de Envío ($)</label>
-                            <input type="number" class="form-control" id="editCosto" name="costo" 
-                                   step="0.01" min="0" required>
+                            <label for="editDescripcion" class="form-label">Descripción (Opcional)</label>
+                            <textarea class="form-control" id="editDescripcion" name="descripcion" rows="2" 
+                                      placeholder="Descripción del método de envío"></textarea>
                         </div>
                         <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="editActivo" name="activo">
-                                <label class="form-check-label" for="editActivo">
-                                    Activo
-                                </label>
+                            <label for="editUrlImagen" class="form-label">Imagen del Método de Envío</label>
+                            <div class="image-upload-container">
+                                <div class="image-preview" id="editImagePreview">
+                                    <i class="fas fa-image upload-icon"></i>
+                                    <p class="upload-text">Seleccionar imagen</p>
+                                </div>
+                                <input type="file" class="form-control d-none" id="editImageFile" name="imagen_file" 
+                                       accept="image/*" onchange="previewEditImage(event)">
+                                <input type="hidden" id="editUrlImagen" name="url_imagen">
+                                <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="document.getElementById('editImageFile').click()">
+                                    <i class="fas fa-upload"></i> Subir Imagen
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm mt-2 d-none" id="editRemoveImageBtn" onclick="removeEditImage()">
+                                    <i class="fas fa-trash"></i> Quitar
+                                </button>
+                            </div>
+                            <div class="form-text">Imagen para mapas de zona o iconos del método de envío</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Estado</label>
+                                    <div class="form-check form-switch">
+                                        <input type="hidden" name="activo" value="false">
+                                        <input class="form-check-input" type="checkbox" id="editActivo" name="activo" value="true">
+                                        <label class="form-check-label" for="editActivo">
+                                            <span class="toggle-text">Activo</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input type="hidden" name="requiere_direccion" value="false">
+                                    <input class="form-check-input" type="checkbox" id="editRequiereDireccion" name="requiere_direccion" value="true">
+                                    <label class="form-check-label" for="editRequiereDireccion">
+                                        <i class="fas fa-map-marker-alt text-info"></i> Requiere dirección
+                                    </label>
+                                    <div class="form-text">Desmarcar para opciones de retiro</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -234,34 +385,156 @@
     <script src="/static/script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function editarCosto(id, departamento, costo, activo) {
-            document.getElementById('formEditar').action = `/admin/envios/editar/${id}`;
-            document.getElementById('editDepartamento').value = departamento;
-            document.getElementById('editCosto').value = costo;
-            document.getElementById('editActivo').checked = activo;
-        }
-
-        function eliminarCosto(id, departamento) {
-            if (confirm(`¿Estás seguro de eliminar el costo de envío para ${departamento}?`)) {
-                fetch(`/admin/envios/eliminar/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
+        // Event listeners for edit buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle edit button clicks
+            document.querySelectorAll('.btn-editar-costo').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    const nombre = this.dataset.nombre;
+                    const descripcion = this.dataset.descripcion;
+                    const costo = this.dataset.costo;
+                    const urlImagen = this.dataset.urlImagen;
+                    const activo = this.dataset.activo === 'true';
+                    const requiereDireccion = this.dataset.requiereDireccion === 'true';
+                    
+                    // Set form action
+                    document.getElementById('formEditarEnvio').action = `/admin/envios/editar/${id}`;
+                    
+                    // Fill form fields
+                    document.getElementById('editNombre').value = nombre;
+                    document.getElementById('editDescripcion').value = descripcion;
+                    document.getElementById('editCosto').value = costo;
+                    document.getElementById('editUrlImagen').value = urlImagen;
+                    document.getElementById('editActivo').checked = activo;
+                    document.getElementById('editRequiereDireccion').checked = requiereDireccion;
+                    
+                    // Load existing image if available
+                    if (urlImagen) {
+                        loadEditImage(urlImagen);
                     } else {
-                        alert('Error al eliminar: ' + (data.message || 'Error desconocido'));
+                        resetEditImagePreview();
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error al eliminar el costo de envío');
                 });
+            });
+
+            // Handle delete button clicks
+            document.querySelectorAll('.btn-eliminar-costo').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    const nombre = this.dataset.nombre;
+                    
+                    if (confirm(`¿Estás seguro de eliminar el método de envío "${nombre}"?`)) {
+                        fetch(`/admin/envios/eliminar/${id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                location.reload();
+                            } else {
+                                alert('Error al eliminar: ' + (data.message || 'Error desconocido'));
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Error al eliminar el método de envío');
+                        });
+                    }
+                });
+            });
+        });
+        
+        // Funciones para manejo de imágenes - Modal Agregar
+        function previewImage(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('imagePreview');
+            const removeBtn = document.getElementById('removeImageBtn');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                    preview.classList.add('has-image');
+                    removeBtn.classList.remove('d-none');
+                };
+                reader.readAsDataURL(file);
             }
+        }
+        
+        function removeImage() {
+            const preview = document.getElementById('imagePreview');
+            const fileInput = document.getElementById('imageFile');
+            const removeBtn = document.getElementById('removeImageBtn');
+            const urlInput = document.getElementById('url_imagen');
+            
+            preview.innerHTML = `
+                <i class="fas fa-image upload-icon"></i>
+                <p class="upload-text">Seleccionar imagen</p>
+            `;
+            preview.classList.remove('has-image');
+            fileInput.value = '';
+            urlInput.value = '';
+            removeBtn.classList.add('d-none');
+        }
+        
+        // Funciones para manejo de imágenes - Modal Editar
+        function previewEditImage(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('editImagePreview');
+            const removeBtn = document.getElementById('editRemoveImageBtn');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                    preview.classList.add('has-image');
+                    removeBtn.classList.remove('d-none');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function removeEditImage() {
+            const preview = document.getElementById('editImagePreview');
+            const fileInput = document.getElementById('editImageFile');
+            const removeBtn = document.getElementById('editRemoveImageBtn');
+            const urlInput = document.getElementById('editUrlImagen');
+            
+            preview.innerHTML = `
+                <i class="fas fa-image upload-icon"></i>
+                <p class="upload-text">Seleccionar imagen</p>
+            `;
+            preview.classList.remove('has-image');
+            fileInput.value = '';
+            urlInput.value = '';
+            removeBtn.classList.add('d-none');
+        }
+        
+        function loadEditImage(imageUrl) {
+            const preview = document.getElementById('editImagePreview');
+            const removeBtn = document.getElementById('editRemoveImageBtn');
+            
+            if (imageUrl) {
+                preview.innerHTML = `<img src="${imageUrl}" alt="Imagen actual">`;
+                preview.classList.add('has-image');
+                removeBtn.classList.remove('d-none');
+            }
+        }
+        
+        function resetEditImagePreview() {
+            const preview = document.getElementById('editImagePreview');
+            const removeBtn = document.getElementById('editRemoveImageBtn');
+            
+            preview.innerHTML = `
+                <i class="fas fa-image upload-icon"></i>
+                <p class="upload-text">Seleccionar imagen</p>
+            `;
+            preview.classList.remove('has-image');
+            removeBtn.classList.add('d-none');
         }
     </script>
 </body>

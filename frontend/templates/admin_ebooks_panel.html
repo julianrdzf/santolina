@@ -8,25 +8,209 @@
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-
+    <style>
+        .admin-panel-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        
+        .panel-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .panel-title {
+            color: #2d3748;
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .panel-subtitle {
+            color: #718096;
+            font-size: 1.1rem;
+        }
+        
+        .admin-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            height: 100%;
+        }
+        
+        .admin-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 50px rgba(0, 0, 0, 0.15);
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .card-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            margin: 0 auto 1.5rem;
+        }
+        
+        .card-title {
+            font-weight: 600;
+            font-size: 1.3rem;
+            color: #2d3748;
+            margin-bottom: 0.8rem;
+            text-align: center;
+        }
+        
+        .card-description {
+            color: #718096;
+            font-size: 1rem;
+            line-height: 1.5;
+            text-align: center;
+        }
+        
+        .card-stats {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: #667eea;
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        .icon-ebook-categories { 
+            background: linear-gradient(135deg, #667eea, #764ba2); 
+        }
+        .icon-ebooks { 
+            background: linear-gradient(135deg, #f093fb, #f5576c); 
+        }
+        .icon-ebook-purchases { 
+            background: linear-gradient(135deg, #4facfe, #00f2fe); 
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #718096;
+            margin-top: 0.25rem;
+        }
+    </style>
 </head>
 <body>
     {% include "partials/header.html" %}
 
-    <section>
+    <div class="admin-panel-container">
+        <div class="container">
+            <div class="panel-header text-center">
+                <h1 class="panel-title">
+                    <i class="fas fa-book me-3"></i>Panel de Ebooks
+                </h1>
+                <p class="panel-subtitle">Administra tu biblioteca digital y ventas de ebooks</p>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-number">{{ total_ebooks|default(0) }}</span>
+                        <div class="stat-label">Ebooks Totales</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">{{ total_categorias|default(0) }}</span>
+                        <div class="stat-label">Categorías</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">{{ total_ventas|default(0) }}</span>
+                        <div class="stat-label">Ventas</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">${{ ingresos_totales|default(0) }}</span>
+                        <div class="stat-label">Ingresos</div>
+                    </div>
+                </div>
+            </div>
 
-        <div class="container text-center mt-5">
-            <h1 class="mb-4">Panel de Ebooks</h1>
-            <div class="d-grid gap-3 col-6 mx-auto">
-                <a href="/admin/categorias_ebooks" class="btn btn-panel btn-lg">Categorías de ebooks</a>
-                <a href="/admin/ebooks" class="btn btn-panel btn-lg">Ebooks</a>
-                <a href="/admin/compras_ebooks" class="btn btn-panel btn-lg">Compras de ebooks</a>
-                
-                
+            <div class="row g-4 justify-content-center">
+                <div class="col-md-6 col-lg-4">
+                    <a href="/admin/categorias_ebooks" class="admin-card">
+                        <div class="card-icon icon-ebook-categories">
+                            <i class="fas fa-folder-open"></i>
+                        </div>
+                        <h3 class="card-title">Categorías de Ebooks</h3>
+                        <p class="card-description">Organiza tus ebooks en categorías y subcategorías para una mejor navegación</p>
+                        <div class="card-stats">
+                            <i class="fas fa-layer-group me-1"></i>
+                            Gestión jerárquica
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <a href="/admin/ebooks" class="admin-card">
+                        <div class="card-icon icon-ebooks">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <h3 class="card-title">Gestión de Ebooks</h3>
+                        <p class="card-description">Sube, edita y administra tu catálogo completo de libros digitales</p>
+                        <div class="card-stats">
+                            <i class="fas fa-cloud-upload-alt me-1"></i>
+                            Subida a Cloudinary
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <a href="/admin/compras_ebooks" class="admin-card">
+                        <div class="card-icon icon-ebook-purchases">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <h3 class="card-title">Compras de Ebooks</h3>
+                        <p class="card-description">Monitorea todas las transacciones, pagos y descargas de tus ebooks</p>
+                        <div class="card-stats">
+                            <i class="fas fa-chart-line me-1"></i>
+                            Analytics y reportes
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
-
-    </section>
+    </div>
 
     <script src="/static/script.js"></script>
 </body>
