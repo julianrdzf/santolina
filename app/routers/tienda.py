@@ -797,8 +797,8 @@ def pago_exitoso_tienda(
     ).get(orden.id)
     
     # Enviar emails de confirmación
-    background_tasks.add_task(enviar_confirmacion_orden, orden, orden.usuario)
-    background_tasks.add_task(notificar_admin_orden, orden, orden.usuario)
+    background_tasks.add_task(enviar_confirmacion_orden, orden.id)
+    background_tasks.add_task(notificar_admin_orden, orden.id)
     
     return templates.TemplateResponse("pago_exitoso_tienda.html", {
         "request": request,

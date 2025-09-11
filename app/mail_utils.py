@@ -41,34 +41,54 @@ async def enviar_mail_prueba(destinatario: str):
     """
     send_email(destinatario, "¡Correo de prueba desde Santolina!", content)
 
-async def enviar_confirmacion_reserva(reserva, evento):
+async def enviar_confirmacion_reserva(reserva, usuario):
+    # Obtener información del horario y evento
+    horario = reserva.horario
+    fecha_evento = horario.fecha_evento
+    evento = fecha_evento.evento
+    
+    # Formatear hora de fin
+    hora_fin_str = ""
+    if horario.hora_fin:
+        hora_fin_str = f" - {horario.hora_fin.strftime('%H:%M')}"
+    
     content = f"""
-    <h3>Hola {reserva.nombre},</h3>
+    <h3>Hola {usuario.nombre},</h3>
     <p>Gracias por reservar tu lugar en <strong>{evento.titulo}</strong>.</p>
-    <p><strong>Fecha:</strong> {evento.fecha.strftime('%d/%m/%Y')}<br>
-    <strong>Hora:</strong> {evento.hora or 'A confirmar'}<br>
+    <p><strong>Fecha:</strong> {fecha_evento.fecha.strftime('%d/%m/%Y')}<br>
+    <strong>Hora:</strong> {horario.hora_inicio.strftime('%H:%M')}{hora_fin_str}<br>
     <strong>Ubicación:</strong> {evento.ubicacion or 'A confirmar'}<br>
     <strong>Dirección:</strong> {evento.direccion or 'A confirmar'}<br>
     <strong>Cupos reservados:</strong> {reserva.cupos}</p>
     <p>Nos pondremos en contacto si hay cambios. ¡Gracias!</p>
     """
-    send_email(reserva.email, f"Confirmación de tu reserva en '{evento.titulo}'", content)
+    send_email(usuario.email, f"Confirmación de tu reserva en '{evento.titulo}'", content)
 
-async def notificar_admin_reserva(reserva, evento):
+async def notificar_admin_reserva(reserva, usuario):
     admin_email = os.getenv("ADMIN_EMAIL")
     if not admin_email:
         return
 
+    # Obtener información del horario y evento
+    horario = reserva.horario
+    fecha_evento = horario.fecha_evento
+    evento = fecha_evento.evento
+    
+    # Formatear hora de fin
+    hora_fin_str = ""
+    if horario.hora_fin:
+        hora_fin_str = f" - {horario.hora_fin.strftime('%H:%M')}"
+
     content = f"""
     <h3>Se ha registrado una nueva reserva.</h3>
     <p><strong>Evento:</strong> {evento.titulo}<br>
-    <strong>Fecha:</strong> {evento.fecha.strftime('%d/%m/%Y')}<br>
-    <strong>Hora:</strong> {evento.hora or 'A confirmar'}<br>
+    <strong>Fecha:</strong> {fecha_evento.fecha.strftime('%d/%m/%Y')}<br>
+    <strong>Hora:</strong> {horario.hora_inicio.strftime('%H:%M')}{hora_fin_str}<br>
     <strong>Ubicación:</strong> {evento.ubicacion or 'A confirmar'}<br>
     <strong>Dirección:</strong> {evento.direccion or 'A confirmar'}<br>
-    <strong>Nombre:</strong> {reserva.nombre}<br>
-    <strong>Email:</strong> {reserva.email}<br>
-    <strong>Celular:</strong> {reserva.celular or 'No proporcionado'}<br>
+    <strong>Nombre:</strong> {usuario.nombre}<br>
+    <strong>Email:</strong> {usuario.email}<br>
+    <strong>Celular:</strong> {usuario.celular or 'No proporcionado'}<br>
     <strong>Cupos:</strong> {reserva.cupos}</p>
     """
     send_email(admin_email, f"Nueva reserva registrada en '{evento.titulo}'", content)
@@ -97,9 +117,33 @@ async def enviar_mail_password_reset(destinatario: str, reset_link: str):
     """
     send_email(destinatario, "Restablecer contraseña", content)
 
-def enviar_confirmacion_orden(orden, usuario):
+def enviar_confirmacion_orden(orden_id: int):
     """Envía email de confirmación al cliente cuando se confirma una orden"""
+    from app.db import get_db
+    from app.models.ordenes import Orden
+    from app.models.orden_detalle import OrdenDetalle
+    from app.models.user import Usuario
+    from app.models.direcciones import Direccion
+    from app.models.costos_envio import CostoEnvio
+    from sqlalchemy.orm import joinedload
+    
     try:
+        # Crear nueva sesión de base de datos
+        db = next(get_db())
+        
+        # Cargar orden con todas las relaciones necesarias
+        orden = db.query(Orden).options(
+            joinedload(Orden.detalle).joinedload(OrdenDetalle.producto),
+            joinedload(Orden.usuario),
+            joinedload(Orden.direccion_envio),
+            joinedload(Orden.metodo_envio)
+        ).get(orden_id)
+        
+        if not orden:
+            print(f"❌ Orden #{orden_id} no encontrada")
+            return
+            
+        usuario = orden.usuario
         print(f"🔄 Enviando email de confirmación de orden #{orden.id} a {usuario.email}")
         
         content = f"""
@@ -122,9 +166,24 @@ def enviar_confirmacion_orden(orden, usuario):
         content += f"""
         </ul>
         
-        <h3>Dirección de envío:</h3>
-        <p>{orden.direccion_envio.direccion}<br>
+        <h3>Método de entrega:</h3>
+        """
+        
+        # Mostrar información del método de envío
+        content += f"""
+        <p>{orden.metodo_envio.nombre}<br>
+        {orden.metodo_envio.descripcion or ''}</p>
+        """
+        
+        # Mostrar dirección solo si es necesaria
+        if orden.direccion_envio:
+            content += f"""
+        <p><strong>Dirección de envío:</strong><br>
+        {orden.direccion_envio.direccion}<br>
         {orden.direccion_envio.ciudad}, {orden.direccion_envio.departamento}</p>
+        """
+        
+        content += f"""
         
         <p><strong>Total del pedido:</strong> $ {orden.total_final:.2f}</p>
         
@@ -142,15 +201,41 @@ def enviar_confirmacion_orden(orden, usuario):
         print(f"❌ Error enviando email de confirmación de orden: {e}")
         import traceback
         traceback.print_exc()
+    finally:
+        db.close()
 
-def notificar_admin_orden(orden, usuario):
+def notificar_admin_orden(orden_id: int):
     """Notifica al administrador sobre una nueva orden confirmada"""
+    from app.db import get_db
+    from app.models.ordenes import Orden
+    from app.models.orden_detalle import OrdenDetalle
+    from app.models.user import Usuario
+    from app.models.direcciones import Direccion
+    from app.models.costos_envio import CostoEnvio
+    from sqlalchemy.orm import joinedload
+    
     try:
         admin_email = os.getenv("ADMIN_EMAIL")
         if not admin_email:
             print("⚠️ ADMIN_EMAIL no configurado, no se puede enviar notificación")
             return
 
+        # Crear nueva sesión de base de datos
+        db = next(get_db())
+        
+        # Cargar orden con todas las relaciones necesarias
+        orden = db.query(Orden).options(
+            joinedload(Orden.detalle).joinedload(OrdenDetalle.producto),
+            joinedload(Orden.usuario),
+            joinedload(Orden.direccion_envio),
+            joinedload(Orden.metodo_envio)
+        ).get(orden_id)
+        
+        if not orden:
+            print(f"❌ Orden #{orden_id} no encontrada")
+            return
+            
+        usuario = orden.usuario
         print(f"🔄 Enviando notificación de orden #{orden.id} al admin {admin_email}")
 
         content = f"""
@@ -177,10 +262,25 @@ def notificar_admin_orden(orden, usuario):
         content += f"""
         </ul>
         
-        <h3>Dirección de envío:</h3>
-        <p>{orden.direccion_envio.direccion}<br>
+        <h3>Método de entrega:</h3>
+        """
+        
+        # Mostrar información del método de envío
+        content += f"""
+        <p>{orden.metodo_envio.nombre}<br>
+        {orden.metodo_envio.descripcion or ''}</p>
+        """
+        
+        # Mostrar dirección solo si es necesaria
+        if orden.direccion_envio:
+            content += f"""
+        <p><strong>Dirección de envío:</strong><br>
+        {orden.direccion_envio.direccion}<br>
         {orden.direccion_envio.ciudad}, {orden.direccion_envio.departamento}<br>
         {orden.direccion_envio.pais}</p>
+        """
+        
+        content += f"""
         
         <p><strong>Subtotal productos:</strong> $ {orden.total:.2f}<br>
         <strong>Descuento:</strong> $ {orden.descuento_total:.2f}<br>
@@ -196,6 +296,8 @@ def notificar_admin_orden(orden, usuario):
         print(f"❌ Error enviando notificación de orden al admin: {e}")
         import traceback
         traceback.print_exc()
+    finally:
+        db.close()
 
 def enviar_confirmacion_compra_ebook(compra, usuario):
     """Envía email de confirmación al cliente cuando compra un ebook"""
