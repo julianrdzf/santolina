@@ -62,20 +62,7 @@
                 <input class="form-check-input" type="checkbox" id="activo" name="activo"
                        {% if modo == 'crear' or promocion.activo %}checked{% endif %}>
                 <label class="form-check-label" for="activo">Promoción activa</label>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Productos incluidos</label>
-                <select name="productos" class="form-select" multiple>
-                    {% for producto in productos %}
-                        <option value="{{ producto.id }}" 
-                                {% if modo != 'crear' and producto.id in productos_ids %}selected{% endif %}>
-                            {{ producto.nombre }}
-                        </option>
-                    {% endfor %}
-                </select>
-                <small class="text-muted">Mantenga Ctrl (o Cmd) presionado para seleccionar varios productos</small>
-            </div>
+            </div>            
 
             <button type="submit" class="btn btn-success">
                 {% if modo == 'crear' %}
