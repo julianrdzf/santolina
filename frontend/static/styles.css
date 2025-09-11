@@ -5222,8 +5222,7 @@ transform: rotate(90deg);
     gap: 10px;
 }
 
-.btn-buy-ebook:hover {
-    background: var(--dark-green-color);
+.btn-buy-ebook:hover {    
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }

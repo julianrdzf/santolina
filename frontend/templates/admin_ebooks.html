@@ -49,7 +49,7 @@
                         <tr>
                             <td>{{ ebook.id }}</td>
                             <td>{{ ebook.titulo }}</td>
-                            <td>${{ "%.2f"|format(ebook.precio) }}</td>
+                            <td>USD {{ "%.2f"|format(ebook.precio) }}</td>
                             <td>{{ ebook.categoria.nombre if ebook.categoria else 'Sin categoría' }}</td>
                             <td>
                                 {% if ebook.imagen_portada %}

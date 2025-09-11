@@ -75,7 +75,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Precio *</label>
+                        <label class="form-label">Precio en USD</label>
                         <input type="number" step="0.01" name="precio" class="form-control" required value="{{ '' if modo == 'crear' else ebook.precio }}">
                     </div>
 
@@ -95,8 +95,8 @@
                         <div class="form-group">
                             <label class="form-label">Estado</label>
                             <div class="form-check form-switch">
-                                <input type="hidden" name="activo" value="false">
-                                <input class="form-check-input" type="checkbox" name="activo" id="activo" value="true"
+                                <input type="hidden" name="activo" value="">
+                                <input class="form-check-input" type="checkbox" name="activo" id="activo" value="on"
                                        {% if modo == 'crear' or (modo != 'crear' and ebook.activo) %}checked{% endif %}>
                                 <label class="form-check-label" for="activo">
                                     <span class="toggle-text">Ebook activo</span>

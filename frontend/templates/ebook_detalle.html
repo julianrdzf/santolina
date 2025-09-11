@@ -84,10 +84,17 @@
                 </div>
 
                 <div class="ebook-actions">
-                    <button type="button" class="btn-buy-ebook btn-mercadopago btn-full" id="buy-ebook" data-ebook-id="{{ ebook.id }}">
-                        <img class="logo-img-mercadopago" src="/static/img/mercadopago-logo.svg" alt="Mercado Pago">
+                    <div class="payment-methods">
+                        <h4 class="payment-title">Elige tu método de pago:</h4>
                         
-                    </button>
+                        <button type="button" class="btn-buy-ebook btn-mercadopago" id="buy-ebook-mp" data-ebook-id="{{ ebook.id }}">
+                            <img class="logo-img-mercadopago" src="/static/img/mercadopago-logo.svg" alt="Mercado Pago">
+                        </button>
+                        
+                        <button type="button" class="btn-buy-ebook btn-paypal" id="buy-ebook-paypal" data-ebook-id="{{ ebook.id }}">
+                            <img class="logo-img-paypal" src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-200px.png" alt="PayPal">
+                        </button>
+                    </div>
                 </div>
 
                 <div class="ebook-info-details">
@@ -157,16 +164,99 @@
 
 <script src="/static/script.js"></script>
 
+<style>
+.payment-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.payment-title {
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+    color: #333;
+    font-weight: 600;
+}
+
+.btn-buy-ebook {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    min-height: 50px;
+}
+
+.btn-mercadopago {
+    background: linear-gradient(135deg, #ffe600 0%, #ffe600 100%);
+    color: white;
+}
+
+.btn-mercadopago:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 158, 227, 0.3);
+}
+
+.btn-paypal {
+    background: linear-gradient(135deg, #EEEEEE 0%, #dadada 100%);
+    color: white;
+}
+
+.btn-paypal:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 112, 186, 0.3);
+}
+
+.logo-img-mercadopago {
+    height: 50px;
+    width: auto;
+    
+}
+
+
+.logo-img-paypal {
+    height: 24px;
+    width: auto;
+    
+}
+
+.btn-buy-ebook:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+@media (max-width: 768px) {
+    .payment-methods {
+        gap: 0.8rem;
+    }
+    
+    .btn-buy-ebook {
+        padding: 10px 20px;
+        min-height: 45px;
+    }
+}
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const buyButton = document.getElementById('buy-ebook');
+    const buyButtonMP = document.getElementById('buy-ebook-mp');
+    const buyButtonPayPal = document.getElementById('buy-ebook-paypal');
     
-    if (buyButton) {
-        buyButton.addEventListener('click', async function() {
+    // MercadoPago button handler
+    if (buyButtonMP) {
+        buyButtonMP.addEventListener('click', async function() {
             const ebookId = this.getAttribute('data-ebook-id');
             
-            // Disable button during processing
-            this.disabled = true;
+            // Disable both buttons during processing
+            disableButtons();
             this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
             
             try {
@@ -180,7 +270,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     })
                 });
                 
-                // Check if response is JSON
                 const contentType = response.headers.get('content-type');
                 if (!contentType || !contentType.includes('application/json')) {
                     const text = await response.text();
@@ -191,10 +280,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
                 
                 if (response.ok && data.init_point) {
-                    // Redirect to MercadoPago
                     window.location.href = data.init_point;
                 } else {
-                    // Check for unauthorized error
                     if (response.status === 401 || (data.detail && data.detail.toLowerCase().includes('unauthorized'))) {
                         throw new Error('Debes iniciar sesión o registrarte para comprar este ebook.');
                     }
@@ -203,12 +290,74 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch (error) {
                 console.error('Error:', error);
                 alert('Error al procesar la compra: ' + error.message);
-                
-                // Re-enable button
-                this.disabled = false;
-                this.innerHTML = '<img class="logo-img-mercadopago" src="/static/img/mercadopago-logo.svg" alt="Mercado Pago">';
+                enableButtons();
             }
         });
+    }
+    
+    // PayPal button handler
+    if (buyButtonPayPal) {
+        buyButtonPayPal.addEventListener('click', async function() {
+            const ebookId = this.getAttribute('data-ebook-id');
+            
+            // Disable both buttons during processing
+            disableButtons();
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+            
+            try {
+                const response = await fetch('/paypal/crear-orden', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ebook_id: parseInt(ebookId)
+                    })
+                });
+                
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('Non-JSON response:', text);
+                    throw new Error('El servidor devolvió una respuesta inválida. Por favor, inicia sesión e intenta nuevamente.');
+                }
+                
+                const data = await response.json();
+                
+                if (response.ok && data.approve_url) {
+                    window.location.href = data.approve_url;
+                } else {
+                    if (response.status === 401 || (data.detail && data.detail.toLowerCase().includes('unauthorized'))) {
+                        throw new Error('Debes iniciar sesión o registrarte para comprar este ebook.');
+                    }
+                    throw new Error(data.detail || 'Error al procesar la compra');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al procesar la compra: ' + error.message);
+                enableButtons();
+            }
+        });
+    }
+    
+    function disableButtons() {
+        if (buyButtonMP) {
+            buyButtonMP.disabled = true;
+        }
+        if (buyButtonPayPal) {
+            buyButtonPayPal.disabled = true;
+        }
+    }
+    
+    function enableButtons() {
+        if (buyButtonMP) {
+            buyButtonMP.disabled = false;
+            buyButtonMP.innerHTML = '<img class="logo-img-mercadopago" src="/static/img/mercadopago-logo.svg" alt="Mercado Pago">';
+        }
+        if (buyButtonPayPal) {
+            buyButtonPayPal.disabled = false;
+            buyButtonPayPal.innerHTML = '<img class="logo-img-paypal" src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-200px.png" alt="PayPal">';
+        }
     }
 });
 </script>

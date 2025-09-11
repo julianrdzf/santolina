@@ -373,8 +373,7 @@
                                 
                                 <div class="ebook-purchase-details">
                                     <div class="ebook-metadata">
-                                        <p><strong>Categoría:</strong> {{ compra.ebook.categoria.nombre }}</p>
-                                        <p><strong>Precio pagado:</strong> USD {{ "%.2f"|format(compra.precio_pagado) }}</p>
+                                        <p><strong>Categoría:</strong> {{ compra.ebook.categoria.nombre }}</p>                                        
                                         {% if compra.ebook.descripcion %}
                                         <p><strong>Descripción:</strong> {{ compra.ebook.descripcion[:150] }}{% if compra.ebook.descripcion|length > 150 %}...{% endif %}</p>
                                         {% endif %}
@@ -384,10 +383,7 @@
                                         <button class="btn btn-primary btn-download" 
                                                 onclick="descargarEbook({{ compra.ebook.id }})">
                                             <i class="fas fa-download"></i> Descargar PDF
-                                        </button>
-                                        <a href="/ebooks/{{ compra.ebook.id }}" class="btn btn-secondary">
-                                            <i class="fas fa-eye"></i> Ver detalles
-                                        </a>
+                                        </button>                                        
                                     </div>
                                 </div>
                             </div>

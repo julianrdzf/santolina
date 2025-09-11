@@ -210,7 +210,7 @@ async def crear_ebook(
             url_archivo.file,
             resource_type="raw",
             folder="ebooks/archivos",
-            public_id=f"ebook_{titulo.replace(' ', '_')}"
+            public_id=f"ebook_{titulo.replace(' ', '_')}.pdf"
         )
         
         # Subir imagen de portada si se proporciona
@@ -290,19 +290,38 @@ async def actualizar_ebook(
         
         # Actualizar archivo PDF si se proporciona uno nuevo
         if url_archivo and url_archivo.filename:
+            # Eliminar archivo anterior de Cloudinary si existe
+            if ebook.url_archivo:
+                try:
+                    # Extraer public_id del URL anterior
+                    old_public_id = f"ebook_{ebook.titulo.replace(' ', '_')}.pdf"
+                    cloudinary.uploader.destroy(old_public_id, resource_type="raw")
+                except Exception as e:
+                    print(f"Error eliminando archivo anterior: {e}")
+            
             pdf_result = cloudinary.uploader.upload(
                 url_archivo.file,
                 resource_type="raw",
                 folder="ebooks/archivos",
-                public_id=f"ebook_{titulo.replace(' ', '_')}"
+                public_id=f"ebook_{titulo.replace(' ', '_')}.pdf"
             )
             ebook.url_archivo = pdf_result["secure_url"]
         
         # Actualizar imagen de portada si se proporciona una nueva
         if imagen_portada and imagen_portada.filename:
+            # Eliminar imagen anterior de Cloudinary si existe
+            if ebook.imagen_portada:
+                try:
+                    # Extraer public_id del URL anterior
+                    old_public_id = f"ebooks/portadas/ebook_{ebook.titulo.replace(' ', '_')}"
+                    cloudinary.uploader.destroy(old_public_id)
+                except Exception as e:
+                    print(f"Error eliminando imagen anterior: {e}")
+            
             imagen_result = cloudinary.uploader.upload(
                 imagen_portada.file,
                 folder="ebooks/portadas",
+                public_id=f"ebook_{titulo.replace(' ', '_')}",
                 transformation=[
                     {"width": 400, "height": 600, "crop": "fill"},
                     {"quality": "auto"},

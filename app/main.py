@@ -3,7 +3,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from fastapi.templating import Jinja2Templates
-from app.routers import categorias, eventos, reservas, admin, admin_eventos, admin_ebooks, contacto, usuarios, mercado_pago, tienda, ebooks
+from app.routers import categorias, eventos, reservas, admin, admin_eventos, admin_ebooks, contacto, usuarios, mercado_pago, tienda, ebooks, paypal
 from fastapi import FastAPI
 from app.mail_utils import enviar_mail_prueba
 from app.routers.auth import router as auth_router
@@ -63,6 +63,7 @@ app.include_router(usuarios.router)
 app.include_router(mercado_pago.router)
 app.include_router(tienda.router)
 app.include_router(ebooks.router)
+app.include_router(paypal.router)
 
 
 

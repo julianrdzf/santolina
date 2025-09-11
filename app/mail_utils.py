@@ -312,7 +312,7 @@ def enviar_confirmacion_compra_ebook(compra, usuario):
         <h3>Detalles de la compra:</h3>
         <p><strong>Ebook:</strong> {compra.ebook.titulo}<br>
         <strong>Categoría:</strong> {compra.ebook.categoria.nombre if compra.ebook.categoria else 'Sin categoría'}<br>
-        <strong>Precio:</strong> USD {compra.precio_pagado:.2f}<br>
+        <strong>Precio:</strong> {compra.moneda} {compra.precio_pagado:.2f}<br>
         <strong>Fecha de compra:</strong> {compra.fecha_compra.strftime('%d/%m/%Y %H:%M')}<br>
         <strong>Estado:</strong> {compra.estado_pago.title()}</p>
         
@@ -352,7 +352,7 @@ def notificar_admin_compra_ebook(compra, usuario):
         <p><strong>ID de compra:</strong> #{compra.id}<br>
         <strong>Ebook:</strong> {compra.ebook.titulo}<br>
         <strong>Categoría:</strong> {compra.ebook.categoria.nombre if compra.ebook.categoria else 'Sin categoría'}<br>
-        <strong>Precio:</strong> USD {compra.precio_pagado:.2f}<br>
+        <strong>Precio:</strong> {compra.moneda} {compra.precio_pagado:.2f}<br>
         <strong>Fecha:</strong> {compra.fecha_compra.strftime('%d/%m/%Y %H:%M')}<br>
         <strong>Estado:</strong> {compra.estado_pago.title()}</p>
         
@@ -365,7 +365,7 @@ def notificar_admin_compra_ebook(compra, usuario):
         <p><strong>Descripción:</strong> {compra.ebook.descripcion[:200] if compra.ebook.descripcion else 'Sin descripción'}{'...' if compra.ebook.descripcion and len(compra.ebook.descripcion) > 200 else ''}<br>
         <strong>Fecha de publicación:</strong> {compra.ebook.fecha_publicacion.strftime('%d/%m/%Y') if compra.ebook.fecha_publicacion else 'No especificada'}</p>
         
-        <p><strong>💰 Total recaudado:</strong> USD {compra.precio_pagado:.2f}</p>
+        <p><strong>💰 Total recaudado:</strong> {compra.moneda} {compra.precio_pagado:.2f}</p>
         """
         
         send_email(admin_email, f"Nueva compra de ebook: '{compra.ebook.titulo}' - Santolina", content)

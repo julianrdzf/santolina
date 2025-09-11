@@ -11,10 +11,11 @@ class CompraEbook(Base):
     usuario_id = Column(PG_UUID(as_uuid=True), ForeignKey("usuarios.id"), nullable=False)
     ebook_id = Column(Integer, ForeignKey("ebooks.id"), nullable=False)
     fecha_compra = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    precio_pagado = Column(Float, nullable=False)  # Precio al momento de la compra
+    precio_pagado = Column(Float, nullable=False)  # Monto real pagado (con conversión de moneda si aplica)
     metodo_pago = Column(String, nullable=True)    # mercadopago, paypal, etc.
     estado_pago = Column(String, default="pendiente")  # pendiente, pagado, fallido
     transaction_id = Column(String, nullable=True)  # ID de la transacción del proveedor de pago
+    moneda = Column(String, default="USD", nullable=False)  # Moneda en la que se realizó el pago (USD, UYU, etc.)
     codigo_descarga = Column(String, nullable=True, unique=True)  # Código único para descargar
     
     # Relaciones
