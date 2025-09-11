@@ -1,8 +1,50 @@
 from fastapi import APIRouter, Request, Depends, UploadFile, File, HTTPException, Form
-from typing import List
+from typing import List, Optional
+from PIL import Image
+import io
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from app.db import SessionLocal
+
+def redimensionar_imagen(upload_file: UploadFile, max_width: int = 800, max_height: int = 800, quality: int = 85):
+    """
+    Redimensiona una imagen manteniendo la proporción y reduce su tamaño.
+    
+    Args:
+        upload_file: Archivo de imagen subido
+        max_width: Ancho máximo en píxeles
+        max_height: Alto máximo en píxeles  
+        quality: Calidad JPEG (1-100, donde 85 es buena calidad/tamaño)
+    
+    Returns:
+        BytesIO: Imagen procesada lista para subir
+    """
+    # Leer el archivo original
+    upload_file.file.seek(0)
+    imagen_original = Image.open(upload_file.file)
+    
+    # Convertir a RGB si es necesario (para JPEG)
+    if imagen_original.mode in ('RGBA', 'P'):
+        imagen_original = imagen_original.convert('RGB')
+    
+    # Calcular nuevas dimensiones manteniendo proporción
+    width, height = imagen_original.size
+    ratio = min(max_width/width, max_height/height)
+    
+    # Solo redimensionar si la imagen es más grande que los límites
+    if ratio < 1:
+        new_width = int(width * ratio)
+        new_height = int(height * ratio)
+        imagen_redimensionada = imagen_original.resize((new_width, new_height), Image.Resampling.LANCZOS)
+    else:
+        imagen_redimensionada = imagen_original
+    
+    # Guardar en memoria como JPEG con compresión
+    output = io.BytesIO()
+    imagen_redimensionada.save(output, format='JPEG', quality=quality, optimize=True)
+    output.seek(0)
+    
+    return output
 from app.models.categorias_productos import CategoriaProducto
 from app.models.productos import Producto
 from app.models.imagenes_productos import ImagenProducto
@@ -262,14 +304,16 @@ def crear_producto(
 
     for imagen in [imagen1, imagen2, imagen3]:
         if imagen and imagen.filename:
-            # Subimos la imagen con transformaciones
+            # Redimensionar imagen localmente antes de subir
+            imagen_procesada = redimensionar_imagen(imagen)
+            
+            # Subir imagen ya procesada a Cloudinary
             result = cloudinary.uploader.upload(
-                imagen.file,
-                folder="productos",             # Carpeta en Cloudinary
+                imagen_procesada,
+                folder="productos",
                 transformation=[
-                    {"width": 1200, "height": 1200, "crop": "limit"},  # Limita lado más largo a 1200px
-                    {"quality": "auto"},                               # Calidad automática
-                    {"fetch_format": "auto"}                           # WebP/avif según navegador
+                    {"quality": "auto"},
+                    {"fetch_format": "auto"}
                 ]
             )
             url = result.get("secure_url")
@@ -330,15 +374,17 @@ def actualizar_producto(
     imagenes_archivos = [imagen1, imagen2, imagen3]
 
     for i, imagen_file in enumerate(imagenes_archivos):
-        if imagen_file and imagen_file.filename:            
-            # Subimos la imagen con transformaciones
+        if imagen_file and imagen_file.filename:
+            # Redimensionar imagen localmente antes de subir
+            imagen_procesada = redimensionar_imagen(imagen_file)
+            
+            # Subir imagen ya procesada a Cloudinary
             upload_result = cloudinary.uploader.upload(
-                imagen_file.file,
-                folder="productos",             # Carpeta en Cloudinary
+                imagen_procesada,
+                folder="productos",
                 transformation=[
-                    {"width": 1200, "height": 1200, "crop": "limit"},  # Limita lado más largo a 1200px
-                    {"quality": "auto"},                               # Calidad automática
-                    {"fetch_format": "auto"}                           # WebP/avif según navegador
+                    {"quality": "auto"},
+                    {"fetch_format": "auto"}
                 ]
             )
             url = upload_result["secure_url"]
