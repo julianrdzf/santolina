@@ -59,7 +59,8 @@ async def registrar_usuario(
         # Crear respuesta con cookie (solo se pasa el token)
         response = await cookie_transport.get_login_response(token)
         # Redirigir según el parámetro redirect o al home por defecto
-        redirect_url = request.form.get("redirect")
+        form_data = await request.form()
+        redirect_url = form_data.get("redirect")
         if not redirect_url or redirect_url == "None":
             redirect_url = "/"
         response.headers["Location"] = redirect_url
