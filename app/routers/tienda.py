@@ -779,26 +779,34 @@ def pago_exitoso_tienda(
     if not orden:
         return RedirectResponse(url="/tienda", status_code=303)
     
-    # Cambiar estado de la orden a pagado
-    orden.estado = "pagado"
-    db.commit()
-    
-    # Cambiar estado del carrito a completado
-    carrito = db.query(Carrito).filter(Carrito.usuario_id == orden.usuario_id, Carrito.estado == "activo").first()
-    if carrito:
-        carrito.estado = "completado"
+    # Solo procesar si la orden no está ya pagada (evitar duplicados)
+    emails_enviados = False
+    if orden.estado != "pagado":
+        # Cambiar estado de la orden a pagado
+        orden.estado = "pagado"
         db.commit()
+        
+        # Cambiar estado del carrito a completado
+        carrito = db.query(Carrito).filter(Carrito.usuario_id == orden.usuario_id, Carrito.estado == "activo").first()
+        if carrito:
+            carrito.estado = "completado"
+            db.commit()
+        
+        # Enviar emails de confirmación solo si es la primera vez
+        background_tasks.add_task(enviar_confirmacion_orden, orden.id)
+        background_tasks.add_task(notificar_admin_orden, orden.id)
+        emails_enviados = True
+        
+        print(f"✅ Orden #{orden.id} marcada como pagada y emails programados")
+    else:
+        print(f"⚠️ Orden #{orden.id} ya estaba pagada, no se reenvían emails")
     
-    # Cargar relaciones necesarias para los emails
+    # Cargar relaciones necesarias para mostrar la página
     orden = db.query(Orden).options(
         joinedload(Orden.detalle).joinedload(OrdenDetalle.producto),
         joinedload(Orden.usuario),
         joinedload(Orden.direccion_envio)
     ).get(orden.id)
-    
-    # Enviar emails de confirmación
-    background_tasks.add_task(enviar_confirmacion_orden, orden.id)
-    background_tasks.add_task(notificar_admin_orden, orden.id)
     
     return templates.TemplateResponse("pago_exitoso_tienda.html", {
         "request": request,
