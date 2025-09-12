@@ -1,27 +1,20 @@
-from fastapi import APIRouter, Request, Depends, UploadFile, File, HTTPException, Form
+from fastapi import APIRouter, Depends, Form, Request, HTTPException, File, UploadFile
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
-from app.db import SessionLocal
-from app.models.evento import Evento
-from app.models.fecha_evento import FechaEvento
-from app.models.horario_fecha_evento import HorarioFechaEvento
-from app.models.categorias_eventos import CategoriaEvento
-from app.models.reserva import Reserva
-from fastapi.responses import RedirectResponse, JSONResponse
-from app.routers.auth import current_superuser
+from datetime import datetime
 from typing import Optional
-from datetime import datetime, date, time
-import cloudinary.uploader
+
+from ..db import get_db
+from ..models.evento import Evento
+from ..models.categorias_eventos import CategoriaEvento
+from ..models.fecha_evento import FechaEvento
+from ..models.horario_fecha_evento import HorarioFechaEvento
+from ..models.reserva import Reserva
+from app.routers.auth import current_superuser
 
 router = APIRouter()
 templates = Jinja2Templates(directory="frontend/templates")
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 # Panel de eventos
 @router.get("/admin/eventos-panel", dependencies=[Depends(current_superuser)])
@@ -273,8 +266,15 @@ def agregar_horario_fecha(
     )
     db.add(nuevo_horario)
     db.commit()
+    db.refresh(nuevo_horario)
     
-    return RedirectResponse(url=f"/admin/eventos/{fecha_evento.evento_id}/fechas", status_code=303)
+    # Devolver JSON con los datos del nuevo horario para actualización dinámica
+    return JSONResponse({
+        "id": nuevo_horario.id,
+        "hora_inicio": nuevo_horario.hora_inicio.strftime('%H:%M'),
+        "duracion_minutos": nuevo_horario.duracion_minutos,
+        "cupos": nuevo_horario.cupos
+    })
 
 # Eliminar fecha
 @router.delete("/admin/fechas/{fecha_id}", dependencies=[Depends(current_superuser)])
@@ -585,3 +585,75 @@ def eliminar_categoria_evento(categoria_id: int, db: Session = Depends(get_db)):
         db.delete(categoria)
         db.commit()
     return RedirectResponse(url="/admin/categorias_eventos", status_code=303)
+
+# Editar horario - GET (mostrar formulario)
+@router.get("/admin/horarios/{horario_id}/editar", dependencies=[Depends(current_superuser)])
+def mostrar_formulario_editar_horario(horario_id: int, request: Request, evento_id: int = None, db: Session = Depends(get_db)):
+    horario = db.query(HorarioFechaEvento).options(
+        joinedload(HorarioFechaEvento.fecha_evento).joinedload(FechaEvento.evento)
+    ).get(horario_id)
+    
+    if not horario:
+        return templates.TemplateResponse("404.html", {"request": request})
+    
+    # Si no se proporciona evento_id, obtenerlo del horario
+    if not evento_id:
+        evento_id = horario.fecha_evento.evento.id
+    
+    evento = horario.fecha_evento.evento
+    
+    return templates.TemplateResponse("admin_horario_form.html", {
+        "request": request,
+        "horario": horario,
+        "evento": evento
+    })
+
+# Editar horario - POST (procesar formulario)
+@router.post("/admin/horarios/{horario_id}/editar", dependencies=[Depends(current_superuser)])
+def actualizar_horario(
+    horario_id: int,
+    request: Request,
+    hora_inicio: str = Form(...),
+    duracion_minutos: int = Form(...),
+    cupos: int = Form(...),
+    evento_id: int = Form(...),
+    db: Session = Depends(get_db)
+):
+    horario = db.query(HorarioFechaEvento).get(horario_id)
+    if not horario:
+        return RedirectResponse(url="/admin/eventos", status_code=303)
+    
+    try:
+        # Validaciones
+        if duracion_minutos < 15:
+            raise HTTPException(status_code=400, detail="La duración mínima es 15 minutos")
+        
+        if cupos < 1:
+            raise HTTPException(status_code=400, detail="Debe haber al menos 1 cupo")
+        
+        # Verificar que no haya más reservas que cupos
+        reservas_count = db.query(Reserva).filter(Reserva.horario_id == horario_id).count()
+        if cupos < reservas_count:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"No se pueden reducir los cupos a {cupos}. Ya hay {reservas_count} reservas confirmadas."
+            )
+        
+        # Convertir hora_inicio a objeto time
+        hora_obj = datetime.strptime(hora_inicio, "%H:%M").time()
+        
+        # Actualizar horario
+        horario.hora_inicio = hora_obj
+        horario.duracion_minutos = duracion_minutos
+        horario.cupos = cupos
+        
+        db.commit()
+        
+        # Redirigir de vuelta al evento
+        return RedirectResponse(url=f"/admin/eventos/{evento_id}/fechas", status_code=303)
+        
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Formato de hora inválido")
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))

@@ -152,6 +152,7 @@
             {% for fecha in evento.fechas_evento %}
             {{ fecha.id }}: {
                 fecha: "{{ fecha.fecha.strftime('%d/%m/%Y') }}",
+                fecha_iso: "{{ fecha.fecha.strftime('%Y-%m-%d') }}",
                 horarios: [
                     {% for horario in fecha.horarios %}
                     {
@@ -202,17 +203,25 @@
             } else {
                 html = '<div class="list-group list-group-flush">';
                 fecha.horarios.forEach(horario => {
+                    // Calcular hora de fin
+                    const horaFin = calcularHoraFin(horario.hora_inicio, horario.duracion_minutos);
+                    
                     html += `
                         <div class="list-group-item" id="horario-${horario.id}">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <strong>${horario.hora_inicio}</strong> 
+                                    <strong>${horario.hora_inicio}-${horaFin}</strong> 
                                     <span class="text-muted">(${horario.duracion_minutos} min)</span> - 
                                     <span class="badge bg-primary">${horario.cupos} cupos</span>
                                 </div>
-                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="eliminarHorario(${horario.id})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="editarHorario(${horario.id})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="eliminarHorario(${horario.id})">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -240,8 +249,8 @@
             }
             
             // Validar que la fecha no esté repetida
-            const fechaFormateada = fechaInput.toLocaleDateString('es-ES');
-            const fechasExistentes = Object.values(fechasData).map(fecha => fecha.fecha);
+            const fechaFormateada = fechaInput.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+            const fechasExistentes = Object.values(fechasData).map(fecha => fecha.fecha_iso);
             
             if (fechasExistentes.includes(fechaFormateada)) {
                 alert('La fecha ya existe');
@@ -286,7 +295,27 @@
                 });
                 
                 if (response.ok) {
-                    location.reload();
+                    const nuevoHorario = await response.json();
+                    
+                    // Agregar el nuevo horario a los datos locales
+                    if (fechasData[fechaSeleccionada]) {
+                        fechasData[fechaSeleccionada].horarios.push({
+                            id: nuevoHorario.id,
+                            hora_inicio: nuevoHorario.hora_inicio,
+                            duracion_minutos: nuevoHorario.duracion_minutos,
+                            cupos: nuevoHorario.cupos
+                        });
+                        
+                        // Actualizar la vista de horarios manteniendo la fecha seleccionada
+                        mostrarHorarios(fechaSeleccionada);
+                        
+                        // Limpiar el formulario
+                        form.reset();
+                        
+                        // Restaurar valores por defecto
+                        form.querySelector('[name="duracion_minutos"]').value = '60';
+                        form.querySelector('[name="cupos"]').value = '20';
+                    }
                 } else {
                     alert('Error al agregar el horario');
                 }
@@ -313,6 +342,27 @@
             } catch (error) {
                 alert('Error al eliminar la fecha');
             }
+        }
+
+        function calcularHoraFin(horaInicio, duracionMinutos) {
+            // Convertir hora de inicio a minutos
+            const [horas, minutos] = horaInicio.split(':').map(Number);
+            const minutosInicio = horas * 60 + minutos;
+            
+            // Sumar duración
+            const minutosFin = minutosInicio + duracionMinutos;
+            
+            // Convertir de vuelta a formato HH:MM
+            const horasFin = Math.floor(minutosFin / 60);
+            const minutosFinales = minutosFin % 60;
+            
+            // Formatear con ceros a la izquierda
+            return `${horasFin.toString().padStart(2, '0')}:${minutosFinales.toString().padStart(2, '0')}`;
+        }
+
+        function editarHorario(horarioId) {
+            // Redirigir a la página de edición del horario
+            window.location.href = `/admin/horarios/${horarioId}/editar?evento_id={{ evento.id }}`;
         }
 
         async function eliminarHorario(horarioId) {
