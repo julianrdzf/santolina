@@ -304,6 +304,14 @@ def enviar_confirmacion_compra_ebook(compra, usuario):
     try:
         print(f"🔄 Enviando email de confirmación de compra ebook #{compra.id} a {usuario.email}")
         
+        # Obtener nombre de categoría de forma segura
+        categoria_nombre = 'Sin categoría'
+        try:
+            if hasattr(compra.ebook, 'categoria') and compra.ebook.categoria:
+                categoria_nombre = compra.ebook.categoria.nombre
+        except:
+            categoria_nombre = 'Sin categoría'
+        
         content = f"""
         <h2>¡Tu ebook ha sido adquirido exitosamente!</h2>
         <p>Hola {usuario.nombre},</p>
@@ -311,7 +319,7 @@ def enviar_confirmacion_compra_ebook(compra, usuario):
         
         <h3>Detalles de la compra:</h3>
         <p><strong>Ebook:</strong> {compra.ebook.titulo}<br>
-        <strong>Categoría:</strong> {compra.ebook.categoria.nombre if compra.ebook.categoria else 'Sin categoría'}<br>
+        <strong>Categoría:</strong> {categoria_nombre}<br>
         <strong>Precio:</strong> {compra.moneda} {compra.precio_pagado:.2f}<br>
         <strong>Fecha de compra:</strong> {compra.fecha_compra.strftime('%d/%m/%Y %H:%M')}<br>
         <strong>Estado:</strong> {compra.estado_pago.title()}</p>
@@ -344,6 +352,14 @@ def notificar_admin_compra_ebook(compra, usuario):
 
         print(f" Enviando notificación de compra ebook #{compra.id} al admin {admin_email}")
 
+        # Obtener nombre de categoría de forma segura
+        categoria_nombre = 'Sin categoría'
+        try:
+            if hasattr(compra.ebook, 'categoria') and compra.ebook.categoria:
+                categoria_nombre = compra.ebook.categoria.nombre
+        except:
+            categoria_nombre = 'Sin categoría'
+
         content = f"""
         <h2>Nueva compra de ebook confirmada</h2>
         <p>Se ha confirmado una nueva compra de ebook en la tienda digital.</p>
@@ -351,7 +367,7 @@ def notificar_admin_compra_ebook(compra, usuario):
         <h3>Detalles de la compra:</h3>
         <p><strong>ID de compra:</strong> #{compra.id}<br>
         <strong>Ebook:</strong> {compra.ebook.titulo}<br>
-        <strong>Categoría:</strong> {compra.ebook.categoria.nombre if compra.ebook.categoria else 'Sin categoría'}<br>
+        <strong>Categoría:</strong> {categoria_nombre}<br>
         <strong>Precio:</strong> {compra.moneda} {compra.precio_pagado:.2f}<br>
         <strong>Fecha:</strong> {compra.fecha_compra.strftime('%d/%m/%Y %H:%M')}<br>
         <strong>Estado:</strong> {compra.estado_pago.title()}</p>
