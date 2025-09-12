@@ -1,5 +1,9 @@
--- Inicialización de categorías de eventos para Santolina
--- Ejecutar manualmente cuando sea necesario inicializar las categorías
+-- Inicialización de datos base para Santolina
+-- Ejecutar manualmente cuando sea necesario inicializar categorías de eventos y métodos de envío
+
+-- ========================================
+-- CATEGORÍAS DE EVENTOS
+-- ========================================
 
 -- Limpiar categorías existentes (opcional - descomentar si se quiere reinicializar)
 -- DELETE FROM categorias_eventos;
@@ -76,7 +80,23 @@ SELECT 'Ritual del útero', id FROM categorias_eventos WHERE nombre = 'Talleres 
 INSERT INTO categorias_eventos (nombre, id_categoria_padre) 
 SELECT 'Taller online de limpieza energética', id FROM categorias_eventos WHERE nombre = 'Talleres / cursos' AND id_categoria_padre IS NULL;
 
--- Verificar la inserción
+-- ========================================
+-- MÉTODOS DE ENVÍO
+-- ========================================
+
+-- Limpiar métodos de envío existentes (opcional - descomentar si se quiere reinicializar)
+-- DELETE FROM costos_envio;
+
+-- Insertar métodos de envío
+INSERT INTO costos_envio (nombre, descripcion, costo, activo, requiere_direccion, url_imagen) VALUES 
+('Retiro zona Aguada-Reducto', 'Coordinar con el vendedor para retirar el producto.', 0, true, false, NULL),
+('Envío por agencia de transporte', 'Costo del envío a cargo del cliente mediante DAC, UES u otra preferencia del comprador.', 0, true, true, NULL);
+
+-- ========================================
+-- VERIFICACIONES
+-- ========================================
+
+-- Verificar categorías de eventos
 SELECT 
     c1.id,
     c1.nombre as categoria,
@@ -87,3 +107,14 @@ LEFT JOIN categorias_eventos c2 ON c2.id_categoria_padre = c1.id
 LEFT JOIN categorias_eventos c3 ON c3.id_categoria_padre = c2.id
 WHERE c1.id_categoria_padre IS NULL
 ORDER BY c1.id, c2.id, c3.id;
+
+-- Verificar métodos de envío
+SELECT 
+    id,
+    nombre,
+    descripcion,
+    costo,
+    activo,
+    requiere_direccion
+FROM costos_envio
+ORDER BY id;

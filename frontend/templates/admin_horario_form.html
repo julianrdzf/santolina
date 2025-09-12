@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Horario - Admin</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    {% include "partials/header.html" %}
+    
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-clock"></i>
+                            Editar Horario
+                        </h3>
+                        <nav aria-label="breadcrumb" class="mt-2">
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item"><a href="/admin">Panel Admin</a></li>
+                                <li class="breadcrumb-item"><a href="/admin/eventos">Eventos</a></li>
+                                <li class="breadcrumb-item"><a href="/admin/eventos/{{ evento.id }}/fechas">{{ evento.titulo }}</a></li>
+                                <li class="breadcrumb-item active">Editar Horario</li>
+                            </ol>
+                        </nav>
+                    </div>
+                    <div class="card-body">
+                        <!-- Información del evento y fecha -->
+                        <div class="alert alert-info mb-4">
+                            <h6><i class="fas fa-info-circle"></i> Información del Evento</h6>
+                            <p class="mb-1"><strong>Evento:</strong> {{ evento.titulo }}</p>
+                            <p class="mb-0"><strong>Fecha:</strong> {{ horario.fecha_evento.fecha.strftime('%d/%m/%Y') }}</p>
+                        </div>
+
+                        <!-- Formulario de edición -->
+                        <form method="POST" action="/admin/horarios/{{ horario.id }}/editar">
+                            <input type="hidden" name="evento_id" value="{{ evento.id }}">
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="hora_inicio" class="form-label">
+                                            <i class="fas fa-clock"></i> Hora de Inicio *
+                                        </label>
+                                        <input type="time" 
+                                               class="form-control" 
+                                               id="hora_inicio" 
+                                               name="hora_inicio" 
+                                               step="300" 
+                                               value="{{ horario.hora_inicio.strftime('%H:%M') }}" 
+                                               required>
+                                        <div class="form-text">Formato 24 horas (ej: 14:30)</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="duracion_minutos" class="form-label">
+                                            <i class="fas fa-hourglass-half"></i> Duración (minutos) *
+                                        </label>
+                                        <input type="number" 
+                                               class="form-control" 
+                                               id="duracion_minutos" 
+                                               name="duracion_minutos" 
+                                               min="15" 
+                                               step="5" 
+                                               value="{{ horario.duracion_minutos }}" 
+                                               required>
+                                        <div class="form-text">Mínimo 15 minutos, incrementos de 5</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="cupos" class="form-label">
+                                            <i class="fas fa-users"></i> Cupos Disponibles *
+                                        </label>
+                                        <input type="number" 
+                                               class="form-control" 
+                                               id="cupos" 
+                                               name="cupos" 
+                                               min="1" 
+                                               value="{{ horario.cupos }}" 
+                                               required>
+                                        <div class="form-text">Número máximo de participantes</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Información adicional -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="alert alert-warning">
+                                        <h6><i class="fas fa-exclamation-triangle"></i> Información Importante</h6>
+                                        <ul class="mb-0">
+                                            <li>Los cambios afectarán las reservas existentes para este horario</li>
+                                            <li>Si reduces los cupos por debajo del número de reservas actuales, podrían generarse conflictos</li>
+                                            <li>Verifica que los cambios de horario no se superpongan con otros horarios del mismo día</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Botones de acción -->
+                            <div class="d-flex justify-content-between">
+                                <a href="/admin/eventos/{{ evento.id }}/fechas" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Actualizar Horario
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Validación del formulario -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            
+            form.addEventListener('submit', function(e) {
+                const horaInicio = document.getElementById('hora_inicio').value;
+                const duracion = parseInt(document.getElementById('duracion_minutos').value);
+                const cupos = parseInt(document.getElementById('cupos').value);
+                
+                // Validaciones básicas
+                if (!horaInicio || duracion < 15 || cupos < 1) {
+                    e.preventDefault();
+                    alert('Por favor, completa todos los campos correctamente.');
+                    return;
+                }
+                
+                // Validar que la duración sea múltiplo de 5
+                if (duracion % 5 !== 0) {
+                    e.preventDefault();
+                    alert('La duración debe ser múltiplo de 5 minutos.');
+                    return;
+                }
+                
+                // Confirmar cambios
+                if (!confirm('¿Estás seguro de actualizar este horario? Los cambios afectarán las reservas existentes.')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
