@@ -7,6 +7,38 @@
     <title>Mi Perfil - Santolina</title>
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Estilos para el acordeón de órdenes */
+        .order-header {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        .order-header:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+        
+        .order-toggle-icon {
+            margin-left: 10px;
+            transition: transform 0.3s ease;
+            color: #666;
+        }
+        
+        .order-details {
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .order-card {
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.2s ease;
+        }
+        
+        .order-card:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+    </style>
 </head>
 <body>
     {% include "partials/header.html" %}
@@ -196,7 +228,7 @@
                         <div class="orders-list">
                             {% for orden in ordenes %}
                             <div class="order-card">
-                                <div class="order-header">
+                                <div class="order-header" onclick="toggleOrderDetails(this)">
                                     <div class="order-info">
                                         <h3>Orden #{{ orden.id }}</h3>
                                         <p class="order-date">{{ orden.fecha.strftime('%d/%m/%Y %H:%M') }}</p>
@@ -215,10 +247,11 @@
                                                 <i class="fas fa-times-circle"></i> Cancelado
                                             {% endif %}
                                         </span>
+                                        <i class="fas fa-chevron-down order-toggle-icon"></i>
                                     </div>
                                 </div>
                                 
-                                <div class="order-details">
+                                <div class="order-details" style="display: none;">
                                     <div class="order-items">
                                         <h4>Productos:</h4>
                                         {% for detalle in orden.detalle %}
@@ -429,6 +462,37 @@
             window.location.href = '/ebooks/' + ebookId + '/descargar';
             // Ejemplo de implementación futura:
             // window.open('/ebooks/descargar/' + ebookId, '_blank');
+        }
+        
+        function toggleOrderDetails(headerElement) {
+            const orderCard = headerElement.parentElement;
+            const orderDetails = orderCard.querySelector('.order-details');
+            const toggleIcon = headerElement.querySelector('.order-toggle-icon');
+            
+            // Cerrar todas las otras órdenes abiertas
+            const allOrderCards = document.querySelectorAll('.order-card');
+            allOrderCards.forEach(card => {
+                if (card !== orderCard) {
+                    const details = card.querySelector('.order-details');
+                    const icon = card.querySelector('.order-toggle-icon');
+                    if (details && details.style.display === 'block') {
+                        details.style.display = 'none';
+                        icon.classList.remove('fa-chevron-up');
+                        icon.classList.add('fa-chevron-down');
+                    }
+                }
+            });
+            
+            // Toggle la orden actual
+            if (orderDetails.style.display === 'none' || orderDetails.style.display === '') {
+                orderDetails.style.display = 'block';
+                toggleIcon.classList.remove('fa-chevron-down');
+                toggleIcon.classList.add('fa-chevron-up');
+            } else {
+                orderDetails.style.display = 'none';
+                toggleIcon.classList.remove('fa-chevron-up');
+                toggleIcon.classList.add('fa-chevron-down');
+            }
         }
     </script>
 
