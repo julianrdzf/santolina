@@ -135,22 +135,7 @@
                         <i class="fas fa-calendar-check"></i>
                         <span>Selecciona fecha y horario</span>
                     </button>
-                </div>
-
-                <div class="ebook-info-details">
-                    {% if evento.ubicacion %}
-                    <div class="info-item">
-                        <strong>Ubicación:</strong>
-                        <span>{{ evento.ubicacion }}</span>
-                    </div>
-                    {% endif %}
-                    {% if evento.direccion %}
-                    <div class="info-item">
-                        <strong>Dirección:</strong>
-                        <span>{{ evento.direccion }}</span>
-                    </div>
-                    {% endif %}
-                </div>
+                </div>               
 
                 <div class="product-guarantees">
                     <div class="guarantee-item">
@@ -229,7 +214,7 @@
         {% for fecha in evento.fechas_evento %}
         {{ fecha.id }}: {
             fecha: "{{ fecha.fecha.strftime('%d/%m/%Y') }}",
-            fechaCompleta: "{{ fecha.fecha.strftime('%A, %d de %B de %Y') | capitalize }}",
+            fechaISO: "{{ fecha.fecha.isoformat() }}",
             horarios: [
                 {% for horario in fecha.horarios %}
                 {
@@ -247,8 +232,20 @@
     // Función para obtener el nombre del día en español
     function obtenerNombreDia(fecha) {
         const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-        const fechaObj = new Date(fecha);
+        const fechaObj = new Date(fecha + 'T00:00:00'); // Agregar hora para evitar problemas de zona horaria
         return diasSemana[fechaObj.getDay()];
+    }
+    
+    // Función para formatear fecha completa en español
+    function formatearFechaCompleta(fechaISO) {
+        const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 
+                      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+        const fechaObj = new Date(fechaISO + 'T00:00:00');
+        const nombreDia = obtenerNombreDia(fechaISO);
+        const dia = fechaObj.getDate();
+        const mes = meses[fechaObj.getMonth()];
+        const año = fechaObj.getFullYear();
+        return `${nombreDia}, ${dia} de ${mes} de ${año}`;
     }
 
     // Inicializar nombres de días cuando se carga la página
@@ -341,7 +338,7 @@
         
         if (fecha && horario) {
             const horaFin = calcularHoraFin(horario.hora_inicio, horario.duracion_minutos);
-            dateText.textContent = fecha.fechaCompleta;
+            dateText.textContent = formatearFechaCompleta(fecha.fechaISO);
             timeText.textContent = `${horario.hora_inicio} - ${horaFin} (${horario.duracion_minutos} min)`;
             summaryContainer.style.display = 'block';
         }
