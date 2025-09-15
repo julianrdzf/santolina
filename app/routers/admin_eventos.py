@@ -260,7 +260,7 @@ def agregar_horario_fecha(
     
     nuevo_horario = HorarioFechaEvento(
         fecha_evento_id=fecha_id,
-        hora_inicio=datetime.strptime(hora_inicio, '%H:%M').time(),
+        hora_inicio=datetime.strptime(hora_inicio[:5], '%H:%M').time(),
         duracion_minutos=duracion_minutos,
         cupos=cupos
     )
@@ -640,7 +640,7 @@ def actualizar_horario(
             )
         
         # Convertir hora_inicio a objeto time
-        hora_obj = datetime.strptime(hora_inicio, "%H:%M").time()
+        hora_obj = datetime.strptime(hora_inicio[:5], "%H:%M").time()
         
         # Actualizar horario
         horario.hora_inicio = hora_obj
