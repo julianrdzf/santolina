@@ -4,6 +4,7 @@ fastapi_mail==1.3.1
 fastapi_users==14.0.1
 fastapi_users_db_sqlalchemy==7.0.0
 httpx==0.28.1
+httpx-oauth==0.14.1
 mercadopago==2.3.0
 pydantic==1.10.22
 python-dotenv==1.1.1

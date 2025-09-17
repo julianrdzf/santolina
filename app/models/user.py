@@ -5,7 +5,7 @@ from app.db import Base
 
 class Usuario(SQLAlchemyBaseUserTableUUID, Base):
     __tablename__ = "usuarios"
-    nombre = Column(String, nullable=False)
+    nombre = Column(String, nullable=True)  # Opcional para usuarios OAuth
     celular = Column(String, nullable=True)
 
     reservas = relationship("Reserva", back_populates="usuario", cascade="all, delete-orphan")

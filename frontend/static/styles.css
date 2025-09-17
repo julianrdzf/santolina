@@ -3189,11 +3189,13 @@ transform: rotate(90deg);
     }
 
     .login-container {
-        position: absolute;
-        top:370px;
-         
+        position: relative;
+        top: auto;
+        left: auto;
+        transform: none;
+        margin-top: 120px;
+        margin-bottom: 40px;
     } 
-    
     
     .hamburger {
         padding: 8px;
