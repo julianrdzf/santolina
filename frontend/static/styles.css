@@ -702,6 +702,10 @@ color: rgb(255, 255, 255);
 transform: rotate(90deg);
 }
 
+.oculto{
+    display: hidden;
+}
+
 .acciones-evento {
     display: flex;
     gap: 8px; /* espacio deseado entre botones */
