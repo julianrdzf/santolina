@@ -113,6 +113,10 @@ async def mostrar_floral(request: Request):
 async def mostrar_contelaciones(request: Request):
     return templates.TemplateResponse("constelaciones.html", {"request": request})
 
+@app.get("/reiki-iniciacion", response_class=HTMLResponse)
+async def mostrar_reiki_iniciacion(request: Request):
+    return templates.TemplateResponse("reiki_iniciacion.html", {"request": request})
+
 
 
 
