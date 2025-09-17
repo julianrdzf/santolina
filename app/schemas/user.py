@@ -4,11 +4,11 @@ from fastapi_users import schemas
 from pydantic import EmailStr
 
 class UserRead(schemas.BaseUser[UUID]):
-    nombre: str
+    nombre: Optional[str] = None
     celular: Optional[str] = None
 
 class UserCreate(schemas.BaseUserCreate):
-    nombre: str
+    nombre: Optional[str] = None  # Opcional para usuarios OAuth
     celular: Optional[str] = None
     password: Optional[str] = None
 
