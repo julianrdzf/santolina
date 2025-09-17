@@ -13,6 +13,8 @@ from ..models.horario_fecha_evento import HorarioFechaEvento
 from ..models.reserva import Reserva
 from app.routers.auth import current_superuser
 
+import cloudinary.uploader
+
 router = APIRouter()
 templates = Jinja2Templates(directory="frontend/templates")
 
