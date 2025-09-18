@@ -8,8 +8,50 @@ from app.models.ebooks import Ebook
 from app.models.compra_ebooks import CompraEbook
 from app.routers.auth import current_superuser
 from typing import Optional
+from PIL import Image
+import io
 import math
 import cloudinary.uploader
+
+def redimensionar_imagen(upload_file: UploadFile, max_width: int = 800, max_height: int = 800, quality: int = 85):
+    """
+    Redimensiona una imagen manteniendo la proporción y reduce su tamaño.
+    
+    Args:
+        upload_file: Archivo de imagen subido
+        max_width: Ancho máximo en píxeles
+        max_height: Alto máximo en píxeles  
+        quality: Calidad JPEG (1-100, donde 85 es buena calidad/tamaño)
+    
+    Returns:
+        BytesIO: Imagen procesada lista para subir
+    """
+    # Leer el archivo original
+    upload_file.file.seek(0)
+    imagen_original = Image.open(upload_file.file)
+    
+    # Convertir a RGB si es necesario (para JPEG)
+    if imagen_original.mode in ('RGBA', 'P'):
+        imagen_original = imagen_original.convert('RGB')
+    
+    # Calcular nuevas dimensiones manteniendo proporción
+    width, height = imagen_original.size
+    ratio = min(max_width/width, max_height/height)
+    
+    # Solo redimensionar si la imagen es más grande que los límites
+    if ratio < 1:
+        new_width = int(width * ratio)
+        new_height = int(height * ratio)
+        imagen_redimensionada = imagen_original.resize((new_width, new_height), Image.Resampling.LANCZOS)
+    else:
+        imagen_redimensionada = imagen_original
+    
+    # Guardar en memoria como JPEG con compresión
+    output = io.BytesIO()
+    imagen_redimensionada.save(output, format='JPEG', quality=quality, optimize=True)
+    output.seek(0)
+    
+    return output
 
 router = APIRouter()
 templates = Jinja2Templates(directory="frontend/templates")
@@ -216,11 +258,14 @@ async def crear_ebook(
         # Subir imagen de portada si se proporciona
         imagen_url = None
         if imagen_portada and imagen_portada.filename:
+            # Redimensionar imagen localmente antes de subir
+            imagen_procesada = redimensionar_imagen(imagen_portada, max_width=400, max_height=600)
+            
+            # Subir imagen ya procesada a Cloudinary
             imagen_result = cloudinary.uploader.upload(
-                imagen_portada.file,
+                imagen_procesada,
                 folder="ebooks/portadas",
                 transformation=[
-                    {"width": 400, "height": 600, "crop": "fill"},
                     {"quality": "auto"},
                     {"fetch_format": "auto"}
                 ]
@@ -312,18 +357,21 @@ async def actualizar_ebook(
             # Eliminar imagen anterior de Cloudinary si existe
             if ebook.imagen_portada:
                 try:
-                    # Extraer public_id del URL anterior
+                    # Extraer public_id del URL anterior usando el título original del ebook
                     old_public_id = f"ebooks/portadas/ebook_{ebook.titulo.replace(' ', '_')}"
                     cloudinary.uploader.destroy(old_public_id)
                 except Exception as e:
                     print(f"Error eliminando imagen anterior: {e}")
             
+            # Redimensionar imagen localmente antes de subir
+            imagen_procesada = redimensionar_imagen(imagen_portada, max_width=400, max_height=600)
+            
+            # Subir imagen ya procesada a Cloudinary
             imagen_result = cloudinary.uploader.upload(
-                imagen_portada.file,
+                imagen_procesada,
                 folder="ebooks/portadas",
                 public_id=f"ebook_{titulo.replace(' ', '_')}",
                 transformation=[
-                    {"width": 400, "height": 600, "crop": "fill"},
                     {"quality": "auto"},
                     {"fetch_format": "auto"}
                 ]

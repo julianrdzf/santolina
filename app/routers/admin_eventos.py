@@ -4,6 +4,8 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
 from datetime import datetime
 from typing import Optional
+from PIL import Image
+import io
 
 from ..db import get_db
 from ..models.evento import Evento
@@ -14,6 +16,46 @@ from ..models.reserva import Reserva
 from app.routers.auth import current_superuser
 
 import cloudinary.uploader
+
+def redimensionar_imagen(upload_file: UploadFile, max_width: int = 800, max_height: int = 800, quality: int = 85):
+    """
+    Redimensiona una imagen manteniendo la proporción y reduce su tamaño.
+    
+    Args:
+        upload_file: Archivo de imagen subido
+        max_width: Ancho máximo en píxeles
+        max_height: Alto máximo en píxeles  
+        quality: Calidad JPEG (1-100, donde 85 es buena calidad/tamaño)
+    
+    Returns:
+        BytesIO: Imagen procesada lista para subir
+    """
+    # Leer el archivo original
+    upload_file.file.seek(0)
+    imagen_original = Image.open(upload_file.file)
+    
+    # Convertir a RGB si es necesario (para JPEG)
+    if imagen_original.mode in ('RGBA', 'P'):
+        imagen_original = imagen_original.convert('RGB')
+    
+    # Calcular nuevas dimensiones manteniendo proporción
+    width, height = imagen_original.size
+    ratio = min(max_width/width, max_height/height)
+    
+    # Solo redimensionar si la imagen es más grande que los límites
+    if ratio < 1:
+        new_width = int(width * ratio)
+        new_height = int(height * ratio)
+        imagen_redimensionada = imagen_original.resize((new_width, new_height), Image.Resampling.LANCZOS)
+    else:
+        imagen_redimensionada = imagen_original
+    
+    # Guardar en memoria como JPEG con compresión
+    output = io.BytesIO()
+    imagen_redimensionada.save(output, format='JPEG', quality=quality, optimize=True)
+    output.seek(0)
+    
+    return output
 
 router = APIRouter()
 templates = Jinja2Templates(directory="frontend/templates")
@@ -74,13 +116,17 @@ def crear_evento(
     imagen_url = None
     if imagen and imagen.filename:
         try:
+            # Redimensionar imagen localmente antes de subir
+            imagen_procesada = redimensionar_imagen(imagen)
+            
+            # Subir imagen ya procesada a Cloudinary
             result = cloudinary.uploader.upload(
-                imagen.file,
+                imagen_procesada,
                 folder="eventos",
                 public_id=f"evento_{titulo.replace(' ', '_')}",
                 transformation=[
-                    {"width": 800, "height": 600, "crop": "limit"},
-                    {"quality": "auto"}
+                    {"quality": "auto"},
+                    {"fetch_format": "auto"}
                 ]
             )
             imagen_url = result["secure_url"]
@@ -147,13 +193,26 @@ def actualizar_evento(
     # Subir nueva imagen a Cloudinary si se proporciona
     if imagen and imagen.filename:
         try:
+            # Eliminar imagen anterior de Cloudinary si existe
+            if evento.imagen:
+                try:
+                    # Extraer public_id del URL anterior
+                    old_public_id = f"eventos/evento_{evento.titulo.replace(' ', '_')}"
+                    cloudinary.uploader.destroy(old_public_id)
+                except Exception as e:
+                    print(f"Error eliminando imagen anterior: {e}")
+            
+            # Redimensionar imagen localmente antes de subir
+            imagen_procesada = redimensionar_imagen(imagen)
+            
+            # Subir imagen ya procesada a Cloudinary
             result = cloudinary.uploader.upload(
-                imagen.file,
+                imagen_procesada,
                 folder="eventos",
                 public_id=f"evento_{titulo.replace(' ', '_')}",
                 transformation=[
-                    {"width": 800, "height": 600, "crop": "limit"},
-                    {"quality": "auto"}
+                    {"quality": "auto"},
+                    {"fetch_format": "auto"}
                 ]
             )
             evento.imagen = result["secure_url"]
