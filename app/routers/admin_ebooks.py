@@ -241,22 +241,25 @@ async def crear_ebook(
     titulo: str = Form(...),
     descripcion: str = Form(""),
     precio: float = Form(...),
-    id_categoria: Optional[int] = Form(None),
+    id_categoria: Optional[str] = Form(None),
     url_archivo: UploadFile = File(...),
     imagen_portada: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
+    # Si vino vacío, lo convierto a None
+    categoria_id_int = int(id_categoria) if id_categoria else None
     try:
         # Subir archivo PDF a Cloudinary
         pdf_result = cloudinary.uploader.upload(
             url_archivo.file,
             resource_type="raw",
-            folder="ebooks/archivos",
-            public_id=f"ebook_{titulo.replace(' ', '_')}.pdf"
+            folder="ebooks/archivos",            
         )
         
         # Subir imagen de portada si se proporciona
         imagen_url = None
+        imagen_public_id = None
+        
         if imagen_portada and imagen_portada.filename:
             # Redimensionar imagen localmente antes de subir
             imagen_procesada = redimensionar_imagen(imagen_portada, max_width=400, max_height=600)
@@ -271,16 +274,19 @@ async def crear_ebook(
                 ]
             )
             imagen_url = imagen_result["secure_url"]
+            imagen_public_id = imagen_result["public_id"]
         
         # Crear el ebook en la base de datos
         nuevo_ebook = Ebook(
             titulo=titulo,
             descripcion=descripcion,
             precio=precio,
-            id_categoria=id_categoria,
+            id_categoria=categoria_id_int,
             url_archivo=pdf_result["secure_url"],
+            archivo_public_id=pdf_result["public_id"],
             imagen_portada=imagen_url,
-            activo=True
+            activo=True,
+            imagen_public_id=imagen_public_id
         )
         
         db.add(nuevo_ebook)
@@ -315,12 +321,14 @@ async def actualizar_ebook(
     titulo: str = Form(...),
     descripcion: str = Form(""),
     precio: float = Form(...),
-    id_categoria: Optional[int] = Form(None),
+    id_categoria: Optional[str] = Form(None),
     url_archivo: UploadFile = File(None),
     imagen_portada: UploadFile = File(None),
     activo: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
+    # Si vino vacío, lo convierto a None
+    categoria_id_int = int(id_categoria) if id_categoria else None
     ebook = db.query(Ebook).get(ebook_id)
     if not ebook:
         return RedirectResponse(url="/admin/ebooks", status_code=303)
@@ -330,7 +338,7 @@ async def actualizar_ebook(
         ebook.titulo = titulo
         ebook.descripcion = descripcion
         ebook.precio = precio
-        ebook.id_categoria = id_categoria
+        ebook.id_categoria = categoria_id_int
         ebook.activo = True if activo == "on" else False
         
         # Actualizar archivo PDF si se proporciona uno nuevo
@@ -339,7 +347,7 @@ async def actualizar_ebook(
             if ebook.url_archivo:
                 try:
                     # Extraer public_id del URL anterior
-                    old_public_id = f"ebook_{ebook.titulo.replace(' ', '_')}.pdf"
+                    old_public_id = ebook.archivo_public_id
                     cloudinary.uploader.destroy(old_public_id, resource_type="raw")
                 except Exception as e:
                     print(f"Error eliminando archivo anterior: {e}")
@@ -347,10 +355,10 @@ async def actualizar_ebook(
             pdf_result = cloudinary.uploader.upload(
                 url_archivo.file,
                 resource_type="raw",
-                folder="ebooks/archivos",
-                public_id=f"ebook_{titulo.replace(' ', '_')}.pdf"
+                folder="ebooks/archivos",                
             )
             ebook.url_archivo = pdf_result["secure_url"]
+            ebook.archivo_public_id = pdf_result["public_id"]
         
         # Actualizar imagen de portada si se proporciona una nueva
         if imagen_portada and imagen_portada.filename:
@@ -358,7 +366,7 @@ async def actualizar_ebook(
             if ebook.imagen_portada:
                 try:
                     # Extraer public_id del URL anterior usando el título original del ebook
-                    old_public_id = f"ebooks/portadas/ebook_{ebook.titulo.replace(' ', '_')}"
+                    old_public_id = ebook.imagen_public_id
                     cloudinary.uploader.destroy(old_public_id)
                 except Exception as e:
                     print(f"Error eliminando imagen anterior: {e}")
@@ -369,14 +377,14 @@ async def actualizar_ebook(
             # Subir imagen ya procesada a Cloudinary
             imagen_result = cloudinary.uploader.upload(
                 imagen_procesada,
-                folder="ebooks/portadas",
-                public_id=f"ebook_{titulo.replace(' ', '_')}",
+                folder="ebooks/portadas", 
                 transformation=[
                     {"quality": "auto"},
                     {"fetch_format": "auto"}
                 ]
             )
             ebook.imagen_portada = imagen_result["secure_url"]
+            ebook.imagen_public_id = imagen_result["public_id"]
         
         db.commit()
         return RedirectResponse(url="/admin/ebooks", status_code=303)
@@ -401,8 +409,39 @@ def eliminar_ebook(ebook_id: int, db: Session = Depends(get_db)):
                 "url_volver": "/admin/ebooks"
             })
         
+        # Guardar información de la imagen y pdf antes de eliminar el ebook
+        imagen_url = ebook.imagen_portada
+        imagen_public_id = ebook.imagen_public_id
+        titulo_ebook = ebook.titulo
+        archivo_url = ebook.url_archivo
+        archivo_public_id = ebook.archivo_public_id
+
+        print(f"archivo_url: {archivo_url}", flush=True)
+        print(f"Public ID previo a eliminar: {archivo_public_id}", flush=True)
+        
         db.delete(ebook)
         db.commit()
+
+        # Si la eliminación fue exitosa y había una imagen, eliminarla de Cloudinary
+        if imagen_url:
+            try:
+                # Public id de imagen
+                public_id = imagen_public_id
+                cloudinary.uploader.destroy(public_id)
+            except Exception as e:
+                print(f"Error eliminando imagen de Cloudinary: {e}")
+                # No fallar la operación si no se puede eliminar la imagen
+        
+        # Si la eliminación fue exitosa y había un archivo, eliminarlo de Cloudinary
+        if archivo_url:
+            try:
+                # Public id de archivo
+                public_id = archivo_public_id
+                print(f"Public ID previo a eliminar: {public_id}", flush=True)
+                cloudinary.uploader.destroy(public_id, resource_type='raw')
+            except Exception as e:
+                print(f"Error eliminando archivo de Cloudinary: {e}")
+                # No fallar la operación si no se puede eliminar el archivo
     return RedirectResponse(url="/admin/ebooks", status_code=303)
 
 ###########################
