@@ -1,36 +1,135 @@
 import os
 import base64
 import pickle
+import json
+import logging
+from typing import Optional
 from fastapi_mail import MessageSchema  # solo para mantener la compatibilidad con tu código
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from email.mime.text import MIMEText
 
-# 🔹 Cargar token de Gmail desde variable de entorno
-token_b64 = os.getenv("GMAIL_TOKEN")
-if not token_b64:
-    raise RuntimeError("GMAIL_TOKEN no está configurada en el entorno")
+# Configurar logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-token_bytes = base64.b64decode(token_b64)
-creds = pickle.loads(token_bytes)
+class GmailService:
+    def __init__(self):
+        self.service = None
+        self.creds = None
+        self._initialize_credentials()
+    
+    def _initialize_credentials(self):
+        """Inicializa las credenciales desde variables de entorno"""
+        try:
+            # Obtener credenciales desde variables de entorno
+            client_id = os.getenv("GMAIL_CLIENT_ID")
+            client_secret = os.getenv("GMAIL_CLIENT_SECRET")
+            refresh_token = os.getenv("GMAIL_REFRESH_TOKEN")
+            
+            if not all([client_id, client_secret, refresh_token]):
+                # Fallback al método anterior si las nuevas variables no están disponibles
+                token_b64 = os.getenv("GMAIL_TOKEN")
+                if token_b64:
+                    logger.info("Usando método de token legacy")
+                    token_bytes = base64.b64decode(token_b64)
+                    self.creds = pickle.loads(token_bytes)
+                else:
+                    raise RuntimeError("No se encontraron credenciales de Gmail válidas")
+            else:
+                # Crear credenciales con los nuevos parámetros
+                logger.info("Usando credenciales OAuth2 modernas")
+                self.creds = Credentials(
+                    token=None,  # Se obtendrá al refrescar
+                    refresh_token=refresh_token,
+                    token_uri="https://oauth2.googleapis.com/token",
+                    client_id=client_id,
+                    client_secret=client_secret,
+                    scopes=["https://www.googleapis.com/auth/gmail.send"]
+                )
+                
+                # Forzar refresh inmediato para obtener access token
+                logger.info("Obteniendo access token inicial...")
+                self.creds.refresh(Request())
+                logger.info("Access token obtenido exitosamente")
+            
+            # Crear servicio de Gmail
+            self.service = build('gmail', 'v1', credentials=self.creds)
+            logger.info("Servicio de Gmail inicializado correctamente")
+            
+        except Exception as e:
+            logger.error(f"Error inicializando credenciales de Gmail: {e}")
+            raise
+    
+    def _refresh_token_if_needed(self):
+        """Refresca el token si es necesario"""
+        try:
+            if not self.creds.valid:
+                if self.creds.expired and self.creds.refresh_token:
+                    logger.info("Token expirado, refrescando...")
+                    self.creds.refresh(Request())
+                    logger.info("Token refrescado exitosamente")
+                    
+                    # Guardar el nuevo token si es posible
+                    self._save_refreshed_token()
+                else:
+                    raise RuntimeError("No se puede refrescar el token: no hay refresh_token disponible")
+        except Exception as e:
+            logger.error(f"Error refrescando token: {e}")
+            raise
+    
+    def _save_refreshed_token(self):
+        """Guarda el token refrescado (para futuras mejoras)"""
+        try:
+            # Por ahora solo loggeamos el nuevo token
+            # En el futuro se podría guardar en base de datos o actualizar variables de entorno
+            logger.info("Token refrescado - considerar persistir para evitar futuras renovaciones")
+            
+            # Si quieres ver el nuevo token para actualizarlo manualmente:
+            if hasattr(self.creds, 'token') and self.creds.token:
+                logger.info(f"Nuevo access_token disponible (válido por ~1 hora)")
+                
+        except Exception as e:
+            logger.warning(f"No se pudo guardar el token refrescado: {e}")
+    
+    def send_email(self, to_email: str, subject: str, body_html: str, from_email: Optional[str] = None):
+        """Envía un email usando Gmail API con manejo automático de tokens"""
+        try:
+            # Verificar y refrescar token si es necesario
+            self._refresh_token_if_needed()
+            
+            # Email por defecto
+            if not from_email:
+                from_email = os.getenv("GMAIL_FROM_EMAIL", "notificaciones.santolina@gmail.com")
+            
+            # Crear mensaje
+            message = MIMEText(body_html, "html")
+            message['to'] = to_email
+            message['from'] = from_email
+            message['subject'] = subject
+            
+            # Codificar y enviar
+            raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
+            result = self.service.users().messages().send(
+                userId="me", 
+                body={'raw': raw}
+            ).execute()
+            
+            logger.info(f"Email enviado exitosamente a {to_email} - ID: {result.get('id')}")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error enviando email a {to_email}: {e}")
+            raise
 
-service = build('gmail', 'v1', credentials=creds)
+# Crear instancia global del servicio
+gmail_service = GmailService()
 
+# Función de compatibilidad con el código existente
 def send_email(to_email: str, subject: str, body_html: str):
-
-    # Renovar token si es necesario
-    if creds.expired and creds.refresh_token:
-        creds.refresh(Request())
-        
-    """Envía un mail usando Gmail API"""
-    message = MIMEText(body_html, "html")
-    message['to'] = to_email
-    message['from'] = 'notificaciones.santolina@gmail.com'
-    message['subject'] = subject
-    raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
-    service.users().messages().send(userId="me", body={'raw': raw}).execute()
-
+    """Función de compatibilidad - envía un email usando Gmail API"""
+    return gmail_service.send_email(to_email, subject, body_html)
 
 # ------------------ Funciones adaptadas ------------------
 
