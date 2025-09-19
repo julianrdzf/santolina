@@ -123,7 +123,7 @@ def crear_evento(
             # Subir imagen ya procesada a Cloudinary
             result = cloudinary.uploader.upload(
                 imagen_procesada,
-                folder="eventos",                
+                folder="eventos", 
                 transformation=[
                     {"quality": "auto"},
                     {"fetch_format": "auto"}

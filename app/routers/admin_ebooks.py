@@ -377,7 +377,7 @@ async def actualizar_ebook(
             # Subir imagen ya procesada a Cloudinary
             imagen_result = cloudinary.uploader.upload(
                 imagen_procesada,
-                folder="ebooks/portadas",                
+                folder="ebooks/portadas", 
                 transformation=[
                     {"quality": "auto"},
                     {"fetch_format": "auto"}
