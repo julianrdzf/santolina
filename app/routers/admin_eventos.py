@@ -114,6 +114,7 @@ def crear_evento(
     
     # Subir imagen a Cloudinary si se proporciona
     imagen_url = None
+    imagen_public_id = None
     if imagen and imagen.filename:
         try:
             # Redimensionar imagen localmente antes de subir
@@ -122,14 +123,14 @@ def crear_evento(
             # Subir imagen ya procesada a Cloudinary
             result = cloudinary.uploader.upload(
                 imagen_procesada,
-                folder="eventos",
-                public_id=f"evento_{titulo.replace(' ', '_')}",
+                folder="eventos",                
                 transformation=[
                     {"quality": "auto"},
                     {"fetch_format": "auto"}
                 ]
             )
             imagen_url = result["secure_url"]
+            imagen_public_id = result["public_id"]
         except Exception as e:
             print(f"Error subiendo imagen: {e}")
 
@@ -140,7 +141,8 @@ def crear_evento(
         ubicacion=ubicacion,
         direccion=direccion,
         costo=costo,
-        imagen=imagen_url
+        imagen=imagen_url,
+        imagen_public_id=imagen_public_id
     )
     db.add(nuevo_evento)
     db.commit()
@@ -197,7 +199,7 @@ def actualizar_evento(
             if evento.imagen:
                 try:
                     # Extraer public_id del URL anterior
-                    old_public_id = f"eventos/evento_{evento.titulo.replace(' ', '_')}"
+                    old_public_id = evento.imagen_public_id
                     cloudinary.uploader.destroy(old_public_id)
                 except Exception as e:
                     print(f"Error eliminando imagen anterior: {e}")
@@ -209,13 +211,13 @@ def actualizar_evento(
             result = cloudinary.uploader.upload(
                 imagen_procesada,
                 folder="eventos",
-                public_id=f"evento_{titulo.replace(' ', '_')}",
                 transformation=[
                     {"quality": "auto"},
                     {"fetch_format": "auto"}
                 ]
             )
             evento.imagen = result["secure_url"]
+            evento.imagen_public_id = result["public_id"]
         except Exception as e:
             print(f"Error subiendo imagen: {e}")
 
@@ -246,8 +248,26 @@ def eliminar_evento(evento_id: int, db: Session = Depends(get_db)):
                 "mensaje": "No se puede eliminar el evento porque tiene reservas registradas.",
                 "url_volver": "/admin/eventos"
             })
+        
+        # Guardar información de la imagen antes de eliminar el evento
+        imagen_url = evento.imagen
+        imagen_public_id = evento.imagen_public_id
+        titulo_evento = evento.titulo
+        
+        # Eliminar el evento de la base de datos
         db.delete(evento)
         db.commit()
+        
+        # Si la eliminación fue exitosa y había una imagen, eliminarla de Cloudinary
+        if imagen_url:
+            try:
+                # Public id
+                public_id = imagen_public_id
+                cloudinary.uploader.destroy(public_id)
+            except Exception as e:
+                print(f"Error eliminando imagen de Cloudinary: {e}")
+                # No fallar la operación si no se puede eliminar la imagen
+        
     return RedirectResponse(url="/admin/eventos", status_code=303)
 
 # Gestionar fechas y horarios del evento

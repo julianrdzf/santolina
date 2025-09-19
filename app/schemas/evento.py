@@ -11,6 +11,7 @@ class EventoCreate(BaseModel):
     direccion: Optional[str] = None
     costo: Optional[Decimal]
     imagen: Optional[str] = None
+    imagen_public_id: Optional[str] = None
 
 class EventoOut(BaseModel):
     id: int
@@ -21,6 +22,7 @@ class EventoOut(BaseModel):
     direccion: Optional[str]
     costo: Optional[Decimal]
     imagen: Optional[str]
+    imagen_public_id: Optional[str]
 
     class Config:
         orm_mode = True

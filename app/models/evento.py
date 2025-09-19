@@ -15,6 +15,7 @@ class Evento(Base):
     direccion = Column(String, nullable=True)
     costo = Column(Numeric(10, 2), nullable=True)
     imagen = Column(String, nullable=True)  # URL de la imagen del evento
+    imagen_public_id = Column(String, nullable=True)  # public_id de la imagen del evento
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
