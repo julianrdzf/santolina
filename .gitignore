@@ -2,3 +2,4 @@ __pycache__/
 .env
 tables.txt
 venv/
+token.pkl
