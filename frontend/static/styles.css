@@ -448,6 +448,14 @@ html {
     
 }
 
+.contendor-btn-centrado{
+    display: flex;
+    justify-content: center;
+    padding: 20px 20px;
+    margin: 20px;
+    text-align: center;
+}
+
 .container-filter{
     max-width: 1200px;
     margin: 0 auto;
@@ -957,6 +965,16 @@ transform: rotate(90deg);
 .container-yoga{
     
     background-image: linear-gradient(90deg,rgba(255, 255, 255, 0.4) 40%, rgba(255, 255, 255, 0) 49%, rgba(255, 255, 255, 0) 100%), url('/static/img/img-yoga-presentacion.jpg');  
+    
+    background-size: cover;
+    background-position: center;
+    padding-top: 100px;
+    padding-bottom: 50px;
+}
+
+.container-recetas{
+    
+    background-image: linear-gradient(90deg,rgba(255, 255, 255, 0.4) 40%, rgba(255, 255, 255, 0) 49%, rgba(255, 255, 255, 0) 100%), url('/static/img/img-recetas.jpg');  
     
     background-size: cover;
     background-position: center;

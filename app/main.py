@@ -117,6 +117,9 @@ async def mostrar_contelaciones(request: Request):
 async def mostrar_reiki_iniciacion(request: Request):
     return templates.TemplateResponse("reiki_iniciacion.html", {"request": request})
 
+@app.get("/recetas", response_class=HTMLResponse)
+async def mostrar_recetas(request: Request):
+    return templates.TemplateResponse("recetas.html", {"request": request})
 
 
 
