@@ -415,9 +415,6 @@ def eliminar_ebook(ebook_id: int, db: Session = Depends(get_db)):
         titulo_ebook = ebook.titulo
         archivo_url = ebook.url_archivo
         archivo_public_id = ebook.archivo_public_id
-
-        print(f"archivo_url: {archivo_url}", flush=True)
-        print(f"Public ID previo a eliminar: {archivo_public_id}", flush=True)
         
         db.delete(ebook)
         db.commit()
@@ -437,7 +434,6 @@ def eliminar_ebook(ebook_id: int, db: Session = Depends(get_db)):
             try:
                 # Public id de archivo
                 public_id = archivo_public_id
-                print(f"Public ID previo a eliminar: {public_id}", flush=True)
                 cloudinary.uploader.destroy(public_id, resource_type='raw')
             except Exception as e:
                 print(f"Error eliminando archivo de Cloudinary: {e}")
