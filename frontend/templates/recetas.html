@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.png">
+    <title>Recetas Saludables - Santolina</title>
+    
+    <!-- Meta tags para SEO -->
+    <meta name="description" content="Recetas saludables y naturales de Santolina. Dulces saludables, budines y más opciones nutritivas.">
+    <meta name="keywords" content="recetas saludables, dulces naturales, alimentación consciente, trufas de dátiles, budín de zanahoria">
+    
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* Estilos específicos para la página de recetas */
+        .recipes-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .recipes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .recipe-card-enhanced {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid #f0f0f0;
+        }
+        
+        .recipe-card-enhanced:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        .recipe-image {
+            width: 100%;
+            height: 300px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        
+        .recipe-image::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;            
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .recipe-card-enhanced:hover .recipe-image::after {
+            opacity: 1;
+        }
+        
+        .recipe-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #4a7c59;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+        }
+        
+        .recipe-content-enhanced {
+            padding: 25px;
+        }
+        
+        .recipe-title-enhanced {
+            color: #4a7c59;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .recipe-title-enhanced i {
+            color: #d85c2f;
+            font-size: 1.2rem;
+        }
+        
+        .recipe-section-enhanced {
+            margin-bottom: 20px;
+        }
+        
+        .recipe-section-enhanced h4 {
+            color: #4a7c59;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .recipe-section-enhanced h4 i {
+            color: #d85c2f;
+            font-size: 0.9rem;
+        }
+        
+        .ingredients-list-enhanced {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .ingredients-list-enhanced li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f5f5f5;
+            position: relative;
+            padding-left: 25px;
+            color: #555;
+            line-height: 1.4;
+        }
+        
+        .ingredients-list-enhanced li:before {
+            content: '🌿';
+            position: absolute;
+            left: 0;
+            top: 8px;
+        }
+        
+        .ingredients-list-enhanced li:last-child {
+            border-bottom: none;
+        }
+        
+        .preparation-text-enhanced {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .preparation-text-enhanced p {
+            margin-bottom: 12px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #4a7c59;
+        }
+        
+        .category-title-enhanced {
+            text-align: center;
+            color: #4a7c59;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 40px;
+            position: relative;
+        }
+        
+        .category-title-enhanced::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, #4a7c59, #d85c2f);
+            border-radius: 2px;
+        }
+        
+        .recipe-contact-enhanced {
+            text-align: center;
+            background: linear-gradient(135deg, #4a7c59, #5a8c69);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            margin-top: 50px;
+        }
+        
+        .recipe-contact-enhanced h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .recipe-contact-enhanced p {
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            opacity: 0.9;
+        }
+        
+        .btn-contact-recipes {
+            background: #d85c2f;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        
+        .btn-contact-recipes:hover {
+            background: #c54a26;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(216, 92, 47, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .recipes-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .recipe-content-enhanced {
+                padding: 20px;
+            }
+            
+            .category-title-enhanced {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include "partials/header.html" %}
+
+    <!-- Sección de Presentación -->
+    <section id="presentacion-recetas" class="container-recetas">
+        <div class="container-yoga-content">
+            <h2 class="yoga-title">Recetas Saludables</h2>
+        </div>
+    </section>
+
+    <!-- Sección de Recetas -->
+    <section id="recetas" class="recipes-container">
+        <h2 class="category-title-enhanced">Pochadas (Dulces saludables)</h2>
+        
+        <div class="recipes-grid">
+            <!-- Receta 1: Trufas de Dátiles -->
+            <div class="recipe-card-enhanced">
+                <div class="recipe-image" style="background-image: url('/static/img/recetas-trufas-datiles.jpg');">
+                    
+                </div>
+                
+                <div class="recipe-content-enhanced">
+                    <h3 class="recipe-title-enhanced">
+                        <i class="fas fa-cookie-bite"></i>
+                        Trufas de dátiles
+                    </h3>
+                    
+                    <div class="recipe-section-enhanced">
+                        <h4><i class="fas fa-shopping-basket"></i> Ingredientes:</h4>
+                        <ul class="ingredients-list-enhanced">
+                            <li>200g de dátiles</li>
+                            <li>100g de maní</li>
+                            <li>3 cdas de cacao amargo en polvo</li>
+                            <li>3 cdas de aceite de coco</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="recipe-section-enhanced">
+                        <h4><i class="fas fa-utensils"></i> Preparación:</h4>
+                        <div class="preparation-text-enhanced">
+                            <p>Procesar en un mixer o procesadora todos los ingredientes, armar bolitas y listo!</p>
+                            <p>En la heladera un ratito. Se pueden pasar por coco rallado.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Receta 2: Budín de Banana -->
+            <div class="recipe-card-enhanced">
+                <div class="recipe-image" style="background-image: url('/static/img/recetas-budin-banana.jpg');">
+                    
+                </div>
+                
+                <div class="recipe-content-enhanced">
+                    <h3 class="recipe-title-enhanced">
+                        <i class="fas fa-birthday-cake"></i>
+                        Budín de zanahoria
+                    </h3>
+                    
+                    <div class="recipe-section-enhanced">
+                        <h4><i class="fas fa-shopping-basket"></i> Ingredientes:</h4>
+                        <ul class="ingredients-list-enhanced">
+                            <li>1 taza de harina de avena</li>
+                            <li>3 huevos</li>
+                            <li>½ taza de azúcar mascabo o rubio</li>
+                            <li>1 zanahoria grande rallada o 2 manzanas</li>
+                            <li>2 cdas de miel</li>
+                            <li>3 cdas de ghee o aceite de oliva</li>
+                            <li>1 cdita de canela, jengibre, vainilla, pimienta, etc.</li>
+                            <li>1 cda de polvo de hornear</li>
+                            <li>Nueces o almendras</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="recipe-section-enhanced">
+                        <h4><i class="fas fa-utensils"></i> Preparación:</h4>
+                        <div class="preparation-text-enhanced">
+                            <p>Mezclar en un bowl todos los huevos, el aceite, azúcar, miel, canela, jengibre y polvos.</p>
+                            <p>Una vez homogéneo, añadir la harina, la zanahoria y almendras picadas por dentro o
+                                por arriba.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+    </section>
+
+    {% include "partials/footer.html" %}
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
