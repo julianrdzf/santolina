@@ -121,6 +121,14 @@ async def mostrar_reiki_iniciacion(request: Request):
 async def mostrar_recetas(request: Request):
     return templates.TemplateResponse("recetas.html", {"request": request})
 
+@app.get("/ritual-utero", response_class=HTMLResponse)
+async def mostrar_ritual_utero(request: Request):
+    return templates.TemplateResponse("ritual_utero.html", {"request": request})
+
+@app.get("/limpieza-energetica", response_class=HTMLResponse)
+async def mostrar_limpieza_energetica(request: Request):
+    return templates.TemplateResponse("limpieza_energetica.html", {"request": request})
+
 
 
 ###########################
