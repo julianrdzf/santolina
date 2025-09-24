@@ -549,10 +549,10 @@ html {
 }
 
 .hamburger:hover .bar {
-    background: #d85c2f;
+    background: #975b39;
 }
 .hamburger:hover .close-x {
-    color: #d85c2f;
+    color: #975b39;
 }
 
 .hscroll {
@@ -598,20 +598,17 @@ html {
     align-items: center;
     justify-content: center;
     width: 32px;
-    height: 32px;
-    background: rgba(74, 124, 89, 0.1);
-    border-radius: 50%;
+    height: 32px;    
+    border-radius: 5px;
     text-decoration: none;
-    color: #4a7c59;
+    color: #546057;
     transition: all 0.3s ease;
     border: 2px solid transparent;
 }
 
-.cart-button:hover {
-    background: #4a7c59;
-    color: white;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(74, 124, 89, 0.3);
+.cart-button:hover {    
+    color: #975b39;
+    transform: translateY(-1px);    
 }
 
 .cart-button i {
@@ -962,6 +959,16 @@ transform: rotate(90deg);
     font-size: small;
 }
 
+.container-limpieza-energetica{
+    
+    background-image: linear-gradient(90deg,rgba(255, 255, 255, 0.4) 40%, rgba(255, 255, 255, 0) 49%, rgba(255, 255, 255, 0) 100%), url('/static/img/img-limpieza-energetica.jpg');  
+    
+    background-size: cover;
+    background-position: center;
+    padding-top: 100px;
+    padding-bottom: 50px;
+}
+
 .container-yoga{
     
     background-image: linear-gradient(90deg,rgba(255, 255, 255, 0.4) 40%, rgba(255, 255, 255, 0) 49%, rgba(255, 255, 255, 0) 100%), url('/static/img/img-yoga-presentacion.jpg');  
@@ -970,6 +977,187 @@ transform: rotate(90deg);
     background-position: center;
     padding-top: 100px;
     padding-bottom: 50px;
+}
+
+.container-utero{
+    
+    background-image: linear-gradient(90deg,rgba(255, 255, 255, 0.4) 40%, rgba(255, 255, 255, 0) 49%, rgba(255, 255, 255, 0) 100%), url('/static/img/img-ritual-utero.jpg');  
+    
+    background-size: cover;
+    background-position: center;
+    padding-top: 100px;
+    padding-bottom: 50px;
+}
+
+/* Estilos para la sección de programa */
+.program-section {
+    padding: 60px 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 20px;
+    margin: 40px 0;
+}
+
+.section-title-center {
+    text-align: center;
+    color: #4a7c59;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 50px;
+    position: relative;
+}
+
+.section-title-center::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, #6c715d, #ab5a36);
+    border-radius: 2px;
+}
+
+.program-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;    
+}
+
+.program-item {
+    display: block;    
+    padding: 20px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border-left: 4px solid #4a7c59;
+}
+
+.program-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.program-item i {
+    color: #ab5a36;
+    font-size: 1.2rem;
+    margin-top: 2px;
+    min-width: 20px;
+}
+
+.program-item h3 {
+    color: #4a7c59;
+    font-size: 1.2rem;
+    margin-top: 2px;
+    min-width: 20px;
+}
+
+.program-item span {
+    color: #555;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.program-details {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.program-includes {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    border: 2px solid #4a7c59;
+}
+.program-info-item{
+    height: 100%;
+}
+
+.program-info-item h3 {
+    color: #4a7c59;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.program-info-item h3 i {
+    color: #ab5a36;
+}
+
+.program-includes p {
+    color: #666;
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+.program-info-grid {
+    display: grid;
+    gap: 20px;
+}
+
+.program-info-item {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+}
+
+.program-info-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.program-info-item h4 {
+    color: #4a7c59;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.program-info-item h4 i {
+    color: #ab5a36;
+    font-size: 0.9rem;
+}
+
+.program-info-item p {
+    color: #666;
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Responsive para la sección de programa */
+@media (max-width: 768px) {
+    .program-content {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .section-title-center {
+        font-size: 2rem;
+    }
+    
+    .program-section {
+        padding: 40px 20px;
+        margin: 20px 0;
+    }
+    
+    .program-item {
+        padding: 15px;
+    }
+    
+    .program-includes {
+        padding: 20px;
+    }
 }
 
 .container-recetas{
@@ -1075,7 +1263,10 @@ transform: rotate(90deg);
     display: flex;
     align-items: center;    
     background-size: cover;
-    background: #ffffff;    
+    background: #f7f5ea;
+    background-image: linear-gradient(0deg,rgba(255, 255, 255, 1) 0%, rgba(247, 247, 247, 0.3) 30%, rgba(186, 183, 164, 0.5) 100%),url('/static/img/banner.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;    
     padding-top: 100px;
     padding-bottom: 50px;
 }
@@ -1087,6 +1278,7 @@ transform: rotate(90deg);
     display: grid;
     align-items: center;
     margin-bottom: 20px;
+    
     
 }
 
@@ -1100,7 +1292,8 @@ transform: rotate(90deg);
     border-radius: 10px;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
     background: #f5e1e8;
-    background: linear-gradient(70deg,rgba(245, 225, 232, 0.7) 0%, rgba(169, 176, 170, 0.3) 50%, rgba(217, 197, 137, 0.5) 100%);
+    background: linear-gradient(70deg,rgba(240, 226, 213, 0.7) 0%, rgba(247, 247, 247, 0.3) 50%, rgba(186, 183, 164, 0.5) 100%);
+    backdrop-filter: blur(5px);
 }
 
 .hero-title {
