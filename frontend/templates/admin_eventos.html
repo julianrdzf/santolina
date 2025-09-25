@@ -40,7 +40,8 @@
                             <th>ID</th>
                             <th>Título</th>
                             <th>Próximas fechas</th>
-                            <th>Categoría</th>
+                            <th>Categoría</th>                            
+                            <th>Prioridad</th>
                             <th>Costo</th>
                             <th>Total cupos</th>
                             <th>Reservas</th>
@@ -77,6 +78,7 @@
                                 {% endif %}
                             </td>
                             <td>{{ evento.categoria.nombre if evento.categoria else 'Sin categoría' }}</td>
+                            <td>{{ evento.prioridad if evento.prioridad is not none else '-' }}</td>                            
                             <td>${{ "%.2f"|format(evento.costo) }}</td>
                             <td>
                                 {% set total_cupos = 0 %}
