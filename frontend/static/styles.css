@@ -3763,6 +3763,9 @@ transform: rotate(90deg);
     border-bottom: 1px solid #eee;
     padding-bottom: 0.5rem;
 }
+.subcategory-list .category-item:last-child {
+    border-bottom: none;    
+}
 
 /* Estilos base para enlaces de categoría */
 .category-link {
@@ -3833,8 +3836,7 @@ transform: rotate(90deg);
     margin-left: 7.5rem;
 }
 
-.subcategory-list {
-    margin-top: 0.5rem;
+.subcategory-list {    
     display: flex;
     flex-direction: column;
     gap: 0.25rem;

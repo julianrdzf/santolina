@@ -41,10 +41,10 @@
                     {% if categoria.subcategorias %}
                         <!-- Categoría con subcategorías - clickeable para expandir -->
                         <div class="category-header" data-category-id="{{ categoria.id }}">
-                            <i class="fas fa-chevron-right category-toggle"></i>
-                            <a href="/eventos-disponibles?categoria={{ categoria.id }}" class="category-link">
+                            <a href="/eventos-disponibles?categoria={{ categoria.id }}" class="category-link" data-level="{{ level }}">
                                 {{ categoria.nombre }}
                             </a>
+                            <i class="fas fa-chevron-right category-toggle"></i>
                         </div>
                         <!-- Subcategorías ocultas inicialmente -->
                         <div class="subcategory-list collapsed" data-level="{{ level + 1 }}">
@@ -274,7 +274,7 @@
     display: flex;
     align-items: center;
     cursor: pointer;
-    padding: 8px 0;
+    padding: 0px 0;
 }
 
 .category-toggle {
@@ -341,7 +341,7 @@
 }
 
 .category-item[data-level] .category-header {
-    margin: 2px 0;
+    margin: 0px 0;
 }
 
 /* Indentación progresiva para niveles múltiples */
