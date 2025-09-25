@@ -83,7 +83,7 @@ def mostrar_eventos_disponibles(
     total_pages = math.ceil(total_eventos / items_per_page)
     
     offset = (page - 1) * items_per_page
-    eventos = query.options(
+    eventos = query.order_by(Evento.prioridad.asc().nullslast()).options(
         joinedload(Evento.categoria),
         joinedload(Evento.fechas_evento).joinedload(FechaEvento.horarios)
     ).offset(offset).limit(items_per_page).all()

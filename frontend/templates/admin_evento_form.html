@@ -65,6 +65,17 @@
                     </div>
 
                     <div class="mb-3">
+                        <label class="form-label">Prioridad (opcional)</label>
+                        <select name="prioridad" class="form-select">
+                            <option value="">Sin prioridad</option>
+                            {% for i in range(1, 11) %}
+                                <option value="{{ i }}" {% if modo != 'crear' and evento.prioridad == i %}selected{% endif %}>{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">Un número más bajo indica mayor prioridad.</small>
+                    </div>
+
+                    <div class="mb-3">
                         <label class="form-label">Categoría</label>
                         <select name="categoria_id" class="form-select">
                             <option value="">Sin categoría</option>
