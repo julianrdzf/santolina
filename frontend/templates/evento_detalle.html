@@ -157,29 +157,26 @@
             </div>
         </div>
 
-        <!-- Related Events -->
+        <!-- Eventos relacionados (desde backend se mandan eventos de la misma categoría) -->
         {% if eventos_relacionados %}
-        <div class="related-products">
-            <h2 class="related-title">Eventos relacionados</h2>
-            <div class="products-grid">
+        <div class="related-events">
+            <h2 class="related-events-title">Eventos relacionados</h2>
+            <div class="related-events-grid">
                 {% for related_evento in eventos_relacionados %}
-                <div class="ebook-card">
-                    <div class="ebook-image">
-                        <div class="ebook-cover">
-                            {% if related_evento.imagen %}
-                                <img src="{{ related_evento.imagen }}" alt="{{ related_evento.titulo }}">
-                            {% else %}
-                                <div class="default-cover">
-                                    <i class="fas fa-calendar-alt"></i>
-                                    <span>{{ related_evento.titulo[:2].upper() }}</span>
-                                </div>
-                            {% endif %}
-                        </div>
+                <div class="related-event-card">
+                    <div class="related-event-image">
+                        {% if related_evento.imagen %}
+                            <img src="{{ related_evento.imagen }}" alt="{{ related_evento.titulo }}">
+                        {% else %}
+                            <div class="related-event-placeholder">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                        {% endif %}
                     </div>
-                    <div class="ebook-info">
-                        <h4 class="ebook-title">{{ related_evento.titulo }}</h4>
-                        <p class="ebook-desc">{{ related_evento.descripcion[:100] }}{% if related_evento.descripcion|length > 100 %}...{% endif %}</p>
-                        <div class="event-meta">
+                    <div class="related-event-info">
+                        <h4 class="related-event-title">{{ related_evento.titulo }}</h4>
+                        <p class="related-event-desc">{{ related_evento.descripcion[:100] }}{% if related_evento.descripcion|length > 100 %}...{% endif %}</p>
+                        <div class="related-event-meta">
                             {% if related_evento.fechas_evento %}
                                 <span><i class="fas fa-calendar"></i> {{ related_evento.fechas_evento|length }} fecha{% if related_evento.fechas_evento|length != 1 %}s{% endif %}</span>
                             {% else %}
@@ -187,13 +184,13 @@
                             {% endif %}
                             <span><i class="fas fa-map-marker-alt"></i> {{ related_evento.ubicacion or "Ubicación a confirmar" }}</span>
                         </div>
-                        <div class="ebook-bottom">
+                        <div class="related-event-bottom">
                             {% if related_evento.costo %}
-                            <span class="price">$ {{ "%.2f"|format(related_evento.costo) }}</span>
+                            <span class="related-event-price">$ {{ "%.2f"|format(related_evento.costo) }}</span>
                             {% else %}
-                            <span class="price">Gratuito</span>
+                            <span class="related-event-price">Gratuito</span>
                             {% endif %}
-                            <a href="/eventos/{{ related_evento.id }}" class="btn-view" aria-label="Ver {{ related_evento.titulo }}">Ver detalles</a>
+                            <a href="/eventos/{{ related_evento.id }}" class="related-event-btn" aria-label="Ver {{ related_evento.titulo }}">Ver detalles</a>
                         </div>
                     </div>
                 </div>
@@ -562,6 +559,179 @@
     
     .selected-info {
         text-align: center;
+    }
+}
+
+/* Estilos para eventos relacionados */
+.related-events {
+    margin-top: 50px;
+    padding: 30px 0;
+    border-top: 1px solid #e0e0e0;
+}
+
+.related-events-title {
+    color: #4a7c59;
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 30px;
+    text-align: center;
+    position: relative;
+}
+
+.related-events-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #4a7c59, #ab5a36);
+    border-radius: 2px;
+}
+
+.related-events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    margin-top: 40px;
+    justify-items: center;
+}
+
+.related-event-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid #f0f0f0;
+    max-width: 300px;
+}
+
+.related-event-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.related-event-image {
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+    position: relative;
+}
+
+.related-event-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.related-event-card:hover .related-event-image img {
+    transform: scale(1.05);
+}
+
+.related-event-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #4a7c59, #6b8e6b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2.5rem;
+}
+
+.related-event-info {
+    padding: 20px;
+}
+
+.related-event-title {
+    color: #222;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    line-height: 1.3;
+}
+
+.related-event-desc {
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    margin-bottom: 15px;
+}
+
+.related-event-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.related-event-meta span {
+    color: #777;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.related-event-meta i {
+    color: #777;
+    font-size: 0.8rem;
+    width: 14px;
+}
+
+.related-event-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 15px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.related-event-price {
+    color: #222;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.related-event-btn {
+    background: #4a7c59;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.related-event-btn:hover {
+    background: #3a6249;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(74, 124, 89, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+/* Responsive para eventos relacionados */
+@media (max-width: 768px) {
+    .related-events-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .related-events-title {
+        font-size: 1.5rem;
+    }
+    
+    .related-event-info {
+        padding: 15px;
+    }
+    
+    .related-event-image {
+        height: 160px;
     }
 }
 </style>
