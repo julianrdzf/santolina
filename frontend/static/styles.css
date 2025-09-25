@@ -3779,10 +3779,6 @@ transform: rotate(90deg);
     transition: color 0.2s ease;
 }
 
-.category-link:hover {
-    color: var(--main-green-color);
-}
-
 .category-link i {
     font-size: 0.9rem;
     width: 16px;
