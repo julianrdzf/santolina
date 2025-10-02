@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from pathlib import Path
 from fastapi.templating import Jinja2Templates
 from app.routers import categorias, eventos, reservas, admin, admin_eventos, admin_ebooks, contacto, usuarios, mercado_pago, tienda, ebooks, paypal
@@ -51,6 +52,16 @@ try_set_locales(PREFERRED_LOCALES)
 
 # Aplicación
 app = FastAPI()
+
+# Middleware para manejar proxy headers (Railway usa HTTPS)
+@app.middleware("http")
+async def add_proxy_headers(request: Request, call_next):
+    # Railway pasa estos headers cuando está detrás de un proxy HTTPS
+    if "x-forwarded-proto" in request.headers:
+        request.scope["scheme"] = request.headers["x-forwarded-proto"]
+    response = await call_next(request)
+    return response
+
 app.include_router(eventos.router)
 app.include_router(categorias.router)
 app.include_router(reservas.router)
