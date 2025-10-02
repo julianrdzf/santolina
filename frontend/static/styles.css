@@ -716,6 +716,7 @@ border-top: 1px solid #66634e;
 display: inline-block;
 transition: transform 0.3s ease;
 color: rgb(255, 255, 255);
+font-size: small;
 }
 
 .has-submenu.open > a .submenu-arrow {
@@ -942,7 +943,13 @@ transform: rotate(90deg);
 }
 
 .color-resaltado{
-    color:var(--orange-color);
+    color: #66321a;
+}
+
+.centrar-elementos{
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .container-img-txt {
@@ -1519,12 +1526,12 @@ transform: rotate(90deg);
 }
 
 .yoga-title{
-    color:var(--dark-green-color);
+    color:#542915;
     font-size: 3rem;
 
 }
 .yoga-subtitle{
-    color: #292929;
+    color: #666;
 }
 
 .yoga-subcontainer{
