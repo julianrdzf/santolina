@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', function() {
         right: 30px;
         width: 50px;
         height: 50px;
-        background: linear-gradient(135deg, #4a7c59, #6b8e6b);
+        background: linear-gradient(135deg, #6c715d, #6c715d);
         color: white;
         border: none;
         border-radius: 50%;
@@ -277,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
         visibility: hidden;
         transition: all 0.3s ease;
         z-index: 1000;
-        box-shadow: 0 5px 15px rgba(74, 124, 89, 0.3);
+        box-shadow: 0 5px 15px rgba(108, 113, 93, 0.3);
     `;
     
     document.body.appendChild(backToTopBtn);
@@ -304,12 +304,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Efecto de hover en el botón
     backToTopBtn.addEventListener('mouseenter', function() {
         this.style.transform = 'translateY(-3px)';
-        this.style.boxShadow = '0 8px 25px rgba(74, 124, 89, 0.4)';
+        this.style.boxShadow = '0 8px 25px rgba(108, 113, 93, 0.4)';
     });
 
     backToTopBtn.addEventListener('mouseleave', function() {
         this.style.transform = 'translateY(0)';
-        this.style.boxShadow = '0 5px 15px rgba(74, 124, 89, 0.3)';
+        this.style.boxShadow = '0 5px 15px rgba(108, 113, 93, 0.3)';
     });
 
     const readMoreBtn = document.getElementById('readMoreBtn');
