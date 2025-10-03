@@ -177,8 +177,8 @@
                         <h4 class="related-event-title">{{ related_evento.titulo }}</h4>
                         <p class="related-event-desc">{{ related_evento.descripcion[:100] }}{% if related_evento.descripcion|length > 100 %}...{% endif %}</p>
                         <div class="related-event-meta">
-                            {% if related_evento.fechas_evento %}
-                                <span><i class="fas fa-calendar"></i> {{ related_evento.fechas_evento|length }} fecha{% if related_evento.fechas_evento|length != 1 %}s{% endif %}</span>
+                            {% if related_evento.fechas_disponibles_count and related_evento.fechas_disponibles_count > 0 %}
+                                <span><i class="fas fa-calendar"></i> {{ related_evento.fechas_disponibles_count }} fecha{% if related_evento.fechas_disponibles_count != 1 %}s{% endif %} disponible{% if related_evento.fechas_disponibles_count != 1 %}s{% endif %}</span>
                             {% else %}
                                 <span><i class="fas fa-calendar"></i> Fechas a confirmar</span>
                             {% endif %}

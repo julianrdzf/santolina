@@ -141,8 +141,8 @@
                     <p class="product-desc">{{ evento.descripcion or "Sin descripción" }}</p>
                     <div class="event-meta">
                         <span><i class="fas fa-map-marker-alt"></i> {{ evento.ubicacion or "Ubicación a confirmar" }}</span>
-                        {% if evento.fechas_evento %}
-                            <span><i class="fas fa-calendar"></i> {{ evento.fechas_evento|length }} fecha{% if evento.fechas_evento|length != 1 %}s{% endif %} disponible{% if evento.fechas_evento|length != 1 %}s{% endif %}</span>
+                        {% if evento.fechas_disponibles_count and evento.fechas_disponibles_count > 0 %}
+                            <span><i class="fas fa-calendar"></i> {{ evento.fechas_disponibles_count }} fecha{% if evento.fechas_disponibles_count != 1 %}s{% endif %} disponible{% if evento.fechas_disponibles_count != 1 %}s{% endif %}</span>
                         {% else %}
                             <span><i class="fas fa-calendar"></i> Fechas a confirmar</span>
                         {% endif %}
