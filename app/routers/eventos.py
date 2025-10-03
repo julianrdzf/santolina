@@ -88,6 +88,31 @@ def mostrar_eventos_disponibles(
         joinedload(Evento.fechas_evento).joinedload(FechaEvento.horarios)
     ).offset(offset).limit(items_per_page).all()
     
+    # Calcular fechas disponibles para cada evento
+    for evento in eventos:
+        # Contar solo fechas futuras que tienen horarios con cupos disponibles
+        fechas_disponibles = 0
+        for fecha in evento.fechas_evento:
+            if fecha.fecha >= date.today():
+                # Verificar si tiene al menos un horario con cupos disponibles
+                tiene_horarios_disponibles = False
+                for horario in fecha.horarios:
+                    cupos_reservados = db.query(func.sum(Reserva.cupos)).filter(
+                        Reserva.horario_id == horario.id,
+                        Reserva.estado_pago == "aprobado"
+                    ).scalar() or 0
+                    
+                    cupos_disponibles = horario.cupos - cupos_reservados
+                    if cupos_disponibles > 0:
+                        tiene_horarios_disponibles = True
+                        break
+                
+                if tiene_horarios_disponibles:
+                    fechas_disponibles += 1
+        
+        # Agregar propiedad calculada al objeto evento
+        evento.fechas_disponibles_count = fechas_disponibles
+    
     # Obtener categorías principales con subcategorías para el sidebar
     categorias_principales = db.query(CategoriaEvento).filter(
         CategoriaEvento.id_categoria_padre.is_(None)
@@ -164,6 +189,28 @@ def mostrar_evento_detalle(
             Evento.id != evento.id,
             FechaEvento.fecha >= date.today()
         ).distinct().limit(4).all()
+        
+        # Calcular fechas disponibles para eventos relacionados
+        for evento_rel in eventos_relacionados:
+            fechas_disponibles = 0
+            for fecha in evento_rel.fechas_evento:
+                if fecha.fecha >= date.today():
+                    tiene_horarios_disponibles = False
+                    for horario in fecha.horarios:
+                        cupos_reservados = db.query(func.sum(Reserva.cupos)).filter(
+                            Reserva.horario_id == horario.id,
+                            Reserva.estado_pago == "aprobado"
+                        ).scalar() or 0
+                        
+                        cupos_disponibles = horario.cupos - cupos_reservados
+                        if cupos_disponibles > 0:
+                            tiene_horarios_disponibles = True
+                            break
+                    
+                    if tiene_horarios_disponibles:
+                        fechas_disponibles += 1
+            
+            evento_rel.fechas_disponibles_count = fechas_disponibles
     
     return templates.TemplateResponse("evento_detalle.html", {
         "request": request,
