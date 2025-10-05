@@ -128,8 +128,11 @@ def crear_reserva_con_pago(
     
     # Actualizar celular del usuario si no lo tenía y se proporcionó
     if usuario and celular and not usuario.celular:
-        usuario.celular = celular
-        db.commit()
+        usuario_db = db.query(Usuario).filter(Usuario.id == usuario.id).first()
+        if usuario_db:
+            usuario_db.celular = celular
+            db.commit()
+            db.refresh(usuario_db)
 
     # ✅ Crear reserva con nueva estructura (horario_id es obligatorio)
     nueva_reserva = Reserva(

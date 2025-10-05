@@ -162,16 +162,21 @@ def perfil_usuario(
 
 
 @router.post("/perfil/actualizar-datos")
-def actualizar_datos_usuario(
+async def actualizar_datos_usuario(
     request: Request,
     nombre: str = Form(...),
     celular: str = Form(None),
     db: Session = Depends(get_db),
     usuario: Usuario = Depends(current_active_user)
 ):
-    usuario.nombre = nombre
-    usuario.celular = celular
-    db.commit()
+    # Obtener el usuario desde la base de datos para asegurar que está en la sesión
+    usuario_db = db.query(Usuario).filter(Usuario.id == usuario.id).first()
+    
+    if usuario_db:
+        usuario_db.nombre = nombre
+        usuario_db.celular = celular
+        db.commit()
+        db.refresh(usuario_db)
     
     return RedirectResponse(url="/perfil", status_code=303)
 
