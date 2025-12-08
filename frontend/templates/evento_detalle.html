@@ -124,6 +124,12 @@
                     <div class="price-section">
                         {% if evento.costo %}
                         <span class="current-price">$ {{ "%.2f"|format(evento.costo) }}</span>
+                        {% if evento.costo_dolares %}
+                        <div class="price-usd-note">
+                            <i class="fas fa-globe-americas"></i>
+                            Pagando fuera de Uruguay: <strong>USD {{ "%.2f"|format(evento.costo_dolares) }}</strong>
+                        </div>
+                        {% endif %}
                         {% else %}
                         <span class="current-price">Costo a confirmar</span>
                         {% endif %}
@@ -733,6 +739,30 @@
     .related-event-image {
         height: 160px;
     }
+}
+
+/* USD Price Note Styles */
+.price-usd-note {
+    margin-top: 12px;
+    padding: 10px 15px;
+    background: linear-gradient(135deg, #fff8e1 0%, #ffe082 100%);
+    border-left: 4px solid #ffa726;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    color: #e65100;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.price-usd-note i {
+    color: #ff9800;
+    font-size: 1rem;
+}
+
+.price-usd-note strong {
+    color: #e65100;
+    font-weight: 600;
 }
 </style>
 

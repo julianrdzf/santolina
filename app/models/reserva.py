@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, DateTime, ForeignKey, String
+from sqlalchemy import Column, Integer, DateTime, ForeignKey, String, Numeric
 from sqlalchemy.orm import relationship
 from app.db import Base
 from datetime import datetime, timezone
@@ -14,6 +14,9 @@ class Reserva(Base):
     cupos = Column(Integer, nullable=False)
     estado_pago = Column(String, default="pendiente", nullable=False)
     transaction_id = Column(String, nullable=True)  # ID de la transacción del proveedor de pago
+    metodo_pago = Column(String, nullable=True)  # mercadopago o paypal
+    costo_pagado = Column(Numeric(10, 2), nullable=True)  # Costo total pagado
+    moneda = Column(String(3), nullable=True)  # UYU o USD
 
     # Relaciones
     usuario = relationship("Usuario")

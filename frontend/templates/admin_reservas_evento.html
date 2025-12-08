@@ -75,6 +75,8 @@
                                     <th>Email</th>
                                     <th>Celular</th>
                                     <th>Cantidad</th>
+                                    <th>Costo</th>
+                                    <th>Transaction ID</th>
                                     <th>Estado</th>
                                     <th>Fecha de reserva</th>
                                     <th>Acciones</th>
@@ -88,6 +90,24 @@
                                     <td>{{ reserva.usuario.email }}</td>
                                     <td>{{ reserva.usuario.celular or "" }}</td>
                                     <td>{{ reserva.cupos or "" }}</td>
+                                    <td>
+                                        {% if reserva.costo_pagado and reserva.moneda %}
+                                            {% if reserva.moneda == 'USD' %}
+                                                <span class="text-success">USD {{ "%.2f"|format(reserva.costo_pagado) }}</span>
+                                            {% else %}
+                                                ${{ "%.2f"|format(reserva.costo_pagado) }}
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if reserva.transaction_id %}
+                                            <small>{{ reserva.transaction_id[:20] }}{% if reserva.transaction_id|length > 20 %}...{% endif %}</small>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
                                     <td>
                                         <span class="badge {% if reserva.estado_pago == 'aprobado' %}bg-success{% elif reserva.estado_pago == 'pendiente' %}bg-warning{% else %}bg-danger{% endif %}">
                                             {{ reserva.estado_pago.title() }}
