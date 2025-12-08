@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
+from decimal import Decimal
 
 class ReservaCreate(BaseModel):
     usuario_id: UUID
@@ -17,6 +18,9 @@ class ReservaOut(BaseModel):
     cupos: int
     estado_pago: str
     transaction_id: Optional[str] = None
+    metodo_pago: Optional[str] = None
+    costo_pagado: Optional[Decimal] = None
+    moneda: Optional[str] = None
 
     class Config:
         orm_mode = True

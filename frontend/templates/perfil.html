@@ -360,8 +360,25 @@
                                         <p><strong>Fecha del evento:</strong> {{ reserva.horario.fecha_evento.fecha.strftime('%d/%m/%Y') }}</p>
                                         <p><strong>Horario:</strong> {{ reserva.horario.hora_inicio.strftime('%H:%M') }} - {{ reserva.horario.hora_fin.strftime('%H:%M') if reserva.horario.hora_fin else 'N/A' }}</p>
                                         <p><strong>Cantidad de personas:</strong> {{ reserva.cupos }}</p>
-                                        <p><strong>Costo por persona:</strong> $ {{ "%.2f"|format(reserva.horario.fecha_evento.evento.costo) }}</p>
-                                        <p><strong>Total:</strong> $ {{ "%.2f"|format(reserva.horario.fecha_evento.evento.costo * reserva.cupos) }}</p>
+                                        {% if reserva.costo_pagado and reserva.moneda %}
+                                            <p><strong>Costo por persona:</strong> 
+                                                {% if reserva.moneda == 'USD' %}
+                                                    USD {{ "%.2f"|format(reserva.costo_pagado / reserva.cupos) }}
+                                                {% else %}
+                                                    ${{ "%.2f"|format(reserva.costo_pagado / reserva.cupos) }}
+                                                {% endif %}
+                                            </p>
+                                            <p><strong>Total pagado:</strong> 
+                                                {% if reserva.moneda == 'USD' %}
+                                                    <span class="text-success">USD {{ "%.2f"|format(reserva.costo_pagado) }}</span>
+                                                {% else %}
+                                                    ${{ "%.2f"|format(reserva.costo_pagado) }}
+                                                {% endif %}
+                                            </p>
+                                        {% else %}
+                                            <p><strong>Costo por persona:</strong> $ {{ "%.2f"|format(reserva.horario.fecha_evento.evento.costo) }}</p>
+                                            <p><strong>Total:</strong> $ {{ "%.2f"|format(reserva.horario.fecha_evento.evento.costo * reserva.cupos) }}</p>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>

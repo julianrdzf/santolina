@@ -79,7 +79,12 @@
                             </td>
                             <td>{{ evento.categoria.nombre if evento.categoria else 'Sin categoría' }}</td>
                             <td>{{ evento.prioridad if evento.prioridad is not none else '-' }}</td>                            
-                            <td>${{ "%.2f"|format(evento.costo) }}</td>
+                            <td>
+                                ${{ "%.2f"|format(evento.costo) }}
+                                {% if evento.costo_dolares %}
+                                    <span class="text-success"> - USD {{ "%.2f"|format(evento.costo_dolares) }}</span>
+                                {% endif %}
+                            </td>
                             <td>
                                 {% set total_cupos = 0 %}
                                 {% for fecha_evento in evento.fechas_evento %}

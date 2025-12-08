@@ -135,11 +135,15 @@ def crear_reserva_con_pago(
             db.refresh(usuario_db)
 
     # ✅ Crear reserva con nueva estructura (horario_id es obligatorio)
+    total_pagado = precio_unitario * cantidad
     nueva_reserva = Reserva(
         horario_id=horario_id,
         usuario_id=usuario.id if usuario else None,
         cupos=cantidad,
-        estado_pago="pendiente"
+        estado_pago="pendiente",
+        metodo_pago="mercadopago",
+        costo_pagado=total_pagado,
+        moneda="UYU"
     )
     db.add(nueva_reserva)
     db.commit()
