@@ -59,9 +59,17 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Costo</label>
+                        <label class="form-label">Costo (UYU)</label>
                         <input type="number" step="0.01" name="costo" class="form-control"
                         value="{{ '' if modo == 'crear' else evento.costo }}" required>
+                        <small class="form-text text-muted">Precio en pesos uruguayos para pagos con MercadoPago.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Costo en Dólares (USD) - Opcional</label>
+                        <input type="number" step="0.01" name="costo_dolares" class="form-control"
+                        value="{{ '' if modo == 'crear' else (evento.costo_dolares if evento.costo_dolares else '') }}">
+                        <small class="form-text text-muted">Si se completa, se habilitará el pago con PayPal en dólares para usuarios fuera de Uruguay.</small>
                     </div>
 
                     <div class="mb-3">

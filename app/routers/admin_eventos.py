@@ -106,6 +106,7 @@ def crear_evento(
     ubicacion: str = Form(None),
     direccion: str = Form(None),
     costo: float = Form(...),
+    costo_dolares: Optional[float] = Form(None),
     prioridad: Optional[str] = Form(None),
     imagen: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
@@ -143,6 +144,7 @@ def crear_evento(
         ubicacion=ubicacion,
         direccion=direccion,
         costo=costo,
+        costo_dolares=costo_dolares,
         prioridad=prioridad_int,
         imagen=imagen_url,
         imagen_public_id=imagen_public_id
@@ -185,6 +187,7 @@ def actualizar_evento(
     ubicacion: str = Form(None),
     direccion: str = Form(None),
     costo: float = Form(...),
+    costo_dolares: Optional[float] = Form(None),
     prioridad: Optional[str] = Form(None),
     imagen: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
@@ -232,6 +235,7 @@ def actualizar_evento(
     evento.ubicacion = ubicacion
     evento.direccion = direccion
     evento.costo = costo
+    evento.costo_dolares = costo_dolares
     evento.prioridad = prioridad_int
 
     db.commit()

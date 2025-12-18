@@ -12,8 +12,12 @@ from app.db import get_db
 from app.models.ebooks import Ebook
 from app.models.compra_ebooks import CompraEbook
 from app.models.user import Usuario
+from app.models.reserva import Reserva
+from app.models.evento import Evento
+from app.models.horario_fecha_evento import HorarioFechaEvento
+from app.models.fecha_evento import FechaEvento
 from app.routers.auth import current_active_user
-from app.mail_utils import enviar_confirmacion_compra_ebook, notificar_admin_compra_ebook
+from app.mail_utils import enviar_confirmacion_compra_ebook, notificar_admin_compra_ebook, enviar_confirmacion_reserva, notificar_admin_reserva
 
 router = APIRouter()
 
@@ -301,3 +305,180 @@ def cancelar_pago_paypal(
         print(f"🚫 Compra de ebook #{compra.id} cancelada por el usuario")
     
     return RedirectResponse(url="/ebooks?mensaje=pago_cancelado", status_code=303)
+
+# ==================== ENDPOINTS PARA RESERVAS DE EVENTOS ====================
+
+class ReservaEventoPayPalRequest(BaseModel):
+    horario_id: int
+    cantidad: int
+
+@router.post("/paypal/crear-orden-evento")
+def crear_orden_paypal_evento(
+    request: ReservaEventoPayPalRequest,
+    usuario: Usuario = Depends(current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Crear orden de pago en PayPal para una reserva de evento"""
+    
+    # Verificar que el horario existe
+    horario = db.query(HorarioFechaEvento).options(
+        joinedload(HorarioFechaEvento.fecha_evento).joinedload(FechaEvento.evento)
+    ).filter(HorarioFechaEvento.id == request.horario_id).first()
+    
+    if not horario:
+        raise HTTPException(status_code=404, detail="Horario no encontrado")
+    
+    evento = horario.fecha_evento.evento
+    
+    # Verificar que el evento tiene precio en dólares
+    if not evento.costo_dolares:
+        raise HTTPException(status_code=400, detail="Este evento no acepta pagos en dólares")
+    
+    # Verificar cupos disponibles
+    from sqlalchemy import func
+    cupos_reservados = db.query(func.sum(Reserva.cupos)).filter(
+        Reserva.horario_id == request.horario_id,
+        Reserva.estado_pago == "aprobado"
+    ).scalar() or 0
+    
+    cupos_disponibles = horario.cupos - cupos_reservados
+    
+    if request.cantidad > cupos_disponibles:
+        raise HTTPException(status_code=400, detail=f"Solo hay {cupos_disponibles} cupos disponibles")
+    
+    # Crear registro de reserva
+    total_pagado = evento.costo_dolares * request.cantidad
+    nueva_reserva = Reserva(
+        usuario_id=usuario.id,
+        horario_id=request.horario_id,
+        cupos=request.cantidad,
+        estado_pago="pendiente",
+        metodo_pago="paypal",
+        costo_pagado=total_pagado,
+        moneda="USD"
+    )
+    
+    db.add(nueva_reserva)
+    db.commit()
+    db.refresh(nueva_reserva)
+    
+    try:
+        # Configurar PayPal
+        paypal_config = PayPalConfig()
+        access_token = paypal_config.get_access_token()
+        
+        # Crear orden en PayPal
+        base_url = os.getenv("BASE_URL", "http://localhost:8000")
+        
+        total_amount = float(evento.costo_dolares) * request.cantidad
+        
+        order_data = {
+            "intent": "CAPTURE",
+            "purchase_units": [{
+                "reference_id": f"EVENTO{nueva_reserva.id}",
+                "amount": {
+                    "currency_code": "USD",
+                    "value": f"{total_amount:.2f}"
+                },
+                "description": f"Evento: {evento.titulo} - {request.cantidad} persona(s)"
+            }],
+            "application_context": {
+                "return_url": f"{base_url}/paypal/evento-pago-exitoso",
+                "cancel_url": f"{base_url}/eventos/{evento.id}?pago=cancelado"
+            }
+        }
+        
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {access_token}",
+        }
+        
+        response = requests.post(
+            f"{paypal_config.base_url}/v2/checkout/orders",
+            headers=headers,
+            json=order_data
+        )
+        
+        if response.status_code == 201:
+            order = response.json()
+            
+            # Guardar el ID de la orden de PayPal
+            nueva_reserva.transaction_id = order["id"]
+            db.commit()
+            
+            # Buscar el enlace de aprobación
+            approve_link = None
+            for link in order["links"]:
+                if link["rel"] == "approve":
+                    approve_link = link["href"]
+                    break
+            
+            return {
+                "order_id": order["id"],
+                "approve_url": approve_link,
+                "reserva_id": nueva_reserva.id
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Error al crear orden en PayPal")
+            
+    except Exception as e:
+        # Eliminar la reserva si falla la creación de la orden
+        db.delete(nueva_reserva)
+        db.commit()
+        raise HTTPException(status_code=500, detail=f"Error al procesar el pago: {str(e)}")
+
+@router.get("/paypal/evento-pago-exitoso")
+def evento_pago_exitoso_paypal(
+    request: Request,
+    token: str,
+    PayerID: str,
+    db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = BackgroundTasks()
+):
+    """Capturar pago de evento después de la aprobación del usuario"""
+    
+    try:
+        # Configurar PayPal
+        paypal_config = PayPalConfig()
+        access_token = paypal_config.get_access_token()
+        
+        # Capturar el pago
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {access_token}",
+        }
+        
+        response = requests.post(
+            f"{paypal_config.base_url}/v2/checkout/orders/{token}/capture",
+            headers=headers
+        )
+        
+        if response.status_code == 201:
+            capture_data = response.json()
+            
+            # Buscar la reserva por transaction_id
+            reserva = db.query(Reserva).options(
+                joinedload(Reserva.horario).joinedload(HorarioFechaEvento.fecha_evento).joinedload(FechaEvento.evento),
+                joinedload(Reserva.usuario)
+            ).filter(Reserva.transaction_id == token).first()
+            
+            if reserva and reserva.estado_pago != "aprobado":
+                # Actualizar estado de la reserva
+                reserva.estado_pago = "aprobado"
+                db.commit()
+                
+                # Enviar emails de confirmación
+                background_tasks.add_task(enviar_confirmacion_reserva, reserva, reserva.usuario)
+                background_tasks.add_task(notificar_admin_reserva, reserva, reserva.usuario)
+                
+                print(f"🎉 Reserva de evento #{reserva.id} confirmada via PayPal")
+                
+                return RedirectResponse(url=f"/reserva-confirmada/{reserva.id}", status_code=303)
+            else:
+                return RedirectResponse(url="/eventos?error=reserva_no_encontrada", status_code=303)
+        else:
+            return RedirectResponse(url="/eventos?error=pago_fallido", status_code=303)
+            
+    except Exception as e:
+        print(f"❌ Error procesando pago de evento PayPal: {e}")
+        return RedirectResponse(url="/eventos?error=error_procesamiento", status_code=303)

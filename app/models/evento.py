@@ -14,6 +14,7 @@ class Evento(Base):
     ubicacion = Column(String, nullable=True)
     direccion = Column(String, nullable=True)
     costo = Column(Numeric(10, 2), nullable=True)
+    costo_dolares = Column(Numeric(10, 2), nullable=True)  # Precio en USD para PayPal
     imagen = Column(String, nullable=True)  # URL de la imagen del evento
     imagen_public_id = Column(String, nullable=True)  # public_id de la imagen del evento
     prioridad = Column(Integer, nullable=True)  # Prioridad para ordenar eventos (menor = mayor prioridad)
