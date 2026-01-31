@@ -106,7 +106,7 @@ def crear_evento(
     ubicacion: str = Form(None),
     direccion: str = Form(None),
     costo: float = Form(...),
-    costo_dolares: Optional[float] = Form(None),
+    costo_dolares: Optional[str] = Form(None),
     prioridad: Optional[str] = Form(None),
     imagen: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
@@ -114,6 +114,7 @@ def crear_evento(
     # Si vino vacío, lo convierto a None
     categoria_id_int = int(categoria_id) if categoria_id else None
     prioridad_int = int(prioridad) if prioridad and prioridad.strip() else None
+    costo_dolares_float = int(costo_dolares) if costo_dolares else None
     
     # Subir imagen a Cloudinary si se proporciona
     imagen_url = None
@@ -144,7 +145,7 @@ def crear_evento(
         ubicacion=ubicacion,
         direccion=direccion,
         costo=costo,
-        costo_dolares=costo_dolares,
+        costo_dolares=costo_dolares_float,
         prioridad=prioridad_int,
         imagen=imagen_url,
         imagen_public_id=imagen_public_id
@@ -187,7 +188,7 @@ def actualizar_evento(
     ubicacion: str = Form(None),
     direccion: str = Form(None),
     costo: float = Form(...),
-    costo_dolares: Optional[float] = Form(None),
+    costo_dolares: Optional[str] = Form(None),
     prioridad: Optional[str] = Form(None),
     imagen: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
@@ -195,6 +196,7 @@ def actualizar_evento(
     # Si vino vacío, lo convierto a None
     categoria_id_int = int(categoria_id) if categoria_id else None
     prioridad_int = int(prioridad) if prioridad and prioridad.strip() else None
+    costo_dolares_float = int(costo_dolares) if costo_dolares else None
 
     evento = db.query(Evento).get(evento_id)
     if not evento:
@@ -235,7 +237,7 @@ def actualizar_evento(
     evento.ubicacion = ubicacion
     evento.direccion = direccion
     evento.costo = costo
-    evento.costo_dolares = costo_dolares
+    evento.costo_dolares = costo_dolares_float
     evento.prioridad = prioridad_int
 
     db.commit()
