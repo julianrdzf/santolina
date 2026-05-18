@@ -6,7 +6,7 @@ from pathlib import Path
 from fastapi.templating import Jinja2Templates
 from app.routers import categorias, eventos, reservas, admin, admin_eventos, admin_ebooks, contacto, usuarios, mercado_pago, tienda, ebooks, paypal
 from fastapi import FastAPI
-from app.mail_utils import enviar_mail_prueba
+from app.mail_utils import enviar_mail_prueba, enviar_mail_test_dev
 from app.routers.auth import router as auth_router
 from app.models.user import Usuario
 import locale
@@ -145,8 +145,22 @@ async def mostrar_limpieza_energetica(request: Request):
 ###########################
 ##Test
 
-
-#@app.get("/test-email")
-#async def test_email():
-#    await enviar_mail_prueba("aqui_mail_test@test.com")
-#    return {"mensaje": "Correo enviado correctamente"}
+@app.get("/test-email")
+async def test_email():
+    try:
+        dev_email = await enviar_mail_test_dev()
+        return {
+            "status": "success",
+            "mensaje": f"Email de prueba enviado exitosamente a {dev_email}",
+            "destinatario": dev_email
+        }
+    except ValueError as e:
+        return {
+            "status": "error",
+            "mensaje": str(e)
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "mensaje": f"Error al enviar email: {str(e)}"
+        }
