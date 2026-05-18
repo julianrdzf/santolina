@@ -140,6 +140,25 @@ async def enviar_mail_prueba(destinatario: str):
     """
     send_email(destinatario, "¡Correo de prueba desde Santolina!", content)
 
+async def enviar_mail_test_dev():
+    """Envía un email de prueba al desarrollador usando DEV_EMAIL del .env"""
+    dev_email = os.getenv("DEV_EMAIL")
+    if not dev_email:
+        raise ValueError("DEV_EMAIL no está configurado en el archivo .env")
+    
+    content = """
+    <h2>✅ Test de Email - Santolina</h2>
+    <p>Este es un email de prueba automático del sistema.</p>
+    <p><strong>Estado:</strong> El sistema de envío de emails está funcionando correctamente.</p>
+    <p><strong>Servicio:</strong> Gmail API</p>
+    <p><strong>Timestamp:</strong> """ + __import__('datetime').datetime.now().strftime('%d/%m/%Y %H:%M:%S') + """</p>
+    <hr>
+    <p style="color: #666; font-size: 12px;">Este email fue generado automáticamente desde el endpoint /test-email</p>
+    """
+    
+    send_email(dev_email, "🧪 Test Email - Sistema Santolina", content)
+    return dev_email
+
 async def enviar_confirmacion_reserva(reserva, usuario):
     # Obtener información del horario y evento
     horario = reserva.horario
