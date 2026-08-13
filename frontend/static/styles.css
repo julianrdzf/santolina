@@ -1600,6 +1600,10 @@ transform: rotate(90deg);
     text-align: center;
 }
 
+.tienda-cta {
+    text-align: center;
+}
+
 /* Sección Eventos */
 .events {
     padding: 100px 5px;
